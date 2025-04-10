@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ServeSYNC</title>
+  <style>
+    :root {
+      --jungle-green: #1f9e86;
+      --tiber: #084231;
+      --white: #ffffff;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: var(--white);
+    }
+
+    header {
+      background-color: var(--white);
+      border-bottom: 2px solid var(--tiber);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 40px;
+    }
+
+    .logo {
+      font-size: 28px;
+      font-weight: bold;
+      color: var(--tiber);
+    }
+
+    nav a {
+      margin: 0 15px;
+      text-decoration: none;
+      color: var(--tiber);
+      font-weight: 500;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      padding: 40px;
+      gap: 40px;
+    }
+
+    .card {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .navbar {
+      background-color: var(--jungle-green);
+      color: var(--white);
+      padding: 10px;
+      border-radius: 8px 8px 0 0;
+      font-weight: bold;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-top: 15px;
+      color: var(--tiber);
+    }
+
+    .sub-section {
+      margin-top: 10px;
+      color: #444;
+    }
+
+    .dropdown {
+      position: absolute;
+      top: 60px;
+      right: 40px;
+      background-color: var(--white);
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      display: none;
+      padding: 10px;
+    }
+
+    .dropdown a {
+      display: block;
+      text-decoration: none;
+      color: var(--tiber);
+      padding: 5px 0;
+    }
+
+    .account:hover .dropdown {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">ServeSYNC</div>
+    <nav>
+      <a href="#">Home</a>
+      <a href="#">Log</a>
+      <a href="#">Log in</a>
+      <span class="account">
+        <a href="#">My Account</a>
+        <div class="dropdown">
+          <a href="#">Dashboard</a>
+          <a href="#">Change Password</a>
+          <a href="#">Logout</a>
+        </div>
+      </span>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      <div class="navbar">Student Dashboard</div>
+      <div class="sub-section">Welcome, "Name"</div>
+      <div class="sub-section"><a href="#">Log new hours</a></div>
+      <div class="section-title">Activity</div>
+      <div class="sub-section">Recent activity | Log hours</div>
+      <div class="section-title">Hours completed</div>
+      <div class="section-title">Hours till achievement</div>
+      <div class="section-title">Top groups</div>
+    </div>
+
+    <div class="card">
+      <div class="navbar">Staff Dashboard</div>
+      <div class="sub-section">Welcome, "Name"</div>
+      <div class="sub-section"><a href="#">Log new hours</a></div>
+      <div class="section-title">Recent submissions</div>
+      <div class="section-title">Groups</div>
+      <div class="section-title">Filters</div>
+    </div>
+
+    <div class="card">
+      <div class="navbar">Log Page</div>
+      <div class="sub-section">Form will go here</div>
+    </div>
+  </div>
+</body>
+</html>
