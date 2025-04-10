@@ -1,0 +1,280 @@
+:root {
+  --jungle-green: #1f9e86;
+  --tiber: #084231;
+  --white: #ffffff;
+  --light-gray: #f8f9fa;
+  --soft-shadow: rgba(0, 0, 0, 0.06);
+  --font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  background-color: var(--light-gray);
+  color: var(--tiber);
+}
+
+/* Header */
+.main-header {
+  background-color: var(--white);
+  border-bottom: 2px solid var(--tiber);
+  padding: 15px 40px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+/* Navbar */
+.navbar-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+}
+
+.logo-section {
+  display: flex;
+  align-items: center;
+}
+
+.site-logo {
+  height: 40px;
+  margin-right: 12px;
+}
+
+.logo-text {
+  font-size: 26px;
+  font-weight: bold;
+  color: var(--tiber);
+}
+
+.nav-links {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  list-style: none;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: var(--tiber);
+  font-weight: 500;
+  padding: 8px 14px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.nav-links a:hover {
+  background-color: var(--jungle-green);
+  color: var(--white);
+}
+
+.dropdown {
+  position: relative;
+}
+
+.dropbtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.avatar {
+  height: 32px;
+  width: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--jungle-green);
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 45px;
+  background-color: var(--white);
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  min-width: 230px;
+  box-shadow: 0 8px 16px var(--soft-shadow);
+  z-index: 100;
+  overflow: hidden;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+.dropdown-content a {
+  display: block;
+  padding: 12px 20px;
+  color: var(--tiber);
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+
+.dropdown-content a:hover {
+  background-color: #f0f0f0;
+}
+
+.dropdown-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid #e0e0e0;
+  background-color: #f9f9f9;
+}
+
+/* Dashboard */
+.dashboard {
+  display: flex;
+  gap: 40px;
+  padding: 40px 60px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  max-width: 100%;
+  margin: 0;
+}
+
+/* Left Column */
+.left-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Right Column */
+.right-column {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-left: 20px;
+}
+
+/* Welcome header styling */
+.welcome-header {
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.welcome-header h1 {
+  font-size: 32px;
+  color: var(--tiber);
+  margin-bottom: 12px;
+}
+
+.welcome-header .log-link {
+  padding: 10px 18px;
+  background-color: var(--jungle-green);
+  color: var(--white);
+  text-decoration: none;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: background-color 0.3s ease;
+}
+
+.welcome-header .log-link:hover {
+  background-color: var(--tiber);
+}
+
+/* Boxed sections */
+.section {
+  background-color: var(--white);
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 4px 12px var(--soft-shadow);
+}
+
+.section h3 {
+  margin-bottom: 12px;
+  margin-top: -1%;
+  color: var(--tiber);
+}
+
+.section p, .section ul {
+  font-size: 16px;
+  margin: 0;
+}
+
+.section ul {
+  padding-left: 20px;
+  margin-top: 5px;
+}
+
+.hours-completed, .hours-needed, .top-groups {
+  text-align: center;
+}
+
+.activity-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+  font-size: 15px;
+}
+
+.activity-table thead {
+  background-color: var(--light-gray);
+}
+
+.activity-table th,
+.activity-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.activity-table tbody tr:hover {
+  background-color: #f1f1f1;
+}
+
+.activity-table .approved {
+  color: green;
+  font-weight: 500;
+}
+
+.activity-table .pending {
+  color: #e69500;
+  font-weight: 500;
+}
+
+/* 404 page */
+body.page-404 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #fff;
+  font-family: var(--font);
+  color: #333;
+}
+
+.container-404 {
+  text-align: center;
+}
+
+.message {
+  font-size: 1.5rem;
+  margin-top: -20px;
+}
+
+.home-button-404 a {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #1f9e86;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: background 0.3s;
+}
+
+.home-button-404 a:hover {
+  background-color: #084231;
+}
+
+.oops {
+  font-size: 10rem;
+  background: linear-gradient(135deg, #084231, #1f9e86);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Fencing Hub{% endblock %}</title>
+    <link rel="stylesheet" href="static/CSS/styles.css">
+    <link rel="icon" type="image/png" href="/static/images/logos/logo.png">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+<body id="{% block body_id %}index-page{% endblock %}" style="background: linear-gradient(135deg, #0088a9, #24252A);">
+
+    <nav class="navbar">
+        <div class="nav-left">
+            <img src="/static/images/logos/logo.png" alt="ServeSYNC Logo" class="logo-img">
+            <span class="brand-name">ServeSYNC</span>
+        </div>
+        <ul class="menu">
+            <li><a href="/home">Home</a></li>
+            <li><a href="/log">Log</a></li>
+            {% if session.username %}
+                <li class="dropdown">
+                    <a href="#">My Account ▼</a>
+                    <div class="dropdown-content">
+                        <p><strong>{{ session.username }}</strong></p>
+                        <p>{{ session.usercode }}</p>
+                        <a href="/dashboard">Dashboard</a>
+                        <a href="/account">Account</a>
+                        <a href="/change_password">Change Password</a>
+                        <a href="/data_sharing">Data Sharing</a>
+                        <a href="/logout">Logout</a>
+                    </div>
+                </li>
+            {% else %}
+                <li><a href="/login">Log in</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    {% block content %}
+    {% endblock %}
+
+    <footer>
+        <ul>
+            <li>&copy; 2024 Fencing Hub. All rights reserved.</li>
+        </ul>
+        <div class="social-media">
+            <a href="#"><img src="Static/Images/Logos/Facebook.png" alt="Facebook"></a>
+            <a href="#"><img src="Static/Images/Logos/X.png" alt="Twitter"></a>
+            <a href="#"><img src="Static/Images/Logos/Insta.png" alt="Instagram"></a>
+        </div>
+    </footer>
+
+</body>
+</html>

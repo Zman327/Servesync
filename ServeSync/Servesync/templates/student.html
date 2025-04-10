@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ServeSYNC - Student Dashboard</title>
+  <link rel="stylesheet" href="/static/CSS/styles.css">
+  <link rel="icon" type="image/png" href="static/Images/Logo/favicon.png">
+</head>
+<body>
+  <header class="main-header">
+    <div class="navbar-container">
+      <div class="logo-section">
+        <img src="static/Images/Logo/favicon.png" alt="Logo" class="site-logo">
+        <span class="logo-text">ServeSYNC</span>
+      </div>
+      <nav class="navbar">
+        <ul class="nav-links">
+          <li><a href="#">Home</a></li>
+          <li><a href="#">Log</a></li>
+          <li><a href="#">Dashboard</a></li>
+          <li class="dropdown">
+            <a href="#" class="dropbtn">
+              <img src="static/Images/Profile/deafult.jpg" alt="Avatar" class="avatar">
+              My Account
+            </a>
+            <div class="dropdown-content">
+              <div class="dropdown-header">
+                <strong>Zeyad Elmallah</strong><br>
+                <small>21524 | Student Account</small>
+              </div>
+              <a href="#">Dashboard</a>
+              <a href="#">Change Password</a>
+              <a href="#">Data Sharing</a>
+              <a href="#">Logout</a>
+            </div>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="dashboard">
+    <div class="left-column">
+      <section class="section hours-completed">
+        <h3>Hours Completed</h3>
+        <p>30</p>
+      </section>
+      <section class="section hours-needed">
+        <h3>Hours Till Achievement</h3>
+        <p>20</p>
+      </section>
+      <section class="section top-groups">
+        <h3>Top Groups</h3>
+        <ul>
+          <li>Group A</li>
+          <li>Group B</li>
+          <li>Group C</li>
+        </ul>
+      </section>
+    </div>
+  
+    <div class="right-column">
+      <div class="welcome-header">
+        <h1>Welcome, "Name"</h1>
+        <a href="#" class="log-link">Log new hours</a>
+      </div>
+  
+      <div class="card recent-activity">
+        <h3>Recent Activity</h3>
+        <table class="activity-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Activity</th>
+              <th>Hours</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>2025-04-05</td>
+              <td>Beach Cleanup</td>
+              <td>3</td>
+              <td class="approved">Approved</td>
+            </tr>
+            <tr>
+              <td>2025-04-01</td>
+              <td>Food Drive</td>
+              <td>2</td>
+              <td class="pending">Pending</td>
+            </tr>
+            <tr>
+              <td>2025-03-28</td>
+              <td>Library Sorting</td>
+              <td>1.5</td>
+              <td class="approved">Approved</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
