@@ -1,55 +1,138 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Fencing Hub{% endblock %}</title>
-    <link rel="stylesheet" href="static/CSS/styles.css">
-    <link rel="icon" type="image/png" href="/static/images/logos/logo.png">
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}ServeSYNC{% endblock %}</title>
+  <link rel="stylesheet" href="/static/CSS/styles.css">
+  <link rel="icon" type="image/png" href="static/Images/Logo/favicon.png">
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 </head>
-<body id="{% block body_id %}index-page{% endblock %}" style="background: linear-gradient(135deg, #0088a9, #24252A);">
+<body>
+  <!-- Header Section -->
+  <header class="landing-header">
+    <div class="logo-container">
+      <img src="static/Images/Logo/favicon.png" alt="Logo" class="site-logo">
+      <span class="logo-text">ServeSYNC</span>
+    </div>
+    <nav class="landing-nav">
+      <ul class="nav-links">
+        <li><a href="/home">Home</a></li>
+        <li><a href="#">Log</a></li>
+        <li><a href="/student.dashboard">Dashboard</a></li>
+      </ul>
 
-    <nav class="navbar">
-        <div class="nav-left">
-            <img src="/static/images/logos/logo.png" alt="ServeSYNC Logo" class="logo-img">
-            <span class="brand-name">ServeSYNC</span>
+      <!-- Auth or Account Dropdown (Dynamic Based on Login Status) -->
+      <div class="auth-or-account">
+        {% if session.username %}
+        <div class="dropdown">
+          <a href="#" class="dropbtn">
+            <img src="static/Images/Profile/deafult.jpg" alt="Avatar" class="avatar">
+            <span>My Account</span>
+          </a>
+          <div class="dropdown-content">
+            <div class="dropdown-header">
+              <strong>Zeyad Elmallah</strong><br>
+              <small>21524 | Student Account</small>
+            </div>
+            <a href="#">Dashboard</a>
+            <a href="#">Change Password</a>
+            <a href="#">Data Sharing</a>
+            <a href="#">Logout</a>
+          </div>
         </div>
-        <ul class="menu">
-            <li><a href="/home">Home</a></li>
-            <li><a href="/log">Log</a></li>
-            {% if session.username %}
-                <li class="dropdown">
-                    <a href="#">My Account ▼</a>
-                    <div class="dropdown-content">
-                        <p><strong>{{ session.username }}</strong></p>
-                        <p>{{ session.usercode }}</p>
-                        <a href="/dashboard">Dashboard</a>
-                        <a href="/account">Account</a>
-                        <a href="/change_password">Change Password</a>
-                        <a href="/data_sharing">Data Sharing</a>
-                        <a href="/logout">Logout</a>
-                    </div>
-                </li>
-            {% else %}
-                <li><a href="/login">Log in</a></li>
-            {% endif %}
-        </ul>
+        {% else %}
+        <div class="auth-buttons">
+          <button class="login-btn" onclick="openLoginModal()"><i class='bx bxs-user'></i> Log In</button>
+        </div>
+        {% endif %}
+      </div>
     </nav>
+  </header>
 
+  <!-- Main Content Section -->
+  <main>
     {% block content %}
+    <!-- This is where the specific page content will go -->
     {% endblock %}
+  </main>
 
-    <footer>
-        <ul>
-            <li>&copy; 2024 Fencing Hub. All rights reserved.</li>
-        </ul>
-        <div class="social-media">
-            <a href="#"><img src="Static/Images/Logos/Facebook.png" alt="Facebook"></a>
-            <a href="#"><img src="Static/Images/Logos/X.png" alt="Twitter"></a>
-            <a href="#"><img src="Static/Images/Logos/Insta.png" alt="Instagram"></a>
+  <!-- Footer Section (Optional) -->
+  <footer class="landing-footer">
+    <div class="footer-links">
+      <a href="#">About</a>
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+    </div>
+    <p>&copy; 2025 ServeSYNC. All rights reserved.</p>
+  </footer>
+
+  <!-- Login Modal -->
+  <div id="loginModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeLoginModal()">&times;</span>
+      <h2 class="center-text">Log In</h2>
+      <form action="/login" method="POST" class="floating-form">
+        <div class="form-group">
+          <i class='bx bxs-user'></i>
+          <input type="text" id="username" name="username" placeholder=" " required>
+          <label for="username">Username</label>
         </div>
-    </footer>
 
+        <div class="form-group">
+          <i class='bx bxs-lock-alt' id="lockIcon"></i>
+          <input type="password" id="password" name="password" placeholder=" " required>
+          <label for="password">Password</label>
+          <i class="bx bxs-eye" id="togglePassword" onclick="togglePasswordVisibility()"></i>
+        </div>
+
+        <button type="submit">Log In</button>
+        <div class="or-separator">or</div>
+        <button type="button" class="google-login-btn">
+          <i class='bx bxl-google'></i> Log in with Google
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script>
+    function openLoginModal() {
+      document.getElementById("loginModal").style.display = "flex";
+    }
+
+    function closeLoginModal() {
+      document.getElementById("loginModal").style.display = "none";
+    }
+
+    window.onclick = function(event) {
+      const modal = document.getElementById("loginModal");
+      if (event.target === modal) {
+        closeLoginModal();
+      }
+    };
+
+    // Close modal on Escape key
+    window.addEventListener("keydown", function(e) {
+      if (e.key === "Escape") {
+        closeLoginModal();
+      }
+    });
+
+    // Toggle password visibility
+    function togglePasswordVisibility() {
+      const pwField = document.getElementById("password");
+      const toggle = document.getElementById("togglePassword");
+      if (pwField.type === "password") {
+        pwField.type = "text";
+        toggle.classList.remove("bxs-eye");
+        toggle.classList.add("bxs-hide");
+      } else {
+        pwField.type = "password";
+        toggle.classList.remove("bxs-hide");
+        toggle.classList.add("bxs-eye");
+      }
+    }
+  </script>
 </body>
 </html>

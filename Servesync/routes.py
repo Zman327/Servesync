@@ -15,11 +15,14 @@ def studentpage():
 
 # 404 page to display when a page is not found
 # helps re-direct users back to home page
-
-
-@app.errorhandler(404)
+@app.errorhandler(404) # noqa:
 def page_not_found(e):
     return render_template('404.html'), 404
+
+
+@app.route('/login', methods=['POST'])
+def login():
+    return render_template('/student.dashboard')
 
 
 if __name__ == "__main__":
