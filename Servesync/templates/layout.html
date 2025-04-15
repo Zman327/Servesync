@@ -7,6 +7,10 @@
   <link rel="stylesheet" href="/static/CSS/styles.css">
   <link rel="icon" type="image/png" href="static/Images/Logo/favicon.png">
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 </head>
 <body>
   <!-- Header Section -->
@@ -32,13 +36,13 @@
           </a>
           <div class="dropdown-content">
             <div class="dropdown-header">
-              <strong>Zeyad Elmallah</strong><br>
-              <small>21524 | Student Account</small>
+              <strong>{{ session.name }}</strong><br>
+              <small>{{ session.username }} | Student Account</small>
             </div>
             <a href="#">Dashboard</a>
             <a href="#">Change Password</a>
             <a href="#">Data Sharing</a>
-            <a href="#">Logout</a>
+            <a href="/logout">Logout</a>
           </div>
         </div>
         {% else %}

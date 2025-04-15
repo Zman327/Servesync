@@ -4,18 +4,25 @@
 
 {% block content %}
 
+  <link rel="stylesheet" href="/path/to/styles.css">
+
   <main class="dashboard">
     <div class="left-column">
       <section class="section hours-completed">
-        <h3>Hours Completed</h3>
-        <p>30</p>
+        <h3><i class="fas fa-check-circle"></i> Hours Completed</h3>
+        <p class="large-number">30 / 50 Hours</p>
       </section>
       <section class="section hours-needed">
-        <h3>Hours Till Achievement</h3>
-        <p>20</p>
+        <h3><i class="fas fa-trophy"></i> Hours Till Achievement</h3>
+        <div class="tooltip">
+          <div class="progress-container">
+            <div class="progress-bar" style="width: 60%;">30 / 50 Hours</div>
+          </div>
+          <span class="tooltiptext">60% of Goal Achieved</span>
+        </div>
       </section>
       <section class="section top-groups">
-        <h3>Top Groups</h3>
+        <h3><i class="fas fa-users"></i> Top Groups</h3>
         <ul>
           <li>Group A</li>
           <li>Group B</li>
@@ -26,13 +33,13 @@
   
     <div class="right-column">
       <div class="welcome-header">
-        <h1>Welcome, "Name"</h1>
-        <a href="#" class="log-link">Log new hours</a>
+        <h1>{{ greeting }}, {{ session.name.split(' ')[0] }}</h1>
+        <a href="/log-hours" class="log-link btn btn-primary">Log New Hours</a>
       </div>
   
       <div class="card recent-activity">
         <h3>Recent Activity</h3>
-        <table class="activity-table">
+        <table class="activity-table datatable">
           <thead>
             <tr>
               <th>Date</th>
@@ -46,22 +53,23 @@
               <td>2025-04-05</td>
               <td>Beach Cleanup</td>
               <td>3</td>
-              <td class="approved">Approved</td>
+              <td class="approved"><i class="fas fa-check-circle"></i> Approved</td>
             </tr>
             <tr>
               <td>2025-04-01</td>
               <td>Food Drive</td>
               <td>2</td>
-              <td class="pending">Pending</td>
+              <td class="pending"><i class="fas fa-clock"></i> Pending</td>
             </tr>
             <tr>
               <td>2025-03-28</td>
               <td>Library Sorting</td>
               <td>1.5</td>
-              <td class="approved">Approved</td>
+              <td class="approved"><i class="fas fa-check-circle"></i> Approved</td>
             </tr>
           </tbody>
         </table>
+        <a href="/activity-history" class="btn btn-secondary">See All Activity</a>
       </div>
     </div>
   </main>

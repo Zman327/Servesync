@@ -782,3 +782,120 @@ body.page-404 {
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(0,0,0,0.2);
 }
+
+/* Progress Bar */
+.progress-container {
+  width: 100%;
+  background-color: #e0e0e0;
+  border-radius: 30px;
+  overflow: hidden;
+  margin-top: 8px;
+  height: 24px;
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: var(--jungle-green);
+  color: white;
+  text-align: center;
+  line-height: 24px;
+  font-weight: bold;
+  transition: width 0.4s ease;
+  border-radius: 30px;
+}
+
+/* DataTables integration styling */
+.dataTables_wrapper {
+  margin-top: 16px;
+}
+
+table.dataTable thead {
+  background-color: var(--light-gray);
+}
+
+table.dataTable thead th {
+  color: var(--tiber);
+  font-weight: 600;
+}
+
+table.dataTable tbody tr:hover {
+  background-color: #f1f1f1;
+}
+
+/* Global Styles */
+body {
+  font-family: 'Roboto', sans-serif;
+  margin: 0;
+  background-color: #f4f4f9;
+  color: #084231;
+}
+
+h1, h3 {
+  font-weight: 500;
+}
+
+/* Progress Bar Animation */
+.progress-bar {
+  transition: width 0.5s ease-in-out;
+}
+
+/* Responsive Layout */
+@media (max-width: 768px) {
+  .left-column, .right-column {
+    width: 100%;
+    margin-bottom: 20px;
+  }
+  .dashboard {
+    display: block;
+  }
+}
+
+/* Button Styles */
+.btn {
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 14px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.btn-secondary {
+  background-color: #4CAF50;
+  color: white;
+}
+
+/* Add Hover Effect for Buttons */
+.btn:hover {
+  opacity: 0.8;
+}
+
+/* Tooltip */
+.tooltip {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 120px;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  border-radius: 5px;
+  padding: 5px;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%; 
+  left: 50%;
+  margin-left: -60px;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}
