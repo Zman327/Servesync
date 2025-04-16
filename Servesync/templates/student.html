@@ -10,13 +10,15 @@
     <div class="left-column">
       <section class="section hours-completed">
         <h3><i class="fas fa-check-circle"></i> Hours Completed</h3>
-        <p class="large-number">30 / 50 Hours</p>
+        <p class="large-number">13.5</p>
       </section>
       <section class="section hours-needed">
         <h3><i class="fas fa-trophy"></i> Hours Till Achievement</h3>
         <div class="tooltip">
           <div class="progress-container">
-            <div class="progress-bar" style="width: 60%;">30 / 50 Hours</div>
+            <div class="progress-bar" style="background: conic-gradient(var(--jungle-green) 0% 60%, #e0e0e0 60% 100%);">
+              <span>60%</span> <!-- You can display the percentage or any relevant text -->
+            </div>
           </div>
           <span class="tooltiptext">60% of Goal Achieved</span>
         </div>
@@ -33,11 +35,17 @@
   
     <div class="right-column">
       <div class="welcome-header">
-        <h1>{{ greeting }}, {{ session.name.split(' ')[0] }}</h1>
-        <a href="/log-hours" class="log-link btn btn-primary">Log New Hours</a>
+        <h1 style="font-size: 42px; font-weight: bold;">
+          {{ greeting }}
+          <br>
+          <span style="font-weight: normal;">{{ session.name }}</span>
+        </h1>
+        <a href="/log" class="log-link btn btn-primary">
+          <i class="fas fa-plus-circle"></i> Log New Hours
+        </a>
       </div>
   
-      <div class="card recent-activity">
+      <section class="section recent-activity">
         <h3>Recent Activity</h3>
         <table class="activity-table datatable">
           <thead>
@@ -67,10 +75,25 @@
               <td>1.5</td>
               <td class="approved"><i class="fas fa-check-circle"></i> Approved</td>
             </tr>
+            <tr>
+              <td>2025-02-18</td>
+              <td>Tech crew training</td>
+              <td>3</td>
+              <td class="pending"><i class="fas fa-check-circle"></i> Pending</td>
+            </tr>
+            <tr>
+              <td>2025-01-05</td>
+              <td>Staff support meeting</td>
+              <td>4</td>
+              <td class="pending"><i class="fas fa-check-circle"></i> Pending</td>
+            </tr>
           </tbody>
         </table>
-        <a href="/activity-history" class="btn btn-secondary">See All Activity</a>
-      </div>
+        <br>
+        <a href="/activity-history" class="btn btn-secondary">
+          <i class="fas fa-clock"></i> See All Activity
+        </a>
+      </section>
     </div>
   </main>
 </body>

@@ -26,6 +26,16 @@ def homepage():
     return render_template('index.html')
 
 
+@app.route('/log')
+def logpage():
+    return render_template('log.html')
+
+
+@app.route('/test')
+def testpage():
+    return render_template('test.html')
+
+
 @app.route('/student.dashboard')
 def studentpage():
     hour = datetime.now().hour
@@ -48,12 +58,12 @@ def page_not_found(e):
 def login():
     username = request.form['username']  # assuming username is the school_id
     password = request.form['password']
-    
+
     print(f"Received username: {username} and password: {password}")
-    
+
     # Check if user exists in the database
     user = User.query.filter_by(school_id=username).first()
-    
+
     # Print the user object to verify it's being fetched correctly
     print(f"User found: {user}")  # This will print None if the user is not found
 
@@ -71,7 +81,7 @@ def login():
             flash('Incorrect password!')
     else:
         flash('No user found with that username!')
-   
+
     return redirect(url_for('homepage'))  # Redirect back to the homepage for another attempt
 
 @app.route('/logout')
