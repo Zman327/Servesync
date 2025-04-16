@@ -23,7 +23,11 @@
       <ul class="nav-links">
         <li><a href="/home">Home</a></li>
         <li><a href="/log">Log</a></li>
-        <li><a href="/student.dashboard">Dashboard</a></li>
+        {% if session.role == 'Staff' %}
+          <li><a href="/staff.dashboard">Dashboard</a></li>
+        {% else %}
+          <li><a href="/student.dashboard">Dashboard</a></li>
+        {% endif %}
       </ul>
 
       <!-- Auth or Account Dropdown (Dynamic Based on Login Status) -->
@@ -37,9 +41,9 @@
           <div class="dropdown-content">
             <div class="dropdown-header">
               <strong>{{ session.name }}</strong><br>
-              <small>{{ session.username }} | Student Account</small>
+              <small>{{ session.username }} | {{ session.role }} Account</small>
             </div>
-            <a href="#">Account</a>
+            <a href="/account">Account</a>
             <a href="/student.dashboard">Dashboard</a>
             <a href="#">Data Sharing</a>
             <a href="/logout">Logout</a>

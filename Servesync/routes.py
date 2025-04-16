@@ -26,6 +26,11 @@ def homepage():
     return render_template('index.html')
 
 
+@app.route('/account')
+def accountpage():
+    return render_template('account.html')
+
+
 @app.route('/log')
 def logpage():
     return render_template('log.html')
@@ -46,6 +51,19 @@ def studentpage():
     else:
         greeting = "Good Evening"
     return render_template('student.html', greeting=greeting)
+
+
+@app.route('/staff.dashboard')
+def staffpage():
+    hour = datetime.now().hour
+    if hour < 12:
+        greeting = "Good Morning"
+    elif hour < 18:
+        greeting = "Good Afternoon"
+    else:
+        greeting = "Good Evening"
+    return render_template('staff.html', greeting=greeting)
+
 
 # 404 page to display when a page is not found
 # helps re-direct users back to home page
@@ -74,9 +92,17 @@ def login():
         if user.password == password:
             session['username'] = user.school_id
             session['name'] = f"{user.first_name} {user.last_name}"
+            # Fetch role name using a raw SQL query (since we're using reflection)
+            role_name = db.session.execute(
+                db.text("SELECT name FROM user_role WHERE id = :id"), {"id": user.role}
+            ).scalar()
+            session['role'] = role_name
             print(f"Session set: {session}")
             flash('Login successful!')
-            return redirect(url_for('studentpage'))  # Redirect to /student.dashboard
+            if role_name.lower() == 'staff':
+                return redirect(url_for('staffpage'))
+            else:
+                return redirect(url_for('studentpage'))
         else:
             flash('Incorrect password!')
     else:

@@ -4,31 +4,81 @@
 
 {% block content %}
 <main class="dashboard">
-  <div class="section" style="max-width: 700px; margin: 0 auto;">
-    <h2 class="center-text">Log Your Service Hours</h2>
-    <form action="/submit-hours" method="post" class="floating-form">
-      <div class="form-group">
-        <i class="fas fa-calendar-alt"></i>
-        <input type="date" name="date" id="date" required placeholder=" ">
-        <label for="date">Date of Activity</label>
-      </div>
-      <div class="form-group">
-        <i class="fas fa-tasks"></i>
-        <input type="text" name="activity" id="activity" required placeholder=" ">
-        <label for="activity">Activity Name</label>
-      </div>
-      <div class="form-group">
-        <i class="fas fa-clock"></i>
-        <input type="number" name="hours" id="hours" required step="0.1" min="0" placeholder=" ">
-        <label for="hours">Hours Completed</label>
-      </div>
-      <div class="form-group">
-        <i class="fas fa-info-circle"></i>
-        <input type="text" name="details" id="details" placeholder=" ">
-        <label for="details">Optional Details</label>
-      </div>
-      <button type="submit">Submit Hours</button>
-    </form>
+  <div class="left-column">
+    <div class="section">
+      <h2 class="center-text">Log Your Service Hours</h2>
+      <form action="/submit-hours" method="post" class="floating-form">
+        <div class="form-group">
+          <i class="fas fa-calendar-alt"></i>
+          <input type="date" name="date" id="date" required placeholder=" ">
+          <label for="date">Date of Activity</label>
+        </div>
+        <div class="form-group">
+          <i class="fas fa-tasks"></i>
+          <input type="text" name="activity" id="activity" required placeholder=" ">
+          <label for="activity">Activity Name</label>
+        </div>
+        <div class="form-group">
+          <i class="fas fa-clock"></i>
+          <input type="number" name="hours" id="hours" required step="0.1" min="0" placeholder=" ">
+          <label for="hours">Hours Completed</label>
+        </div>
+        <div class="form-group">
+          <i class="fas fa-info-circle"></i>
+          <input type="text" name="details" id="details" placeholder=" ">
+          <label for="details">Optional Details</label>
+        </div>
+        <div class="form-group">
+          <i class="fas fa-user-tie"></i>
+          <select name="person_in_charge" id="person_in_charge" required>
+            <option value="" disabled selected>Select Staff Member</option>
+            <option value="Mr Smith">Mr Smith</option>
+            <option value="Ms Johnson">Ms Johnson</option>
+            <option value="Dr Brown">Dr Brown</option>
+          </select>
+          <label for="person_in_charge">Person in Charge</label>
+        </div>
+        <div class="form-group">
+          <i class="fas fa-users"></i>
+          <select name="group" id="group" required>
+            <option value="" disabled selected>Select Group</option>
+            <option value="Group A">Group A</option>
+            <option value="Group B">Group B</option>
+            <option value="Group C">Group C</option>
+          </select>
+          <label for="group">Group</label>
+        </div>
+        <div id="confirmation-message" style="display:none; margin-top: 1em; color: green; font-weight: bold;">
+          ✅ Your hours have been submitted for review!
+        </div>
+        <button type="submit" class="login-btn">Submit Hours</button>
+      </form>
+    </div>
+  </div>
+  <div class="right-column">
+    <div class="info-box">
+      <h3>Need Help?</h3>
+      <p>Make sure you enter your hours truthfully. Contact your teacher if you're unsure.</p>
+    </div>
   </div>
 </main>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const dateInput = document.getElementById("date");
+    if (dateInput) {
+      const today = new Date().toISOString().split("T")[0];
+      dateInput.value = today;
+    }
+
+    const form = document.querySelector("form");
+    const message = document.getElementById("confirmation-message");
+    if (form && message) {
+      form.addEventListener("submit", (e) => {
+        // Simulate success message
+        e.preventDefault(); // Remove this if using real server-side submission
+        message.style.display = "block";
+      });
+    }
+  });
+</script>
 {% endblock %}

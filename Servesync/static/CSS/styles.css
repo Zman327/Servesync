@@ -620,6 +620,35 @@ body.page-404 {
 .floating-form input:focus {
   border-color: #1f9e86;
 }
+/* Added styles for select elements in floating form */
+.floating-form select {
+  width: 100%;
+  padding: 12px 38px;
+  border: 1px solid #ccc;
+  border-radius: 30px;
+  background-color: #fafafa;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.3s;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  box-sizing: border-box;
+}
+
+.floating-form select:focus {
+  border-color: #1f9e86;
+}
+
+.floating-form select:focus + label,
+.floating-form select:valid + label {
+  top: -8px;
+  left: 30px;
+  font-size: 12px;
+  background: #fff;
+  padding: 0 6px;
+  color: #1f9e86;
+}
 
 /* Labels */
 .floating-form label {
@@ -933,4 +962,19 @@ h1, h3 {
 
 .tooltip:hover .tooltiptext {
   visibility: visible;
+}
+
+button[type="submit"] {
+  background-color: #4285F4;
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button[type="submit"]:hover {
+  background-color: #3367D6;
 }
