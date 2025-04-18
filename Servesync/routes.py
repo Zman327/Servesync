@@ -24,6 +24,11 @@ with app.app_context():
     
     class Award(db.Model):
         __table__ = award_table
+    
+    service_hours_table = Table('service_hours', metadata, autoload_with=db.engine)
+    
+    class ServiceHour(db.Model):
+        __table__ = service_hours_table
 
 
 @app.route('/home')
@@ -70,8 +75,33 @@ def studentpage():
     next_award_threshold = next_award.threshold if next_award else 20
     next_award_colour = next_award.colour if next_award else '#0b5e3e'
 
-    # Pass the next_award_threshold to the template
-    return render_template('student.html', greeting=greeting, user=user, next_award_name=next_award_name, next_award_threshold=next_award_threshold, next_award_colour=next_award_colour)
+    # Fetch top 5 most recent logs for this user
+    recent_logs = (
+        ServiceHour.query
+        .filter_by(user_id=user.school_id)
+        .order_by(ServiceHour.date.desc())
+        .limit(5)
+        .all()
+    )
+
+    STATUS_MAP = {
+        1: 'Approved',
+        2: 'Pending',
+        3: 'Rejected'
+    }
+    for log in recent_logs:
+        log.status = STATUS_MAP.get(log.status, 'Unknown')
+
+    # Pass the next_award_threshold and recent_logs to the template
+    return render_template(
+        'student.html',
+        greeting=greeting,
+        user=user,
+        next_award_name=next_award_name,
+        next_award_threshold=next_award_threshold,
+        next_award_colour=next_award_colour,
+        recent_logs=recent_logs
+    )
 
 
 @app.route('/staff.dashboard')
