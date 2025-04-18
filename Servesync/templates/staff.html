@@ -1,0 +1,112 @@
+{% extends "layout.html" %}
+
+{% block title %}ServeSYNC - Staff Dashboard{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="/path/to/styles.css">
+
+<main class="dashboard">
+  <div class="left-column">
+    <section class="section staff-profile">
+        <h3><i class="fas fa-user"></i> Your Profile</h3>
+        <p><strong>Name:</strong> {{ session.name }}</p>
+        <p><strong>Role:</strong> {{ session.role }}</p>
+        
+        <div class="stats-row">
+          <div class="stat-box">Total Hours: <span>153</span></div>
+          <div class="stat-box">Pending: <span>4</span></div>
+        </div>
+      </section>
+    <section class="section group-overview">
+      <h3><i class="fas fa-layer-group"></i> Your Groups</h3>
+      <ul>
+        <li>Environmental Club</li>
+        <li>Peer Mentors</li>
+        <li>Event Volunteers</li>
+      </ul>
+      <a href="/manage-groups" class="btn btn-secondary">Manage Groups</a>
+    </section>
+
+    <section class="section quick-links">
+      <h3><i class="fas fa-link"></i> Quick Actions</h3>
+      <ul>
+        <li><a href="/approve-hours">Approve Hours</a></li>
+        <li><a href="/groups">Manage groups</a></li>
+        <li><a href="/reports">Download Reports</a></li>
+      </ul>
+    </section>
+  </div>
+
+  <div class="right-column">
+    <div class="welcome-header">
+      <h1 style="font-size: 42px; font-weight: bold;">
+        {{ greeting }}
+        <br>
+        <span style="font-weight: normal;">{{ session.name }}</span>
+      </h1>
+    </div>
+
+    <section class="section recent-submissions">
+      <h3><i class="fas fa-clock"></i> Recent Submissions</h3>
+      <table class="activity-table datatable">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Activity</th>
+            <th>Hours</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Ava Thompson</td>
+            <td>Library Reorganizing</td>
+            <td>2.5</td>
+            <td>2025-04-12</td>
+            <td class="pending"><i class="fas fa-clock"></i> Pending</td>
+            <td><a href="/review/123" class="btn btn-primary">Review</a></td>
+          </tr>
+          <tr>
+            <td>Leo Chen</td>
+            <td>School Tour Guiding</td>
+            <td>1.5</td>
+            <td>2025-04-10</td>
+            <td class="approved"><i class="fas fa-check-circle"></i> Approved</td>
+            <td><a href="/review/124" class="btn btn-secondary">View</a></td>
+          </tr>
+          <tr>
+            <td>Ava Thompson</td>
+            <td>Library Reorganizing</td>
+            <td>2.5</td>
+            <td>2025-04-12</td>
+            <td class="pending"><i class="fas fa-clock"></i> Pending</td>
+            <td><a href="/review/123" class="btn btn-primary">Review</a></td>
+          </tr>
+          <tr>
+            <td>Leo Chen</td>
+            <td>School Tour Guiding</td>
+            <td>1.5</td>
+            <td>2025-04-10</td>
+            <td class="approved"><i class="fas fa-check-circle"></i> Approved</td>
+            <td><a href="/review/124" class="btn btn-secondary">View</a></td>
+          </tr>
+          <tr>
+            <td>Leo Chen</td>
+            <td>School Tour Guiding</td>
+            <td>1.5</td>
+            <td>2025-04-10</td>
+            <td class="approved"><i class="fas fa-check-circle"></i> Approved</td>
+            <td><a href="/review/124" class="btn btn-secondary">View</a></td>
+          </tr>
+        </tbody>
+      </table>
+      <br>
+      <a href="/all-submissions" class="btn btn-secondary">
+        <i class="fas fa-folder-open"></i> View All Submissions
+      </a>
+    </section>
+  </div>
+</main>
+{% endblock %}

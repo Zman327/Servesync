@@ -5,7 +5,7 @@
 {% block content %}
 <main class="dashboard">
   <div class="left-column">
-    <div class="section">
+    <div class="section form-card">
       <h2 class="center-text">Log Your Service Hours</h2>
       <form action="/submit-hours" method="post" class="floating-form">
         <div class="form-group">
@@ -20,7 +20,7 @@
         </div>
         <div class="form-group">
           <i class="fas fa-clock"></i>
-          <input type="number" name="hours" id="hours" required step="0.1" min="0" placeholder=" ">
+          <input type="number" name="hours" id="hours" required step="0.5" min="0" placeholder=" ">
           <label for="hours">Hours Completed</label>
         </div>
         <div class="form-group">
@@ -48,9 +48,7 @@
           </select>
           <label for="group">Group</label>
         </div>
-        <div id="confirmation-message" style="display:none; margin-top: 1em; color: green; font-weight: bold;">
-          ✅ Your hours have been submitted for review!
-        </div>
+        <div id="confirmation-message">✅ Your hours have been submitted for review!</div>
         <button type="submit" class="login-btn">Submit Hours</button>
       </form>
     </div>
@@ -74,9 +72,9 @@
     const message = document.getElementById("confirmation-message");
     if (form && message) {
       form.addEventListener("submit", (e) => {
-        // Simulate success message
         e.preventDefault(); // Remove this if using real server-side submission
         message.style.display = "block";
+        message.classList.add("show");
       });
     }
   });

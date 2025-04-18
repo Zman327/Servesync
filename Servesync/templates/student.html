@@ -10,17 +10,17 @@
     <div class="left-column">
       <section class="section hours-completed">
         <h3><i class="fas fa-check-circle"></i> Hours Completed</h3>
-        <p class="large-number">13.5</p>
+        <p class="large-number">{{ user.hours or 0 }}</p>
       </section>
       <section class="section hours-needed">
-        <h3><i class="fas fa-trophy"></i> Hours Till Achievement</h3>
+        <h3><i class="fas fa-trophy"></i> Hours Till <span style="color: {{ next_award_colour or '#0b5e3e' }}">{{ next_award_name or 'Achievement' }}</span> Award</h3>
         <div class="tooltip">
           <div class="progress-container">
-            <div class="progress-bar" style="background: conic-gradient(var(--jungle-green) 0% 60%, #e0e0e0 60% 100%);">
-              <span>60%</span>
+            <div class="progress-bar" id="progress-bar" data-hours="{{ user.hours or 0 }}" data-goal="{{ next_award_threshold or 20 }}">
+                <span class="progress-text" id="progress-text">{{ user.hours or 0 }} / {{ next_award_threshold or 20 }}</span>
             </div>
           </div>
-          <span class="tooltiptext">60% of Goal Achieved</span>
+          <span class="tooltiptext">{{ ((user.hours or 0) / (next_award_threshold or 20) * 100) | round(1) }}% of Goal Achieved</span>
         </div>
       </section>
       <section class="section top-groups">
@@ -96,6 +96,20 @@
       </section>
     </div>
   </main>
+  <script>
+    window.onload = function () {
+      // Use data attributes instead of directly inserting Python values into JS
+      const progressBar = document.getElementById("progress-bar");
+      const progressText = document.getElementById("progress-text");
+
+      const userHours = parseFloat(progressBar.getAttribute("data-hours")) || 0;
+      const goal = parseFloat(progressBar.getAttribute("data-goal")) || 20;
+      const percentage = (userHours / goal) * 100;
+
+      progressBar.style.background = `conic-gradient(var(--jungle-green) ${percentage}%, #e0e0e0 ${percentage}%)`;
+      progressText.innerText = `${userHours} / ${goal}`;
+    };
+  </script>
 </body>
 </html>
 {% endblock %}

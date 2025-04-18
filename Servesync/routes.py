@@ -19,6 +19,11 @@ with app.app_context():
 
     class User(db.Model):
         __table__ = users_table
+    
+    award_table = Table('award', metadata, autoload_with=db.engine)
+    
+    class Award(db.Model):
+        __table__ = award_table
 
 
 @app.route('/home')
@@ -50,7 +55,23 @@ def studentpage():
         greeting = "Good Afternoon"
     else:
         greeting = "Good Evening"
-    return render_template('student.html', greeting=greeting)
+
+    # Get the current logged-in user
+    user = User.query.filter_by(school_id=session.get('username')).first()
+
+    # Get user's completed hours (default to 0 if none)
+    user_hours = user.hours or 0
+
+    # Find the next award the user hasn't reached yet
+    next_award = Award.query.filter(Award.threshold > user_hours).order_by(Award.threshold.asc()).first()
+
+    # Get the next award's name and threshold
+    next_award_name = next_award.name if next_award else None
+    next_award_threshold = next_award.threshold if next_award else 20
+    next_award_colour = next_award.colour if next_award else '#0b5e3e'
+
+    # Pass the next_award_threshold to the template
+    return render_template('student.html', greeting=greeting, user=user, next_award_name=next_award_name, next_award_threshold=next_award_threshold, next_award_colour=next_award_colour)
 
 
 @app.route('/staff.dashboard')
