@@ -29,9 +29,9 @@ with app.app_context():
 
     class ServiceHour(db.Model):
         __table__ = service_hours_table
-    
+
     group_table = Table('group', metadata, autoload_with=db.engine)
-    
+
     class Group(db.Model):
         __table__ = group_table
 
@@ -81,13 +81,13 @@ def studentpage():
     next_award_colour = next_award.colour if next_award else '#0b5e3e'
 
     # Fetch top 5 most recent logs for this user
-    recent_logs = (
+    recent_logs = sorted(
         ServiceHour.query
-        .filter_by(user_id=user.school_id)
-        .order_by(ServiceHour.date.desc())
-        .limit(5)
-        .all()
-    )
+            .filter_by(user_id=user.school_id)
+            .all(),
+        key=lambda log: datetime.strptime(log.date, "%d-%m-%Y"),
+        reverse=True
+    )[:5]
 
     STATUS_MAP = {
         1: 'Approved',
@@ -96,10 +96,16 @@ def studentpage():
     }
     for log in recent_logs:
         log.status = STATUS_MAP.get(log.status, 'Unknown')
-    
+
     # Attach group name if group_id exists
     for log in recent_logs:
         log.group_name = Group.query.get(log.group_id).name if log.group_id else None
+
+    for log in recent_logs:
+        try:
+            log.formatted_date = datetime.strptime(log.date, "%d-%m-%Y").strftime("%b %d").upper()
+        except Exception:
+            log.formatted_date = str(log.date)
 
     # Pass the next_award_threshold and recent_logs to the template
     return render_template(
@@ -169,6 +175,7 @@ def login():
         flash('No user found with that username!')
 
     return redirect(url_for('homepage'))  # Redirect back to the homepage for another attempt
+
 
 @app.route('/logout')
 def logout():

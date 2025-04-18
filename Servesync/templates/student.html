@@ -51,16 +51,16 @@
           <thead>
             <tr>
               <th>Date</th>
+              <th>Group</th>
               <th>Activity</th>
               <th>Hours</th>
-              <th>Group</th>
               <th>Status</th>
             </tr>
           </thead>
           <tbody>
             {% for log in recent_logs %}
               <tr>
-                <td>{{ log.date }}</td>
+                <td>{{ log.formatted_date }}</td>
                 <td>{{ log.group_name or '—' }}</td>
                 <td>{{ log.description }}</td>
                 <td>{{ log.hours }}</td>
@@ -78,7 +78,6 @@
   </main>
   <script>
     window.onload = function () {
-      // Use data attributes instead of directly inserting Python values into JS
       const progressBar = document.getElementById("progress-bar");
       const progressText = document.getElementById("progress-text");
 
