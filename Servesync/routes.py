@@ -19,16 +19,21 @@ with app.app_context():
 
     class User(db.Model):
         __table__ = users_table
-    
+
     award_table = Table('award', metadata, autoload_with=db.engine)
-    
+
     class Award(db.Model):
         __table__ = award_table
-    
+
     service_hours_table = Table('service_hours', metadata, autoload_with=db.engine)
-    
+
     class ServiceHour(db.Model):
         __table__ = service_hours_table
+    
+    group_table = Table('group', metadata, autoload_with=db.engine)
+    
+    class Group(db.Model):
+        __table__ = group_table
 
 
 @app.route('/home')
@@ -91,6 +96,10 @@ def studentpage():
     }
     for log in recent_logs:
         log.status = STATUS_MAP.get(log.status, 'Unknown')
+    
+    # Attach group name if group_id exists
+    for log in recent_logs:
+        log.group_name = Group.query.get(log.group_id).name if log.group_id else None
 
     # Pass the next_award_threshold and recent_logs to the template
     return render_template(
