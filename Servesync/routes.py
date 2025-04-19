@@ -55,10 +55,10 @@ def accountpage():
 def logpage():
     # Get all users who have the 'staff' role (role = 2)
     staff_members = User.query.filter_by(role=2).all()
-    
+
     # Get all groups from the group table
     groups = Group.query.all()
-    
+
     return render_template('log.html', staff_members=staff_members, groups=groups)
 
 
@@ -151,7 +151,7 @@ def page_not_found(e):
 
 @app.route('/login', methods=['POST'])
 def login():
-    username = request.form['username']  # assuming username is the school_id
+    username = request.form['username']
     password = request.form['password']
 
     print(f"Received username: {username} and password: {password}")
@@ -169,7 +169,6 @@ def login():
         if user.password == password:
             session['username'] = user.school_id
             session['name'] = f"{user.first_name} {user.last_name}"
-            # Fetch role name using a raw SQL query (since we're using reflection)
             role_name = db.session.execute(
                 db.text("SELECT name FROM user_role WHERE id = :id"), {"id": user.role}
             ).scalar()
@@ -193,6 +192,49 @@ def logout():
     session.clear()
     flash('You have been logged out.')
     return redirect(url_for('homepage'))
+
+
+@app.route('/submit-hours', methods=['POST'])
+def submit_hours():
+    user = User.query.filter_by(school_id=session.get('username')).first()
+    if not user:
+        flash('You must be logged in to submit hours.')
+        return redirect(url_for('logpage'))
+
+    # Get form data
+    date = request.form['date']
+    group_name = request.form['group']
+    staff_label = request.form['person_in_charge']
+    activity = request.form['activity']
+    hours = float(request.form['hours'])
+    details = request.form.get('details', '')
+
+    # Get related group and staff IDs
+    group = Group.query.filter_by(name=group_name).first()
+    staff_school_id = staff_label.split('(')[-1].strip(')')
+    staff = User.query.filter_by(school_id=staff_school_id).first()
+
+    if not group or not staff:
+        flash("Invalid group or staff member.")
+        return redirect(url_for('logpage'))
+
+    # Create a new service hour record
+    new_log = ServiceHour(
+        user_id=user.school_id,
+        group_id=group.id,
+        hours=hours,
+        date=datetime.strptime(date, "%Y-%m-%d").strftime("%d-%m-%Y"),
+        description=details or activity,
+        time=hours,
+        status=2,  # 2 = Pending
+        log_time=datetime.now().strftime("%d-%m-%Y %H:%M:%S"),
+        staff=staff.school_id
+    )
+
+    db.session.add(new_log)
+    db.session.commit()
+    session['success'] = True
+    return redirect(url_for('logpage'))
 
 
 if __name__ == "__main__":

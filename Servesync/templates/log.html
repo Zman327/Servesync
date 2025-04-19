@@ -50,7 +50,9 @@
           <input type="text" name="details" id="details" placeholder=" ">
           <label for="details">Optional Details</label>
         </div>
-        <div id="confirmation-message">✅ Your hours have been submitted for review!</div>
+        {% if session.success %}
+          <div id="confirmation-message">✅ Your hours have been submitted for review!</div>
+        {% endif %}
         <button type="submit" class="login-btn">Submit Hours</button>
       </form>
     </div>
@@ -68,16 +70,6 @@
     if (dateInput) {
       const today = new Date().toISOString().split("T")[0];
       dateInput.value = today;
-    }
-
-    const form = document.querySelector("form");
-    const message = document.getElementById("confirmation-message");
-    if (form && message) {
-      form.addEventListener("submit", (e) => {
-        e.preventDefault(); // Remove this if using real server-side submission
-        message.style.display = "block";
-        message.classList.add("show");
-      });
     }
   });
 </script>
