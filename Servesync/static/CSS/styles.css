@@ -1071,3 +1071,42 @@ button[type="submit"]:hover {
   opacity: 1;
 }
 
+/* Confirmation message animation */
+#confirmation-message.show {
+  animation: fadeInConfirm 0.5s ease-out;
+}
+
+@keyframes fadeInConfirm {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Spinner inside submit button */
+.btn-loader {
+  display: inline-block;
+  margin-left: 10px;
+  font-size: 16px;
+}
+
+/* Responsive form adjustment */
+@media (max-width: 600px) {
+  .floating-form .form-group {
+    width: 100%;
+  }
+
+  .floating-form {
+    gap: 14px;
+  }
+
+  .dashboard {
+    padding: 20px;
+  }
+}
+
+

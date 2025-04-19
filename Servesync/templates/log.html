@@ -53,7 +53,12 @@
         {% if session.success %}
           <div id="confirmation-message">✅ Your hours have been submitted for review!</div>
         {% endif %}
-        <button type="submit" class="login-btn">Submit Hours</button>
+        <button type="submit" class="login-btn">
+          <span class="btn-text">Submit Hours</span>
+          <span class="btn-loader" style="display: none;">
+            <i class="fas fa-spinner fa-spin"></i>
+          </span>
+        </button>
       </form>
     </div>
   </div>
@@ -69,7 +74,36 @@
     const dateInput = document.getElementById("date");
     if (dateInput) {
       const today = new Date().toISOString().split("T")[0];
+      dateInput.setAttribute("max", today);
       dateInput.value = today;
+    }
+
+    // Confirmation message animation
+    const confirmation = document.getElementById("confirmation-message");
+    if (confirmation) {
+      confirmation.classList.add("show");
+      confirmation.scrollIntoView({ behavior: "smooth" });
+    }
+
+    // Form validation and submit animation
+    const form = document.querySelector("form");
+    if (form) {
+      form.addEventListener("submit", (e) => {
+        const hoursInput = document.getElementById("hours");
+        const hours = parseFloat(hoursInput.value);
+        if (hours <= 0) {
+          e.preventDefault();
+          alert("Hours must be greater than 0.");
+          return;
+        }
+
+        const btnText = form.querySelector(".btn-text");
+        const btnLoader = form.querySelector(".btn-loader");
+        if (btnText && btnLoader) {
+          btnText.style.display = "none";
+          btnLoader.style.display = "inline-block";
+        }
+      });
     }
   });
 </script>
