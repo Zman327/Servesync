@@ -35,6 +35,11 @@ with app.app_context():
     class Group(db.Model):
         __table__ = group_table
 
+    user_role_table = Table('user_role', metadata, autoload_with=db.engine)
+
+    class UserRole(db.Model):
+        __table__ = user_role_table
+
 
 @app.route('/home')
 def homepage():
@@ -48,7 +53,13 @@ def accountpage():
 
 @app.route('/log')
 def logpage():
-    return render_template('log.html')
+    # Get all users who have the 'staff' role (role = 2)
+    staff_members = User.query.filter_by(role=2).all()
+    
+    # Get all groups from the group table
+    groups = Group.query.all()
+    
+    return render_template('log.html', staff_members=staff_members, groups=groups)
 
 
 @app.route('/test')

@@ -9,9 +9,31 @@
       <h2 class="center-text">Log Your Service Hours</h2>
       <form action="/submit-hours" method="post" class="floating-form">
         <div class="form-group">
-          <i class="fas fa-calendar-alt"></i>
-          <input type="date" name="date" id="date" required placeholder=" ">
-          <label for="date">Date of Activity</label>
+            <i class="fas fa-calendar-alt"></i>
+            <input type="date" name="date" id="date" required placeholder=" ">
+            <label for="date">Date of Activity</label>
+          </div>
+        <div class="form-group">
+            <i class="fas fa-users"></i>
+            <select name="group" id="group" required>
+              <option value="" disabled selected>Select Group</option>
+              {% for group in groups %}
+                <option value="{{ group.name }}">{{ group.name }}</option>
+              {% endfor %}
+            </select>
+            <label for="group">Group</label>
+        </div>
+        <div class="form-group">
+            <i class="fas fa-user-tie"></i>
+            <select name="person_in_charge" id="person_in_charge" required>
+                <option value="" disabled selected>Select Staff Member</option>
+                {% for teacher in staff_members %}
+                  <option value="{{ teacher.first_name }} {{ teacher.last_name }} ({{ teacher.school_id }})">
+                    {{ teacher.first_name }} {{ teacher.last_name }} ({{ teacher.school_id }})
+                  </option>
+                {% endfor %}
+              </select>
+            <label for="person_in_charge">Person in Charge</label>
         </div>
         <div class="form-group">
           <i class="fas fa-tasks"></i>
@@ -27,26 +49,6 @@
           <i class="fas fa-info-circle"></i>
           <input type="text" name="details" id="details" placeholder=" ">
           <label for="details">Optional Details</label>
-        </div>
-        <div class="form-group">
-          <i class="fas fa-user-tie"></i>
-          <select name="person_in_charge" id="person_in_charge" required>
-            <option value="" disabled selected>Select Staff Member</option>
-            <option value="Mr Smith">Mr Smith</option>
-            <option value="Ms Johnson">Ms Johnson</option>
-            <option value="Dr Brown">Dr Brown</option>
-          </select>
-          <label for="person_in_charge">Person in Charge</label>
-        </div>
-        <div class="form-group">
-          <i class="fas fa-users"></i>
-          <select name="group" id="group" required>
-            <option value="" disabled selected>Select Group</option>
-            <option value="Group A">Group A</option>
-            <option value="Group B">Group B</option>
-            <option value="Group C">Group C</option>
-          </select>
-          <label for="group">Group</label>
         </div>
         <div id="confirmation-message">✅ Your hours have been submitted for review!</div>
         <button type="submit" class="login-btn">Submit Hours</button>
