@@ -25,6 +25,31 @@
         <li>Event Volunteers</li>
       </ul>
       <a href="/manage-groups" class="btn btn-secondary">Manage Groups</a>
+    <!-- Review Modal -->
+    <div id="reviewModal" class="modal review-modal">
+      <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <h2>Submission Details</h2>
+        <p><strong>Student:</strong> <span id="modal-student"></span></p>
+        <p><strong>Activity:</strong> <span id="modal-activity"></span></p>
+        <p><strong>Hours:</strong> <span id="modal-hours"></span></p>
+        <p><strong>Date:</strong> <span id="modal-date"></span></p>
+        <p><strong>Status:</strong> <span id="modal-status"></span></p>
+        <p><strong>Group:</strong> <span id="modal-group"></span></p>
+        <p><strong>Description:</strong> <span id="modal-description"></span></p>
+
+        <div class="modal-actions">
+          <form method="post" action="/approve-log" style="display:inline;">
+            <input type="hidden" name="log_id" id="approve-log-id">
+            <button type="submit" class="btn btn-success">Approve</button>
+          </form>
+          <form method="post" action="/reject-log" style="display:inline;">
+            <input type="hidden" name="log_id" id="reject-log-id">
+            <button type="submit" class="btn btn-danger">Reject</button>
+          </form>
+        </div>
+      </div>
+    </div>
     </section>
 
     <section class="section quick-links">
@@ -87,7 +112,13 @@
                 {% endif %}
                 {{ log.status_label }}
               </td>
-              <td><a href="/review/{{ log.id }}" class="btn btn-primary">Review</a></td>
+              <td>
+                <a href="javascript:void(0);" 
+                   class="btn btn-primary" 
+                   onclick='openReviewModal({{ log | tojson | safe }})'>
+                   Review
+                </a>
+              </td>
             </tr>
           {% endfor %}
         </tbody>
@@ -99,4 +130,31 @@
     </section>
   </div>
 </main>
+<script>
+  function openReviewModal(log) {
+    document.getElementById('modal-student').innerText = log.user_id;
+    document.getElementById('modal-activity').innerText = log.description;
+    document.getElementById('modal-hours').innerText = log.hours;
+    document.getElementById('modal-date').innerText = log.formatted_date;
+    document.getElementById('modal-status').innerText = log.status_label;
+    document.getElementById('modal-group').innerText = log.group || "N/A";
+    document.getElementById('modal-description').innerText = log.description;
+    document.getElementById('approve-log-id').value = log.id;
+    document.getElementById('reject-log-id').value = log.id;
+
+    document.getElementById('reviewModal').style.display = 'block';
+  }
+
+  function closeModal() {
+    document.getElementById('reviewModal').style.display = 'none';
+  }
+
+  // Optional: Close modal on outside click
+  window.onclick = function(event) {
+    const modal = document.getElementById('reviewModal');
+    if (event.target === modal) {
+      modal.style.display = "none";
+    }
+  }
+</script>
 {% endblock %}

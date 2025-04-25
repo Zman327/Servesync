@@ -157,9 +157,23 @@ def staffpage():
                 log.formatted_date = datetime.strptime(log.date, "%d-%m-%Y").strftime("%b %d, %Y")
             except Exception:
                 log.formatted_date = log.date
-            filtered_logs.append(log)
+            filtered_logs.append({
+                'id': log.id,
+                'user_id': log.user_id,
+                'description': log.description,
+                'hours': log.hours,
+                'date': log.date,
+                'formatted_date': log.formatted_date,
+                'status': log.status,
+                'status_label': log.status_label,
+                'group': log.group_name,
+            })
 
-    return render_template('staff.html', greeting=greeting, recent_submissions=filtered_logs)
+    # Sort and limit to 5 most recent logs
+    filtered_logs.sort(key=lambda log: datetime.strptime(log["date"], "%d-%m-%Y"), reverse=True)
+    recent_logs = filtered_logs[:5]
+
+    return render_template('staff.html', greeting=greeting, recent_submissions=recent_logs)
 
 
 # 404 page to display when a page is not found
