@@ -84,6 +84,19 @@ def studentpage():
     approved_logs = ServiceHour.query.filter_by(user_id=user.school_id, status=1).all()
     user_hours = sum(log.hours for log in approved_logs) if approved_logs else 0
 
+    from collections import defaultdict
+
+    # Calculate hours per group for the current user
+    group_hours = defaultdict(float)
+    for log in approved_logs:
+        if log.group_id:
+            group = Group.query.get(log.group_id)
+            if group:
+                group_hours[group.name] += log.hours
+
+    # Sort groups by total hours descending and take top 5
+    top_groups = sorted(group_hours.items(), key=lambda item: item[1], reverse=True)[:3]
+
     # Find the next award the user hasn't reached yet
     next_award = Award.query.filter(Award.threshold > user_hours).order_by(Award.threshold.asc()).first()
 
@@ -128,7 +141,8 @@ def studentpage():
         next_award_name=next_award_name,
         next_award_threshold=next_award_threshold,
         next_award_colour=next_award_colour,
-        recent_logs=recent_logs
+        recent_logs=recent_logs,
+        top_groups=top_groups
     )
 
 

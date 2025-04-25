@@ -26,9 +26,11 @@
       <section class="section top-groups">
         <h3><i class="fas fa-users"></i> Top Groups</h3>
         <ul>
-          <li>Group A</li>
-          <li>Group B</li>
-          <li>Group C</li>
+          {% for group, hours in top_groups %}
+            <li>{{ group }} - {{ '%.1f' | format(hours) }} hours</li>
+          {% else %}
+            <li>No group hours yet.</li>
+          {% endfor %}
         </ul>
       </section>
     </div>
