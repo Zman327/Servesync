@@ -621,6 +621,7 @@ body.page-404 {
   border-color: #1f9e86;
 }
 /* Added styles for select elements in floating form */
+/* Floating Form select styling */
 .floating-form select {
   width: 100%;
   padding: 12px 38px;
@@ -630,16 +631,19 @@ body.page-404 {
   font-size: 15px;
   outline: none;
   transition: border-color 0.3s;
-  appearance: none;
+  appearance: none; /* Ensure we use the custom dropdown from select2 */
   -webkit-appearance: none;
   -moz-appearance: none;
   box-sizing: border-box;
+  z-index: 10; /* Ensure the select2 dropdown shows above other elements */
 }
 
+/* Focus styles */
 .floating-form select:focus {
   border-color: #1f9e86;
 }
 
+/* Labels */
 .floating-form select:focus + label,
 .floating-form select:valid + label {
   top: -8px;
@@ -1109,4 +1113,11 @@ button[type="submit"]:hover {
   }
 }
 
+.filter-form {
+  margin-bottom: 15px;
+}
 
+.filter-form select {
+  padding: 5px;
+  border-radius: 4px;
+}

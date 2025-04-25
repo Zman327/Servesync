@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, session, url_for, flash
+from flask import Flask, render_template, request, redirect, session, url_for, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 import os
 from sqlalchemy import MetaData, Table
@@ -133,13 +133,33 @@ def studentpage():
 @app.route('/staff.dashboard')
 def staffpage():
     hour = datetime.now().hour
-    if hour < 12:
-        greeting = "Good Morning"
-    elif hour < 18:
-        greeting = "Good Afternoon"
-    else:
-        greeting = "Good Evening"
-    return render_template('staff.html', greeting=greeting)
+    greeting = "Good Morning" if hour < 12 else "Good Afternoon" if hour < 18 else "Good Evening"
+
+    staff_id = session.get('username')
+    selected_status = request.args.get('status')  # Get status filter from query string
+
+    # Fetch all service logs for the current staff
+    logs = ServiceHour.query.filter_by(staff=staff_id).all()
+
+    STATUS_MAP = {
+        1: 'Approved',
+        2: 'Pending',
+        3: 'Rejected'
+    }
+
+    filtered_logs = []
+
+    for log in logs:
+        log.status_label = STATUS_MAP.get(log.status, 'Unknown')
+        if not selected_status or log.status_label == selected_status:
+            log.group_name = Group.query.get(log.group_id).name if log.group_id else "N/A"
+            try:
+                log.formatted_date = datetime.strptime(log.date, "%d-%m-%Y").strftime("%b %d, %Y")
+            except Exception:
+                log.formatted_date = log.date
+            filtered_logs.append(log)
+
+    return render_template('staff.html', greeting=greeting, recent_submissions=filtered_logs)
 
 
 # 404 page to display when a page is not found

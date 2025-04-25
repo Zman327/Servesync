@@ -48,6 +48,15 @@
 
     <section class="section recent-submissions">
       <h3><i class="fas fa-clock"></i> Recent Submissions</h3>
+      <form method="get" action="/staff.dashboard" class="filter-form">
+        <label for="status">Filter by Status:</label>
+        <select name="status" id="status" onchange="this.form.submit()">
+          <option value="">All</option>
+          <option value="Approved" {% if request.args.get('status') == 'Approved' %}selected{% endif %}>Approved</option>
+          <option value="Pending" {% if request.args.get('status') == 'Pending' %}selected{% endif %}>Pending</option>
+          <option value="Rejected" {% if request.args.get('status') == 'Rejected' %}selected{% endif %}>Rejected</option>
+        </select>
+      </form>
       <table class="activity-table datatable">
         <thead>
           <tr>
@@ -60,46 +69,27 @@
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>Ava Thompson</td>
-            <td>Library Reorganizing</td>
-            <td>2.5</td>
-            <td>2025-04-12</td>
-            <td class="pending"><i class="fas fa-clock"></i> Pending</td>
-            <td><a href="/review/123" class="btn btn-primary">Review</a></td>
-          </tr>
-          <tr>
-            <td>Leo Chen</td>
-            <td>School Tour Guiding</td>
-            <td>1.5</td>
-            <td>2025-04-10</td>
-            <td class="approved"><i class="fas fa-check-circle"></i> Approved</td>
-            <td><a href="/review/124" class="btn btn-secondary">View</a></td>
-          </tr>
-          <tr>
-            <td>Ava Thompson</td>
-            <td>Library Reorganizing</td>
-            <td>2.5</td>
-            <td>2025-04-12</td>
-            <td class="pending"><i class="fas fa-clock"></i> Pending</td>
-            <td><a href="/review/123" class="btn btn-primary">Review</a></td>
-          </tr>
-          <tr>
-            <td>Leo Chen</td>
-            <td>School Tour Guiding</td>
-            <td>1.5</td>
-            <td>2025-04-10</td>
-            <td class="approved"><i class="fas fa-check-circle"></i> Approved</td>
-            <td><a href="/review/124" class="btn btn-secondary">View</a></td>
-          </tr>
-          <tr>
-            <td>Leo Chen</td>
-            <td>School Tour Guiding</td>
-            <td>1.5</td>
-            <td>2025-04-10</td>
-            <td class="approved"><i class="fas fa-check-circle"></i> Approved</td>
-            <td><a href="/review/124" class="btn btn-secondary">View</a></td>
-          </tr>
+          {% for log in recent_submissions %}
+            <tr>
+              <td>{{ log.user_id }}</td>
+              <td>{{ log.description }}</td>
+              <td>{{ log.hours }}</td>
+              <td>{{ log.formatted_date }}</td>
+              <td class="{{ log.status_label|lower }}">
+                {% if log.status_label == 'Approved' %}
+                  <i class="fas fa-check-circle"></i>
+                {% elif log.status_label == 'Pending' %}
+                  <i class="fas fa-clock"></i>
+                {% elif log.status_label == 'Rejected' %}
+                  <i class="fas fa-times-circle"></i>
+                {% else %}
+                  <i class="fas fa-question-circle"></i>
+                {% endif %}
+                {{ log.status_label }}
+              </td>
+              <td><a href="/review/{{ log.id }}" class="btn btn-primary">Review</a></td>
+            </tr>
+          {% endfor %}
         </tbody>
       </table>
       <br>
