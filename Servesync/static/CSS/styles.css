@@ -631,11 +631,11 @@ body.page-404 {
   font-size: 15px;
   outline: none;
   transition: border-color 0.3s;
-  appearance: none; /* Ensure we use the custom dropdown from select2 */
+  appearance: none; 
   -webkit-appearance: none;
   -moz-appearance: none;
   box-sizing: border-box;
-  z-index: 10; /* Ensure the select2 dropdown shows above other elements */
+  z-index: 10; 
 }
 
 /* Focus styles */
@@ -654,7 +654,6 @@ body.page-404 {
   color: #1f9e86;
 }
 
-/* Labels */
 .floating-form label {
   position: absolute;
   left: 38px;

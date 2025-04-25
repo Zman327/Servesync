@@ -271,5 +271,28 @@ def submit_hours():
     return redirect(url_for('logpage'))
 
 
+# Route to accept a service log
+@app.route('/approve-log', methods=['POST'])
+def approve_log():
+    log_id = request.form.get('log_id')
+    if log_id:
+        service_log = ServiceHour.query.get(log_id)
+        if service_log:
+            service_log.status = 1  # Set status to Approved
+            db.session.commit()
+    return redirect(url_for('staffpage'))
+
+# Route to reject a service log
+@app.route('/reject-log', methods=['POST'])
+def reject_log():
+    log_id = request.form.get('log_id')
+    if log_id:
+        service_log = ServiceHour.query.get(log_id)
+        if service_log:
+            service_log.status = 3  # Set status to Rejected
+            db.session.commit()
+    return redirect(url_for('staffpage'))
+
+
 if __name__ == "__main__":
     app.run(debug=True)
