@@ -80,8 +80,9 @@ def studentpage():
     # Get the current logged-in user
     user = User.query.filter_by(school_id=session.get('username')).first()
 
-    # Get user's completed hours (default to 0 if none)
-    user_hours = user.hours or 0
+    # Get user's approved hours (sum of approved logs)
+    approved_logs = ServiceHour.query.filter_by(user_id=user.school_id, status=1).all()
+    user_hours = sum(log.hours for log in approved_logs) if approved_logs else 0
 
     # Find the next award the user hasn't reached yet
     next_award = Award.query.filter(Award.threshold > user_hours).order_by(Award.threshold.asc()).first()
@@ -123,6 +124,7 @@ def studentpage():
         'student.html',
         greeting=greeting,
         user=user,
+        user_hours=user_hours,
         next_award_name=next_award_name,
         next_award_threshold=next_award_threshold,
         next_award_colour=next_award_colour,
