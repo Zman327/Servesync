@@ -41,11 +41,11 @@
         <div class="modal-actions">
           <form method="post" action="/approve-log" style="display:inline;">
             <input type="hidden" name="log_id" id="approve-log-id">
-            <button type="submit" class="btn btn-success">Approve</button>
+            <button type="submit" class="accept-btn">Approve</button>
           </form>
           <form method="post" action="/reject-log" style="display:inline;">
             <input type="hidden" name="log_id" id="reject-log-id">
-            <button type="submit" class="btn btn-danger">Reject</button>
+            <button type="submit" class="reject-btn">Reject</button>
           </form>
         </div>
       </div>
@@ -149,7 +149,7 @@
     document.getElementById('reviewModal').style.display = 'none';
   }
 
-  // Optional: Close modal on outside click
+  // Close modal on outside click
   window.onclick = function(event) {
     const modal = document.getElementById('reviewModal');
     if (event.target === modal) {
