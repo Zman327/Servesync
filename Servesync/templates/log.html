@@ -68,9 +68,10 @@
   document.addEventListener("DOMContentLoaded", () => {
     const dateInput = document.getElementById("date");
     if (dateInput) {
-      const today = new Date().toISOString().split("T")[0];
-      dateInput.setAttribute("max", today);
-      dateInput.value = today;
+      const today = new Date();
+      const localDate = today.toLocaleDateString('en-CA'); // formats as YYYY-MM-DD
+      dateInput.setAttribute("max", localDate);
+      dateInput.value = localDate;
     }
 
     // Confirmation message animation
