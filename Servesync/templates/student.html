@@ -1,0 +1,100 @@
+{% extends "layout.html" %}
+
+{% block title %}ServeSYNC - Student Dashboard{% endblock %}
+
+{% block content %}
+  <main class="dashboard">
+    <div class="left-column">
+      <section class="section hours-completed">
+        <h3><i class="fas fa-check-circle"></i> Hours Completed</h3>
+        <p class="large-number">{{ user_hours or 0 }}</p>
+      </section>
+      <section class="section hours-needed">
+        <h3>
+          <i class="fas fa-trophy"></i>
+          {% if has_achieved_max %}
+            Congratulations, you've achieved <span style="color: {{ max_award_colour }}">{{ max_award_name }}</span>!
+          {% else %}
+            Hours Till <span style="color: {{ next_award_colour }}">{{ next_award_name }}</span> Award
+          {% endif %}
+        </h3>
+        <div class="tooltip">
+          <div class="progress-container">
+            <div class="progress-bar" id="progress-bar" data-hours="{{ user_hours or 0 }}" data-goal="{{ next_award_threshold or 20 }}">
+              <span class="progress-text" id="progress-text">{{ user_hours or 0 }} / {{ next_award_threshold or 20 }}</span>
+            </div>
+          </div>
+          <span class="tooltiptext">{{ ((user_hours or 0) / (next_award_threshold or 20) * 100) | round(1) }}% of Goal Achieved</span>
+        </div>
+      </section>
+      <section class="section top-groups">
+        <h3><i class="fas fa-users"></i> Top Groups</h3>
+        <ul>
+          {% for group, hours in top_groups %}
+            <li>{{ group }} - {{ '%.1f' | format(hours) }} hours</li>
+          {% else %}
+            <li>No group hours yet.</li>
+          {% endfor %}
+        </ul>
+      </section>
+    </div>
+  
+    <div class="right-column">
+      <div class="welcome-header">
+        <h1 style="font-size: 42px; font-weight: bold;">
+          {{ greeting }}
+          <br>
+          <span style="font-weight: normal;">{{ session.name }}</span>
+        </h1>
+        <a href="/log" class="log-link btn btn-primary">
+          <i class="fas fa-plus-circle"></i> Log New Hours
+        </a>
+      </div>
+
+      <section class="section recent-activity">
+        <h3>Recent Activity</h3>
+        <table class="activity-table datatable">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Group</th>
+              <th>Activity</th>
+              <th>Hours</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for log in recent_logs %}
+              <tr>
+                <td>{{ log.formatted_date }}</td>
+                <td>{{ log.group_name or '—' }}</td>
+                <td>{{ log.description }}</td>
+                <td>{{ log.hours }}</td>
+                <td class="{{ log.status.lower() }}"><i class="fas fa-{{ 'check-circle' if log.status.lower() == 'approved' else 'clock' }}"></i> {{ log.status }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <br>
+        <a href="/activity-history" class="btn btn-secondary">
+          <i class="fas fa-clock"></i> See All Activity
+        </a>
+      </section>
+    </div>
+  </main>
+  <script>
+    window.onload = function () {
+      const progressBar = document.getElementById("progress-bar");
+      const progressText = document.getElementById("progress-text");
+
+      const userHours = parseFloat(progressBar.getAttribute("data-hours")) || 0;
+      const goal = userHours >= {{ max_award_threshold }} ? {{ max_award_threshold }} : parseFloat(progressBar.getAttribute("data-goal")) || 20;
+      const percentage = (userHours / goal) * 100;
+
+      progressBar.style.background = `conic-gradient(var(--jungle-green) ${percentage}%, #e0e0e0 ${percentage}%)`;
+      progressText.innerText = `${userHours} / ${goal}`;
+    };
+  </script>
+</body>
+</html>
+{% endblock %}
