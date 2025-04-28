@@ -29,24 +29,33 @@
     <div id="reviewModal" class="modal review-modal">
       <div class="modal-content">
         <span class="close-btn" onclick="closeModal()">&times;</span>
-        <h2>Submission Details</h2>
-        <p><strong>Student:</strong> <span id="modal-student"></span></p>
-        <p><strong>Activity:</strong> <span id="modal-activity"></span></p>
-        <p><strong>Hours:</strong> <span id="modal-hours"></span></p>
-        <p><strong>Date:</strong> <span id="modal-date"></span></p>
-        <p><strong>Status:</strong> <span id="modal-status"></span></p>
-        <p><strong>Group:</strong> <span id="modal-group"></span></p>
-        <p><strong>Description:</strong> <span id="modal-description"></span></p>
+        <div class="modal-image">
+          <img src="static/Images/Profile/deafult.jpg" alt="Review Image" />
+        </div>
+        <div class="modal-details">
+          <h2>Submission Details</h2>
+          <p><strong>Student:</strong> <span id="modal-student"></span></p>
+          <p><strong>Group:</strong> <span id="modal-group"></span></p>
+          <p><strong>Activity:</strong> <span id="modal-activity"></span></p>
+          <p><strong>Hours:</strong> <span id="modal-hours"></span></p>
+          <p><strong>Date:</strong> <span id="modal-date"></span></p>
+          <p><strong>Status:</strong> <span id="modal-status"></span></p>
+          <p><strong>Date Submitted:</strong> <span id="modal-description"></span></p>
 
-        <div class="modal-actions">
-          <form method="post" action="/approve-log" style="display:inline;">
-            <input type="hidden" name="log_id" id="approve-log-id">
-            <button type="submit" class="accept-btn">Approve</button>
-          </form>
-          <form method="post" action="/reject-log" style="display:inline;">
-            <input type="hidden" name="log_id" id="reject-log-id">
-            <button type="submit" class="reject-btn">Reject</button>
-          </form>
+          <div class="modal-actions">
+            <form method="post" action="/approve-log" style="display:inline;">
+              <input type="hidden" name="log_id" id="approve-log-id">
+              <button type="submit" class="accept-btn">Approve</button>
+            </form>
+            <form method="get" action="/edit-log" style="display:inline;">
+              <input type="hidden" name="log_id" id="edit-log-id">
+              <button type="submit" class="edit-btn">Edit</button>
+            </form>
+            <form method="post" action="/reject-log" style="display:inline;">
+              <input type="hidden" name="log_id" id="reject-log-id">
+              <button type="submit" class="reject-btn">Reject</button>
+            </form>
+          </div>
         </div>
       </div>
     </div>
@@ -132,7 +141,7 @@
 </main>
 <script>
   function openReviewModal(log) {
-    document.getElementById('modal-student').innerText = log.user_id;
+    document.getElementById('modal-student').innerText = `${log.student_name} (${log.user_id})`;
     document.getElementById('modal-activity').innerText = log.description;
     document.getElementById('modal-hours').innerText = log.hours;
     document.getElementById('modal-date').innerText = log.formatted_date;
@@ -141,6 +150,7 @@
     document.getElementById('modal-description').innerText = log.description;
     document.getElementById('approve-log-id').value = log.id;
     document.getElementById('reject-log-id').value = log.id;
+    document.getElementById('edit-log-id').value = log.id;
 
     document.getElementById('reviewModal').style.display = 'block';
   }
