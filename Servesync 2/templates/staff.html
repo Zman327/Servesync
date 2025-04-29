@@ -3,8 +3,6 @@
 {% block title %}ServeSYNC - Staff Dashboard{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="/path/to/styles.css">
-
 <main class="dashboard">
   <div class="left-column">
     <section class="section staff-profile">
@@ -82,15 +80,25 @@
 
     <section class="section recent-submissions">
       <h3><i class="fas fa-clock"></i> Recent Submissions</h3>
-      <form method="get" action="/staff.dashboard" class="filter-form">
-        <label for="status">Filter by Status:</label>
-        <select name="status" id="status" onchange="this.form.submit()">
-          <option value="">All</option>
-          <option value="Approved" {% if request.args.get('status') == 'Approved' %}selected{% endif %}>Approved</option>
-          <option value="Pending" {% if request.args.get('status') == 'Pending' %}selected{% endif %}>Pending</option>
-          <option value="Rejected" {% if request.args.get('status') == 'Rejected' %}selected{% endif %}>Rejected</option>
-        </select>
-      </form>
+      <div class="filter-approve-container">
+        
+        <form method="get" action="/staff.dashboard" class="filter-form">
+          <label for="status">Filter by Status:</label>
+          <select name="status" id="status" onchange="this.form.submit()">
+            <option value="">All</option>
+            <option value="Approved" {% if request.args.get('status') == 'Approved' %}selected{% endif %}>Approved</option>
+            <option value="Pending" {% if request.args.get('status') == 'Pending' %}selected{% endif %}>Pending</option>
+            <option value="Rejected" {% if request.args.get('status') == 'Rejected' %}selected{% endif %}>Rejected</option>
+          </select>
+        </form>
+
+        <form method="post" action="/approve-all-pending" class="approve-all-form">
+          <button type="submit" class="btn btn-warning">
+            <i class="fas fa-check-double"></i> Approve All Pending
+          </button>
+        </form>
+
+      </div>
       <table class="activity-table datatable">
         <thead>
           <tr>

@@ -94,6 +94,11 @@ html {
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
+.cta-buttons .cta-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+}
+
 .cta-btn.secondary {
   background-color: var(--white);
   color: var(--tiber);
@@ -209,13 +214,6 @@ html {
   --light-gray: #f8f9fa;
   --soft-shadow: rgba(0, 0, 0, 0.06);
   --font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-body {
-  margin: 0;
-  font-family: var(--font);
-  background-color: #f0fdf4;
-  color: var(--tiber);
 }
 
 /* Header */
@@ -820,15 +818,7 @@ body.page-404 {
   }
 }
 
-/* CTA Buttons Enhancement */
-.cta-buttons .cta-btn {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
 
-.cta-buttons .cta-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
-}
 
 /* Progress Bar */
 /* Increase and bold "Hours Completed" number */
@@ -891,14 +881,6 @@ table.dataTable thead th {
 
 table.dataTable tbody tr:hover {
   background-color: #f1f1f1;
-}
-
-/* Global Styles */
-body {
-  font-family: 'Roboto', sans-serif;
-  margin: 0;
-  background-color: #f0fdf4;
-  color: #084231;
 }
 
 h1, h3 {
@@ -1097,21 +1079,6 @@ button[type="submit"]:hover {
   font-size: 16px;
 }
 
-/* Responsive form adjustment */
-@media (max-width: 600px) {
-  .floating-form .form-group {
-    width: 100%;
-  }
-
-  .floating-form {
-    gap: 14px;
-  }
-
-  .dashboard {
-    padding: 20px;
-  }
-}
-
 .filter-form {
   margin-bottom: 15px;
 }
@@ -1276,4 +1243,27 @@ button[type="submit"]:hover {
 .review-modal .modal-details {
   padding-left: 20%;
   padding-right: 20px;
+}
+
+.filter-approve-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+
+
+.approve-all-form button {
+  background-color: #ffc107; /* Yellow color */
+  color: white;
+  border: none;
+  padding: 8px 16px; /* Smaller padding */
+  font-size: 14px; /* Smaller font size */
+  border-radius: 6px; /* Slight rounding */
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.approve-all-form button:hover {
+  background-color: #e0a800; /* Darker yellow on hover */
 }

@@ -84,6 +84,15 @@ def studentpage():
     approved_logs = ServiceHour.query.filter_by(user_id=user.school_id, status=1).all()
     user_hours = sum(log.hours for log in approved_logs) if approved_logs else 0
 
+    # Find the highest award
+    max_award = Award.query.order_by(Award.threshold.desc()).first()
+    max_award_name = max_award.name if max_award else "Platinum"
+    max_award_colour = max_award.colour if max_award else "#e5c100"
+    max_award_threshold = max_award.threshold if max_award else 40
+
+    # Whether the user has achieved the maximum award
+    has_achieved_max = user_hours >= max_award_threshold
+
     from collections import defaultdict
 
     # Calculate hours per group for the current user
@@ -142,7 +151,11 @@ def studentpage():
         next_award_threshold=next_award_threshold,
         next_award_colour=next_award_colour,
         recent_logs=recent_logs,
-        top_groups=top_groups
+        top_groups=top_groups,
+        max_award_name=max_award_name,
+        max_award_colour=max_award_colour,
+        max_award_threshold=max_award_threshold,
+        has_achieved_max=has_achieved_max
     )
 
 
@@ -344,7 +357,7 @@ def edit_log():
 
     # Now update the log entry in the database
     log = ServiceHour.query.get(log_id)
-    
+
     if log:
         log.description = description
         log.hours = hours  # Valid float value
@@ -358,6 +371,23 @@ def edit_log():
     else:
         flash('Log not found')
         return redirect(url_for('staffpage'))
+
+
+@app.route('/approve-all-pending', methods=['POST'])
+def approve_all_pending():
+    staff_id = session.get('username')
+    if not staff_id:
+        return redirect('/login')
+
+    # Find all pending logs for this staff
+    pending_logs = ServiceHour.query.filter_by(staff=staff_id, status=2).all()
+
+    for log in pending_logs:
+        log.status = 1  # 1 = Approved
+
+    db.session.commit()
+
+    return redirect('/staff.dashboard')
 
 
 if __name__ == "__main__":
