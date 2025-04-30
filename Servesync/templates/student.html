@@ -70,7 +70,10 @@
                 <td>{{ log.group_name or '—' }}</td>
                 <td>{{ log.description }}</td>
                 <td>{{ log.hours }}</td>
-                <td class="{{ log.status.lower() }}"><i class="fas fa-{{ 'check-circle' if log.status.lower() == 'approved' else 'clock' }}"></i> {{ log.status }}</td>
+                <td class="{{ log.status.lower() }}">
+                  <i class="fas fa-{% if log.status.lower() == 'approved' %}check-circle{% elif log.status.lower() == 'rejected' %}times-circle{% else %}clock{% endif %}"></i>
+                  {{ log.status }}
+                </td>
               </tr>
             {% endfor %}
           </tbody>

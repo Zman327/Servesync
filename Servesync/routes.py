@@ -170,6 +170,8 @@ def staffpage():
     # Fetch all service logs for the current staff
     logs = ServiceHour.query.filter_by(staff=staff_id).all()
 
+    pending_count = sum(1 for log in logs if log.status == 2)
+
     STATUS_MAP = {
         1: 'Approved',
         2: 'Pending',
@@ -186,6 +188,10 @@ def staffpage():
                 log.formatted_date = datetime.strptime(log.date, "%d-%m-%Y").strftime("%b %d, %Y")
             except Exception:
                 log.formatted_date = log.date
+            try:
+                log.formatted_log_time = datetime.strptime(log.log_time, "%d-%m-%Y %H:%M:%S").strftime("%b %d, %Y at %I:%M %p")
+            except Exception:
+                log.formatted_log_time = log.log_time
             user = User.query.get(log.user_id)
             student_name = f"{user.first_name} {user.last_name}" if user else "Unknown"
             filtered_logs.append({
@@ -199,13 +205,15 @@ def staffpage():
                 'status': log.status,
                 'status_label': log.status_label,
                 'group': log.group_name,
+                'log_time': log.log_time,
+                'formatted_log_time': log.formatted_log_time
             })
 
     # Sort and limit to 5 most recent logs
     filtered_logs.sort(key=lambda log: datetime.strptime(log["date"], "%d-%m-%Y"), reverse=True)
     recent_logs = filtered_logs[:5]
 
-    return render_template('staff.html', greeting=greeting, recent_submissions=recent_logs)
+    return render_template('staff.html', greeting=greeting, recent_submissions=recent_logs, pending_count=pending_count)
 
 
 # 404 page to display when a page is not found

@@ -773,11 +773,6 @@ body.page-404 {
   right: 0;
 }
 
-/* Landing Page Enhancements */
-.hero-content {
-  animation: slideIn 0.8s ease-out;
-}
-
 @keyframes slideIn {
   from {
     transform: translateY(40px);
@@ -818,8 +813,6 @@ body.page-404 {
   }
 }
 
-
-
 /* Progress Bar */
 /* Increase and bold "Hours Completed" number */
 .hours-completed .large-number {
@@ -849,6 +842,7 @@ body.page-404 {
   align-items: center;
   background: conic-gradient(var(--jungle-green) 0% 0%, #e0e0e0 0% 100%); /* Base color */
   transition: background 1s ease; /* Smooth transition for filling effect */
+  transition: width 0.5s ease-in-out;
 }
 
 .progress-text {
@@ -887,10 +881,6 @@ h1, h3 {
   font-weight: 500;
 }
 
-/* Progress Bar Animation */
-.progress-bar {
-  transition: width 0.5s ease-in-out;
-}
 
 /* Responsive Layout */
 @media (max-width: 768px) {
@@ -968,8 +958,6 @@ button[type="submit"]:hover {
   background-color: #3367D6;
 }
 
-/* Staff Dashboard Enhancements */
-
 /* Group Overview Section */
 .group-overview ul {
   list-style-type: disc;
@@ -1031,6 +1019,11 @@ button[type="submit"]:hover {
   color: var(--tiber);
 }
 
+/* Pending stat box: yellow/orange tone for pending */
+.stat-box.pending span {
+  color: #e69500;
+}
+
 .stat-box span {
   display: block;
   font-size: 22px;
@@ -1054,10 +1047,6 @@ button[type="submit"]:hover {
 #confirmation-message.show {
   display: block;
   opacity: 1;
-}
-
-/* Confirmation message animation */
-#confirmation-message.show {
   animation: fadeInConfirm 0.5s ease-out;
 }
 
@@ -1080,7 +1069,7 @@ button[type="submit"]:hover {
 }
 
 .filter-form {
-  margin-bottom: 15px;
+  margin-bottom: 0px;
 }
 
 .filter-form select {
@@ -1121,6 +1110,8 @@ button[type="submit"]:hover {
   flex-direction: column;
   align-items: flex-start;
   padding-left: 40px;
+  padding-right: 20px;
+  padding-left: 20%;
   padding-right: 20px;
 }
 
@@ -1240,18 +1231,12 @@ button[type="submit"]:hover {
   display: inline;
 }
 
-.review-modal .modal-details {
-  padding-left: 20%;
-  padding-right: 20px;
-}
-
 .filter-approve-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 5px;
 }
-
-
 
 .approve-all-form button {
   background-color: #ffc107; /* Yellow color */
@@ -1262,6 +1247,7 @@ button[type="submit"]:hover {
   border-radius: 6px; /* Slight rounding */
   cursor: pointer;
   transition: background-color 0.3s ease;
+  margin-top: -15px; /* Move button up slightly for alignment */
 }
 
 .approve-all-form button:hover {
