@@ -413,5 +413,28 @@ def search_groups():
     return jsonify([group.name for group in groups])
 
 
+# Route to get staff for a given group
+@app.route('/api/staff-for-group')
+def get_staff_for_group():
+    group_name = request.args.get('group', '')
+    group = Group.query.filter_by(name=group_name).first()
+    if group:
+        staff = User.query.filter_by(school_id=group.staff).first()
+        if staff:
+            return jsonify({
+                'label': f"{staff.first_name} {staff.last_name} ({staff.school_id})",
+                'value': f"{staff.first_name} {staff.last_name} ({staff.school_id})"
+            })
+    return jsonify(None), 404
+
+
+@app.route('/api/all-staff')
+def get_all_staff():
+    staff_members = User.query.filter_by(role='2').all()  # Ensure this matches the correct column and value
+    staff_list = [{'value': f"{staff.first_name} {staff.last_name} ({staff.school_id})", 
+                   'label': f"{staff.first_name} {staff.last_name} ({staff.school_id})"} for staff in staff_members]
+    return jsonify(staff_list)
+
+
 if __name__ == "__main__":
     app.run(debug=True)

@@ -22,13 +22,8 @@
         <div class="form-group">
             <i class="fas fa-user-tie"></i>
             <select name="person_in_charge" id="person_in_charge" required>
-                <option value="" disabled selected></option>
-                {% for teacher in staff_members %}
-                  <option value="{{ teacher.first_name }} {{ teacher.last_name }} ({{ teacher.school_id }})">
-                    {{ teacher.first_name }} {{ teacher.last_name }} ({{ teacher.school_id }})
-                  </option>
-                {% endfor %}
-              </select>
+              <option value="" disabled selected></option>
+            </select>
             <label for="person_in_charge">Person in Charge</label>
         </div>
         <div class="form-group">
@@ -120,6 +115,35 @@
               li.addEventListener("click", () => {
                 groupInput.value = group;
                 suggestionBox.innerHTML = "";
+
+                // Fetch and populate the staff member linked to this group
+                fetch(`/api/staff-for-group?group=${encodeURIComponent(group)}`)
+                  .then(res => res.json())
+                  .then(staff => {
+                    const personSelect = document.getElementById("person_in_charge");
+                    personSelect.innerHTML = ""; // Clear existing options
+
+                    // Add the default auto-selected staff linked to the group
+                    if (staff && staff.label) {
+                      const option = document.createElement("option");
+                      option.value = staff.value;
+                      option.textContent = staff.label;
+                      option.selected = true; // Auto-select the staff linked to the group
+                      personSelect.appendChild(option);
+                    }
+
+                    // Now, fetch all staff members to allow the user to choose from them
+                    fetch(`/api/all-staff`)  // Fetch all staff
+                      .then(res => res.json())
+                      .then(allStaff => {
+                        allStaff.forEach(staff => {
+                          const option = document.createElement("option");
+                          option.value = staff.value;
+                          option.textContent = staff.label;
+                          personSelect.appendChild(option); // Add all available staff options
+                        });
+                      });
+                  });
               });
               suggestionBox.appendChild(li);
             });
