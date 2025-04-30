@@ -169,6 +169,8 @@ def staffpage():
 
     # Fetch all service logs for the current staff
     logs = ServiceHour.query.filter_by(staff=staff_id).all()
+    # Fetch the groups attached to this staff member
+    attached_groups = Group.query.filter_by(staff=staff_id).all()
 
     pending_count = sum(1 for log in logs if log.status == 2)
 
@@ -213,7 +215,13 @@ def staffpage():
     filtered_logs.sort(key=lambda log: datetime.strptime(log["date"], "%d-%m-%Y"), reverse=True)
     recent_logs = filtered_logs[:5]
 
-    return render_template('staff.html', greeting=greeting, recent_submissions=recent_logs, pending_count=pending_count)
+    return render_template(
+        'staff.html',
+        greeting=greeting,
+        recent_submissions=recent_logs,
+        pending_count=pending_count,
+        attached_groups=attached_groups
+    )
 
 
 # 404 page to display when a page is not found
@@ -396,6 +404,13 @@ def approve_all_pending():
     db.session.commit()
 
     return redirect('/staff.dashboard')
+
+
+@app.route('/api/groups')
+def search_groups():
+    query = request.args.get('q', '')
+    groups = Group.query.filter(Group.name.ilike(f'%{query}%')).limit(10).all()
+    return jsonify([group.name for group in groups])
 
 
 if __name__ == "__main__":
