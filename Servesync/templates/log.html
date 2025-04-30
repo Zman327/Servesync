@@ -24,12 +24,11 @@
           <label for="group">Group</label>
           <ul id="group-suggestions" class="autocomplete-list"></ul>
         </div>
-        <div class="form-group">
-            <i class="fas fa-user-tie"></i>
-            <select name="person_in_charge" id="person_in_charge" required>
-              <option value="" disabled selected></option>
-            </select>
-            <label for="person_in_charge">Person in Charge</label>
+        <div class="form-group autocomplete-group" style="position: relative;">
+          <i class="fas fa-user-tie"></i>
+          <input type="text" name="person_in_charge" id="person_in_charge" required placeholder=" ">
+          <label for="person_in_charge">Person in Charge</label>
+          <ul id="staff-suggestions" class="autocomplete-list"></ul>
         </div>
         <div class="form-group">
           <i class="fas fa-clock"></i>
@@ -129,28 +128,16 @@
                   .then(res => res.json())
                   .then(staff => {
                     const personSelect = document.getElementById("person_in_charge");
-                    personSelect.innerHTML = ""; // Clear existing options
+                    personSelect.value = "";
+                    personSelect.setAttribute("data-linked-staff-value", "");
+                    personSelect.setAttribute("data-linked-staff-label", "");
 
                     // Add the default auto-selected staff linked to the group
                     if (staff && staff.label) {
-                      const option = document.createElement("option");
-                      option.value = staff.value;
-                      option.textContent = staff.label;
-                      option.selected = true; // Auto-select the staff linked to the group
-                      personSelect.appendChild(option);
+                      personSelect.value = staff.label;
+                      personSelect.setAttribute("data-linked-staff-value", staff.value);
+                      personSelect.setAttribute("data-linked-staff-label", staff.label);
                     }
-
-                    // Now, fetch all staff members to allow the user to choose from them
-                    fetch(`/api/all-staff`)  // Fetch all staff
-                      .then(res => res.json())
-                      .then(allStaff => {
-                        allStaff.forEach(staff => {
-                          const option = document.createElement("option");
-                          option.value = staff.value;
-                          option.textContent = staff.label;
-                          personSelect.appendChild(option); // Add all available staff options
-                        });
-                      });
                   });
               });
               suggestionBox.appendChild(li);
@@ -162,6 +149,43 @@
     document.addEventListener("click", (e) => {
       if (!e.target.closest(".autocomplete-group")) {
         suggestionBox.innerHTML = "";
+      }
+    });
+
+    const staffInput = document.getElementById("person_in_charge");
+    const staffBox = document.getElementById("staff-suggestions");
+
+    let staffTimeout;
+    staffInput.addEventListener("input", () => {
+      clearTimeout(staffTimeout);
+      const query = staffInput.value.trim().toLowerCase();
+      if (!query) {
+        staffBox.innerHTML = "";
+        return;
+      }
+      staffTimeout = setTimeout(() => {
+        fetch(`/api/all-staff`)
+          .then(res => res.json())
+          .then(staffList => {
+            staffBox.innerHTML = "";
+            staffList.forEach(staff => {
+              if (staff.label.toLowerCase().includes(query)) {
+                const li = document.createElement("li");
+                li.textContent = staff.label;
+                li.addEventListener("click", () => {
+                  staffInput.value = staff.label;
+                  staffBox.innerHTML = "";
+                });
+                staffBox.appendChild(li);
+              }
+            });
+          });
+      }, 200);
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest("#person_in_charge")) {
+        staffBox.innerHTML = "";
       }
     });
   });
