@@ -3,7 +3,7 @@
 {% block title %}ServeSYNC - Log Hours{% endblock %}
 
 {% block content %}
-<main class="dashboard">
+<main class="login-dashboard">
   <div class="left-column">
     <div class="section form-card">
       <h2 class="center-text">Log Your Service Hours</h2>
@@ -12,7 +12,12 @@
             <i class="fas fa-calendar-alt"></i>
             <input type="date" name="date" id="date" required placeholder=" ">
             <label for="date">Date of Activity</label>
-          </div>
+        </div>
+        <div class="form-group">
+          <i class="fas fa-tasks"></i>
+          <input type="text" name="activity" id="activity" required placeholder=" ">
+          <label for="activity">Activity Name</label>
+        </div>
         <div class="form-group autocomplete-group" style="position: relative;">
           <i class="fas fa-users"></i>
           <input type="text" id="group" name="group" required placeholder=" ">
@@ -27,18 +32,17 @@
             <label for="person_in_charge">Person in Charge</label>
         </div>
         <div class="form-group">
-          <i class="fas fa-tasks"></i>
-          <input type="text" name="activity" id="activity" required placeholder=" ">
-          <label for="activity">Activity Name</label>
-        </div>
-        <div class="form-group">
           <i class="fas fa-clock"></i>
           <input type="number" name="hours" id="hours" required step="0.5" min="0" placeholder=" ">
           <label for="hours">Hours Completed</label>
         </div>
-        {% if session.success %}
-          <div id="confirmation-message">✅ Your hours have been submitted for review!</div>
-        {% endif %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div id="confirmation-message" class="flash-message {{ category }}">✅ {{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
         <button type="submit" class="login-btn">
           <span class="btn-text">Submit Hours</span>
           <span class="btn-loader" style="display: none;">
@@ -65,11 +69,15 @@
       dateInput.value = localDate;
     }
 
-    // Confirmation message animation
+    // Confirmation message animation with auto-dismiss
     const confirmation = document.getElementById("confirmation-message");
     if (confirmation) {
       confirmation.classList.add("show");
       confirmation.scrollIntoView({ behavior: "smooth" });
+      setTimeout(() => {
+        confirmation.style.opacity = "0";
+        setTimeout(() => confirmation.remove(), 500);
+      }, 5000);
     }
 
     // Form validation and submit animation

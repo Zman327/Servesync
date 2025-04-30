@@ -325,7 +325,7 @@ html {
   background-color: #f9f9f9;
 }
 
-/* Dashboard */
+/* Log in Dashboard */
 .dashboard {
   display: flex;
   gap: 40px;
@@ -334,6 +334,17 @@ html {
   justify-content: flex-start;
   max-width: 100%;
   margin: 0;
+}
+
+.login-dashboard {
+  display: flex;
+  gap: 40px;
+  padding: 40px 60px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  margin: 0;
+  width: 105%;
+  margin-bottom: 2%;
 }
 
 /* Left Column */
@@ -548,7 +559,7 @@ body.page-404 {
   width: 100%;
   max-width: 420px;
   position: relative;
-  animation: fadeIn 0.4s ease-out;
+  animation: fadeIn 0.5s ease-out;
   box-sizing: border-box;
   overflow: hidden;
   max-height: 90vh;
@@ -798,9 +809,7 @@ body.page-404 {
 }
 
 /* Modal Animation Enhancements */
-.modal-content {
-  animation: fadeInScale 0.5s ease-out;
-}
+
 
 @keyframes fadeInScale {
   from {
@@ -814,7 +823,6 @@ body.page-404 {
 }
 
 /* Progress Bar */
-/* Increase and bold "Hours Completed" number */
 .hours-completed .large-number {
   font-size: 80px; /* Make the number much larger */
   font-weight: bold; /* Make the number bold */

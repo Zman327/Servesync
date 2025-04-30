@@ -315,7 +315,7 @@ def submit_hours():
 
     db.session.add(new_log)
     db.session.commit()
-    session['success'] = True
+    flash("Your hours have been submitted for review!", "success")
     return redirect(url_for('logpage'))
 
 
