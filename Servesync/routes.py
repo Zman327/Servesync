@@ -256,7 +256,6 @@ def login():
             ).scalar()
             session['role'] = role_name
             print(f"Session set: {session}")
-            flash('Login successful!')
             if role_name.lower() == 'staff':
                 return redirect(url_for('staffpage'))
             else:
@@ -272,7 +271,6 @@ def login():
 @app.route('/logout')
 def logout():
     session.clear()
-    flash('You have been logged out.')
     return redirect(url_for('homepage'))
 
 
