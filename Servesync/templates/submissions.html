@@ -7,28 +7,43 @@
   <div class="right-column full-width">
     <div class="section">
       <h2><i class="fas fa-file-alt"></i> All Service Hour Submissions</h2>
+      <!-- Search bar -->
+      <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Search by student, date, or group..." />
+      </div>
       <table class="activity-table datatable" id="submissionsTable">
         <thead>
           <tr>
-            <th>Student Name</th>
-            <th>Description</th>
-            <th>Hours</th>
-            <th>Date</th>
-            <th>Status</th>
-            <th>Group</th>
+            <th data-column="0" class="sortable">Student Name <span class="sort-icon">⇅</span></th>
+            <th data-column="1" class="sortable">Description <span class="sort-icon">⇅</span></th>
+            <th data-column="2" class="sortable">Hours <span class="sort-icon">⇅</span></th>
+            <th data-column="3" class="sortable">Date <span class="sort-icon">⇅</span></th>
+            <th data-column="4">Status</th>
+            <th data-column="5" class="sortable">Group <span class="sort-icon">⇅</span></th>
           </tr>
         </thead>
         <tbody>
-          {% for submission in submissions %}
-          <tr>
-            <td>{{ submission.student_name }}</td>
-            <td>{{ submission.description }}</td>
-            <td>{{ submission.hours }}</td>
-            <td>{{ submission.date }}</td>
-            <td>{{ submission.status_label }}</td>
-            <td>{{ submission.group }}</td>
-          </tr>
-          {% endfor %}
+            {% for submission in submissions %}
+            <tr>
+              <td>{{ submission.student_name }}</td>
+              <td>{{ submission.description }}</td>
+              <td>{{ submission.hours }}</td>
+              <td>{{ submission.date }}</td>
+              <td class="{{ submission.status_label|lower }}">
+                {% if submission.status_label == 'Approved' %}
+                  <i class="fas fa-check-circle"></i>
+                {% elif submission.status_label == 'Pending' %}
+                  <i class="fas fa-clock"></i>
+                {% elif submission.status_label == 'Rejected' %}
+                  <i class="fas fa-times-circle"></i>
+                {% else %}
+                  <i class="fas fa-question-circle"></i>
+                {% endif %}
+                {{ submission.status_label }}
+              </td>
+              <td>{{ submission.group }}</td>
+            </tr>
+            {% endfor %}
         </tbody>
       </table>
       <div class="pagination">
@@ -74,31 +89,89 @@
       }
     });
 
+    // Default sort by Date (column 3) descending
+    rows.sort((a, b) => {
+      const cellA = a.cells[3].innerText;
+      const cellB = b.cells[3].innerText;
+      return new Date(cellB) - new Date(cellA);
+    });
+    rows.forEach(row => row.parentNode.appendChild(row));
     showPage(currentPage);
+
+    // Sorting functionality
+    let currentSortedColumn = null;
+    let currentSortAsc = true;
+
+    document.querySelectorAll(".sortable").forEach(header => {
+      header.addEventListener("click", () => {
+        const column = parseInt(header.getAttribute("data-column"));
+
+        // Remove classes from all headers and icons
+        document.querySelectorAll(".sortable").forEach(h => h.classList.remove("asc", "desc"));
+        document.querySelectorAll(".sort-icon").forEach(icon => icon.classList.remove("active"));
+
+        // Determine sort direction
+        if (currentSortedColumn === column) {
+          currentSortAsc = !currentSortAsc;
+        } else {
+          currentSortAsc = true;
+          currentSortedColumn = column;
+        }
+
+        // Set sort direction classes
+        header.classList.add(currentSortAsc ? "asc" : "desc");
+
+        // Highlight icon
+        const icon = header.querySelector(".sort-icon");
+        if (icon) icon.classList.add("active");
+
+        // Sort rows
+        rows.sort((a, b) => {
+          const cellA = a.cells[column].innerText;
+          const cellB = b.cells[column].innerText;
+
+          if (column === 3) {
+            return currentSortAsc
+              ? new Date(cellA) - new Date(cellB)
+              : new Date(cellB) - new Date(cellA);
+          }
+
+          const valA = cellA.toLowerCase();
+          const valB = cellB.toLowerCase();
+
+          if (!isNaN(valA) && !isNaN(valB)) {
+            return currentSortAsc ? valA - valB : valB - valA;
+          }
+
+          return currentSortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+        });
+
+        rows.forEach(row => row.parentNode.appendChild(row));
+        showPage(currentPage);
+      });
+    });
+  });
+
+  // Search functionality:
+  document.addEventListener("DOMContentLoaded", function () {
+    const rows = Array.from(document.querySelectorAll("#submissionsTable tbody tr"));
+    const searchInput = document.getElementById("searchInput");
+
+    searchInput.addEventListener("input", function () {
+      const searchTerm = searchInput.value.toLowerCase();
+      
+      rows.forEach(row => {
+        const studentName = row.cells[0].textContent.toLowerCase();
+        const date = row.cells[3].textContent.toLowerCase();
+        const group = row.cells[5].textContent.toLowerCase();
+        
+        if (studentName.includes(searchTerm) || date.includes(searchTerm) || group.includes(searchTerm)) {
+          row.style.display = "";
+        } else {
+          row.style.display = "none";
+        }
+      });
+    });
   });
 </script>
-
-<style>
-  .pagination {
-    margin-top: 1rem;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  .pagination button {
-    padding: 0.5rem 1rem;
-    background-color: #0078d7;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-
-  .pagination button:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
-  }
-</style>
 {% endblock %}
