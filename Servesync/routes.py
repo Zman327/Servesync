@@ -1,11 +1,12 @@
-from flask import Flask, render_template, request, redirect, session, url_for, flash, jsonify
+from flask import Flask, render_template, request, redirect, session, url_for, flash, jsonify, make_response
 from flask_sqlalchemy import SQLAlchemy
 import os
+import csv
 from sqlalchemy import MetaData, Table
 from datetime import datetime
 
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='templates')
 app.secret_key = 'your_secret_key'
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'ServeSync.db')
@@ -43,7 +44,7 @@ with app.app_context():
 
 @app.route('/home')
 def homepage():
-    return render_template('index.html')
+    return render_template('Index.html')
 
 
 @app.route('/account')
@@ -174,6 +175,13 @@ def staffpage():
 
     pending_count = sum(1 for log in logs if log.status == 2)
 
+    # Calculate total approved hours this year
+    current_year = datetime.now().year
+    approved_hours_this_year = sum(
+        log.hours for log in logs
+        if log.status == 1 and datetime.strptime(log.date, "%d-%m-%Y").year == current_year
+    )
+
     STATUS_MAP = {
         1: 'Approved',
         2: 'Pending',
@@ -220,7 +228,8 @@ def staffpage():
         greeting=greeting,
         recent_submissions=recent_logs,
         pending_count=pending_count,
-        attached_groups=attached_groups
+        attached_groups=attached_groups,
+        approved_hours_this_year=approved_hours_this_year
     )
 
 
@@ -432,6 +441,43 @@ def get_all_staff():
     staff_list = [{'value': f"{staff.first_name} {staff.last_name} ({staff.school_id})", 
                    'label': f"{staff.first_name} {staff.last_name} ({staff.school_id})"} for staff in staff_members]
     return jsonify(staff_list)
+
+
+@app.route('/reports')
+def download_reports():
+    import io
+    staff_id = session.get('username')
+
+    # Fetch staff user
+    staff = User.query.filter_by(school_id=staff_id).first()
+
+    # Fetch all approved logs for the current staff
+    logs = ServiceHour.query.filter_by(staff=staff_id, status=1).all()
+
+    # Create CSV in memory
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow([f"Report for: {staff.first_name} {staff.last_name}"])
+    writer.writerow([])  # Empty row for spacing
+    writer.writerow(['Student', 'Activity', 'Hours', 'Date', 'Date Submitted', 'Group'])
+
+    for log in logs:
+        user = User.query.get(log.user_id)
+        group = Group.query.get(log.group_id)
+        writer.writerow([
+            f"{user.first_name} {user.last_name}" if user else "Unknown",
+            log.description,
+            log.hours,
+            log.date,
+            log.log_time,
+            group.name if group else "N/A"
+        ])
+
+    # Return CSV as downloadable file
+    response = make_response(output.getvalue())
+    response.headers["Content-Disposition"] = "attachment; filename=service_hours_report.csv"
+    response.headers["Content-Type"] = "text/csv"
+    return response
 
 
 if __name__ == "__main__":

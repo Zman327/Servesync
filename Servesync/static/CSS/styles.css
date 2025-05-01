@@ -4,6 +4,8 @@ body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: #f0fdf4;
   color: #084231;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 a {
