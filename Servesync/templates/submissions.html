@@ -4,12 +4,34 @@
 
 {% block content %}
 <main class="dashboard">
+    <a href="/staff.dashboard" class="back-button">
+        <i class="fas fa-arrow-left"></i>
+    </a>
   <div class="right-column full-width">
     <div class="section">
       <h2><i class="fas fa-file-alt"></i> All Service Hour Submissions</h2>
-      <!-- Search bar -->
-      <div class="search-container">
-        <input type="text" id="searchInput" placeholder="Search by student, date, or group..." />
+      <!-- Search bar and Approve All Pending button -->
+      <div class="search-approve-container">
+        <div class="search-container" style="flex: 1;">
+          <input type="text" id="searchInput" placeholder="Search by student, date, or group..." />
+        </div>
+        <div class="filter-form">
+            <form method="get" action="{{ request.path }}">
+              <label for="status">Filter by Status:</label>
+              <select name="status" id="status" onchange="this.form.submit()">
+                <option value="">All</option>
+                <option value="Approved" {% if request.args.get('status') == 'Approved' %}selected{% endif %}>Approved</option>
+                <option value="Pending" {% if request.args.get('status') == 'Pending' %}selected{% endif %}>Pending</option>
+                <option value="Rejected" {% if request.args.get('status') == 'Rejected' %}selected{% endif %}>Rejected</option>
+              </select>
+            </form>
+          </div>
+        <form method="post" action="/approve-all-pending" class="approve-all-form" style="margin-left: 20px;">
+            <input type="hidden" name="redirect_to" value="{{ request.path }}">
+            <button type="submit" class="btn btn-warning">
+              <i class="fas fa-check-double"></i> Approve All Pending
+            </button>
+        </form>
       </div>
       <table class="activity-table datatable" id="submissionsTable">
         <thead>
@@ -20,6 +42,7 @@
             <th data-column="3" class="sortable">Date <span class="sort-icon">⇅</span></th>
             <th data-column="4">Status</th>
             <th data-column="5" class="sortable">Group <span class="sort-icon">⇅</span></th>
+            <th>Action</th>
           </tr>
         </thead>
         <tbody>
@@ -42,6 +65,13 @@
                 {{ submission.status_label }}
               </td>
               <td>{{ submission.group }}</td>
+              <td>
+                <a href="javascript:void(0);" 
+                   class="btn btn-primary" 
+                   onclick='openReviewModal({{ submission | tojson | safe }})'>
+                   Review
+                </a>
+              </td>
             </tr>
             {% endfor %}
         </tbody>
@@ -51,6 +81,42 @@
         <span id="pageIndicator">Page 1</span>
         <button id="nextPage">Next</button>
       </div>
+
+      <!-- Review Modal -->
+      <div id="reviewModal" class="modal review-modal">
+        <div class="modal-content">
+          <span class="close-btn" onclick="closeModal()">&times;</span>
+          <div class="modal-image">
+            <img src="static/Images/Profile/deafult.jpg" alt="Review Image" />
+          </div>
+          <div class="modal-details">
+            <h2>Submission Details</h2>
+            <p><strong>Student:</strong> <span id="modal-student"></span></p>
+            <p><strong>Group:</strong> <span id="modal-group"></span></p>
+            <p><strong>Activity:</strong> <span id="modal-activity"></span></p>
+            <p><strong>Hours:</strong> <span id="modal-hours"></span></p>
+            <p><strong>Date:</strong> <span id="modal-date"></span></p>
+            <p><strong>Status:</strong> <span id="modal-status"></span></p>
+            <p><strong>Date Submitted:</strong> <span id="modal-log-time"></span></p>
+      
+            <div class="modal-actions">
+              <form method="post" action="/approve-log" style="display:inline;">
+                <input type="hidden" name="log_id" id="approve-log-id">
+                <button type="submit" class="accept-btn">Approve</button>
+              </form>
+              <form method="get" action="/edit-log" style="display:inline;">
+                <input type="hidden" name="log_id" id="edit-log-id">
+                <button type="submit" class="edit-btn">Edit</button>
+              </form>
+              <form method="post" action="/reject-log" style="display:inline;">
+                <input type="hidden" name="log_id" id="reject-log-id">
+                <button type="submit" class="reject-btn">Reject</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </main>
@@ -173,5 +239,31 @@
       });
     });
   });
+
+  function openReviewModal(log) {
+    document.getElementById('modal-student').innerText = `${log.student_name} (${log.user_id})`;
+    document.getElementById('modal-activity').innerText = log.description;
+    document.getElementById('modal-hours').innerText = log.hours;
+    document.getElementById('modal-date').innerText = log.date;
+    document.getElementById('modal-status').innerText = log.status_label;
+    document.getElementById('modal-group').innerText = log.group || "N/A";
+    document.getElementById('modal-log-time').innerText = log.formatted_log_time || "N/A";
+    document.getElementById('approve-log-id').value = log.id;
+    document.getElementById('reject-log-id').value = log.id;
+    document.getElementById('edit-log-id').value = log.id;
+
+    document.getElementById('reviewModal').style.display = 'block';
+  }
+
+  function closeModal() {
+    document.getElementById('reviewModal').style.display = 'none';
+  }
+
+  window.onclick = function(event) {
+    const modal = document.getElementById('reviewModal');
+    if (event.target === modal) {
+      modal.style.display = "none";
+    }
+  }
 </script>
 {% endblock %}

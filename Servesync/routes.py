@@ -236,6 +236,7 @@ def staffpage():
 @app.route('/submissions')
 def submissions():
     staff_id = session.get('username')
+    selected_status = request.args.get('status')  # Get status filter from query string
 
     # Get groups this staff manages
     attached_groups = Group.query.filter_by(staff=staff_id).all()
@@ -252,24 +253,39 @@ def submissions():
 
     submission_data = []
     for log in logs:
-        user = User.query.get(log.user_id)
-        student_name = f"{user.first_name} {user.last_name}" if user else "Unknown"
-        group = Group.query.get(log.group_id)
-        group_name = group.name if group else "N/A"
-        try:
-            formatted_date = datetime.strptime(log.date, "%d-%m-%Y").strftime("%b %d, %Y")
-        except:
-            formatted_date = log.date
-        submission_data.append({
-            'student_name': student_name,
-            'description': log.description,
-            'hours': log.hours,
-            'date': formatted_date,
-            'status_label': STATUS_MAP.get(log.status, 'Unknown'),
-            'group': group_name
-        })
+        status_label = STATUS_MAP.get(log.status, 'Unknown')
+        if not selected_status or status_label == selected_status:
+            user = User.query.get(log.user_id)
+            student_name = f"{user.first_name} {user.last_name}" if user else "Unknown"
+            group = Group.query.get(log.group_id)
+            group_name = group.name if group else "N/A"
+            try:
+                formatted_date = datetime.strptime(log.date, "%d-%m-%Y").strftime("%b %d, %Y")
+            except Exception:
+                formatted_date = log.date
+            try:
+                formatted_log_time = (
+                    datetime.strptime(log.log_time, "%d-%m-%Y %H:%M:%S").strftime("%b %d, %Y at %I:%M %p")
+                    if log.log_time else "N/A"
+                )
+            except Exception:
+                formatted_log_time = log.log_time if log.log_time else "N/A"
+            submission_data.append({
+                'id': log.id,
+                'student_name': student_name,
+                'user_id': log.user_id,
+                'description': log.description,
+                'hours': log.hours,
+                'date': formatted_date,
+                'formatted_date': formatted_date,
+                'status': log.status,
+                'status_label': status_label,
+                'group': group_name,
+                'log_time': log.log_time,
+                'formatted_log_time': formatted_log_time
+            })
 
-    # Sort by newest first
+    # Sort by newest first using original log.date format
     submission_data.sort(key=lambda x: datetime.strptime(x["date"], "%b %d, %Y"), reverse=True)
 
     return render_template('submissions.html', submissions=submission_data)
@@ -444,15 +460,15 @@ def approve_all_pending():
     if not staff_id:
         return redirect('/login')
 
-    # Find all pending logs for this staff
+    # Approve all pending logs for this staff
     pending_logs = ServiceHour.query.filter_by(staff=staff_id, status=2).all()
-
     for log in pending_logs:
-        log.status = 1  # 1 = Approved
-
+        log.status = 1  # Approved
     db.session.commit()
 
-    return redirect('/staff.dashboard')
+    # Use redirect target from form if provided
+    redirect_to = request.form.get('redirect_to', '/staff.dashboard')
+    return redirect(redirect_to)
 
 
 @app.route('/api/groups')

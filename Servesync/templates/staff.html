@@ -94,7 +94,8 @@
           </select>
         </form>
 
-        <form method="post" action="/approve-all-pending" class="approve-all-form">
+        <form method="post" action="/approve-all-pending" class="approve-all-form" style="margin-left: 20px;">
+          <input type="hidden" name="redirect_to" value="{{ request.path }}">
           <button type="submit" class="btn btn-warning">
             <i class="fas fa-check-double"></i> Approve All Pending
           </button>

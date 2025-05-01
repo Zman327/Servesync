@@ -1335,8 +1335,14 @@ button[type="submit"]:hover {
 }
 
 .search-container {
+  width: 100%;
+}
+
+.search-approve-container {
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
   margin-bottom: 20px;
-  text-align: center;
 }
 
 #searchInput {
@@ -1351,4 +1357,21 @@ button[type="submit"]:hover {
 #searchInput:focus {
   border-color: #146830;
   outline: none;
+}
+
+.back-button {
+  display: inline-block;
+  padding: 4px 8px;
+  margin-left: -3%;
+  margin-top: -2%;
+  font-size: 14px;
+  color: #787878;
+  text-decoration: none;
+  border-radius: 5px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.back-button:hover {
+  background-color: #4CAF50;
+  color: white;
 }
