@@ -1,0 +1,104 @@
+{% extends "layout.html" %}
+
+{% block title %}All Submissions - ServeSYNC{% endblock %}
+
+{% block content %}
+<main class="dashboard">
+  <div class="right-column full-width">
+    <div class="section">
+      <h2><i class="fas fa-file-alt"></i> All Service Hour Submissions</h2>
+      <table class="activity-table datatable" id="submissionsTable">
+        <thead>
+          <tr>
+            <th>Student Name</th>
+            <th>Description</th>
+            <th>Hours</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Group</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for submission in submissions %}
+          <tr>
+            <td>{{ submission.student_name }}</td>
+            <td>{{ submission.description }}</td>
+            <td>{{ submission.hours }}</td>
+            <td>{{ submission.date }}</td>
+            <td>{{ submission.status_label }}</td>
+            <td>{{ submission.group }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div class="pagination">
+        <button id="prevPage">Previous</button>
+        <span id="pageIndicator">Page 1</span>
+        <button id="nextPage">Next</button>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const rows = Array.from(document.querySelectorAll("#submissionsTable tbody tr"));
+    const rowsPerPage = 10;
+    let currentPage = 1;
+    const totalPages = Math.ceil(rows.length / rowsPerPage);
+    const pageIndicator = document.getElementById("pageIndicator");
+    const prevBtn = document.getElementById("prevPage");
+    const nextBtn = document.getElementById("nextPage");
+
+    function showPage(page) {
+      const start = (page - 1) * rowsPerPage;
+      const end = start + rowsPerPage;
+      rows.forEach((row, index) => {
+        row.style.display = index >= start && index < end ? "" : "none";
+      });
+      pageIndicator.textContent = `Page ${page}`;
+      prevBtn.disabled = page === 1;
+      nextBtn.disabled = page === totalPages || totalPages === 0;
+    }
+
+    prevBtn.addEventListener("click", () => {
+      if (currentPage > 1) {
+        currentPage--;
+        showPage(currentPage);
+      }
+    });
+
+    nextBtn.addEventListener("click", () => {
+      if (currentPage < totalPages) {
+        currentPage++;
+        showPage(currentPage);
+      }
+    });
+
+    showPage(currentPage);
+  });
+</script>
+
+<style>
+  .pagination {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .pagination button {
+    padding: 0.5rem 1rem;
+    background-color: #0078d7;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .pagination button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+  }
+</style>
+{% endblock %}

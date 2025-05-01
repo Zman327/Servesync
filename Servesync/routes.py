@@ -233,6 +233,48 @@ def staffpage():
     )
 
 
+@app.route('/submissions')
+def submissions():
+    staff_id = session.get('username')
+
+    # Get groups this staff manages
+    attached_groups = Group.query.filter_by(staff=staff_id).all()
+    group_ids = [group.id for group in attached_groups]
+
+    # Get all logs from those groups only
+    logs = ServiceHour.query.filter(ServiceHour.group_id.in_(group_ids)).all()
+
+    STATUS_MAP = {
+        1: 'Approved',
+        2: 'Pending',
+        3: 'Rejected'
+    }
+
+    submission_data = []
+    for log in logs:
+        user = User.query.get(log.user_id)
+        student_name = f"{user.first_name} {user.last_name}" if user else "Unknown"
+        group = Group.query.get(log.group_id)
+        group_name = group.name if group else "N/A"
+        try:
+            formatted_date = datetime.strptime(log.date, "%d-%m-%Y").strftime("%b %d, %Y")
+        except:
+            formatted_date = log.date
+        submission_data.append({
+            'student_name': student_name,
+            'description': log.description,
+            'hours': log.hours,
+            'date': formatted_date,
+            'status_label': STATUS_MAP.get(log.status, 'Unknown'),
+            'group': group_name
+        })
+
+    # Sort by newest first
+    submission_data.sort(key=lambda x: datetime.strptime(x["date"], "%b %d, %Y"), reverse=True)
+
+    return render_template('submissions.html', submissions=submission_data)
+
+
 # 404 page to display when a page is not found
 # helps re-direct users back to home page
 @app.errorhandler(404) # noqa:
