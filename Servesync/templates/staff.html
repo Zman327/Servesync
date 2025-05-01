@@ -66,7 +66,7 @@
       <ul>
         <li><a href="/approve-hours">Approve Hours</a></li>
         <li><a href="/groups">Manage groups</a></li>
-        <li><a href="/reports">Download Reports</a></li>
+        <li><a href="javascript:void(0);" onclick="openReportModal()">Download Reports</a></li>
       </ul>
     </section>
   </div>
@@ -78,6 +78,21 @@
         <br>
         <span style="font-weight: normal;">{{ session.name }}</span>
       </h1>
+    </div>
+    <!-- Download Reports Modal -->
+    <div id="reportModal" class="modal simple-modal">
+      <div class="modal-content">
+        <span class="close-btn" onclick="closeReportModal()">&times;</span>
+        <h2>Download Reports</h2>
+        <div class="modal-actions">
+          <div class="button-row">
+            <a href="/download/csv" class="btn btn-primary"><i class="fas fa-file-csv"></i> CSV</a>
+            <a href="/download/excel" class="btn btn-primary"><i class="fas fa-file-excel"></i> Excel</a>
+            <a href="/download/pdf" class="btn btn-primary"><i class="fas fa-file-pdf"></i> PDF</a>
+          </div>
+          <button onclick="window.print()" class="btn btn-secondary full-width"><i class="fas fa-print"></i> Print</button>
+        </div>
+      </div>
     </div>
 
     <section class="section recent-submissions">
@@ -171,10 +186,22 @@
   }
 
   // Close modal on outside click
+  // (updated to support both modals)
+  function openReportModal() {
+    document.getElementById('reportModal').style.display = 'block';
+  }
+
+  function closeReportModal() {
+    document.getElementById('reportModal').style.display = 'none';
+  }
+
   window.onclick = function(event) {
-    const modal = document.getElementById('reviewModal');
-    if (event.target === modal) {
-      modal.style.display = "none";
+    const reviewModal = document.getElementById('reviewModal');
+    const reportModal = document.getElementById('reportModal');
+    if (event.target === reviewModal) {
+      reviewModal.style.display = "none";
+    } else if (event.target === reportModal) {
+      reportModal.style.display = "none";
     }
   }
 </script>

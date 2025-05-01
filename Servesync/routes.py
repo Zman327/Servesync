@@ -2,8 +2,12 @@ from flask import Flask, render_template, request, redirect, session, url_for, f
 from flask_sqlalchemy import SQLAlchemy
 import os
 import csv
+import io
+from fpdf import FPDF
+from openpyxl import Workbook
 from sqlalchemy import MetaData, Table
 from datetime import datetime
+import pytz
 
 
 app = Flask(__name__, template_folder='templates')
@@ -70,10 +74,14 @@ def testpage():
 
 @app.route('/student.dashboard')
 def studentpage():
-    hour = datetime.now().hour
-    if hour < 12:
+    # Get the New Zealand timezone
+    nz_timezone = pytz.timezone('Pacific/Auckland')
+    # Get the current time in New Zealand
+    now = datetime.now(nz_timezone)
+    # Set the greeting based on the New Zealand time
+    if now.hour < 12:
         greeting = "Good Morning"
-    elif hour < 18:
+    elif now.hour < 18:
         greeting = "Good Afternoon"
     else:
         greeting = "Good Evening"
@@ -503,20 +511,19 @@ def get_all_staff():
 
 @app.route('/reports')
 def download_reports():
-    import io
+    return render_template('reports.html')
+
+
+@app.route('/download/csv')
+def download_csv():
     staff_id = session.get('username')
-
-    # Fetch staff user
     staff = User.query.filter_by(school_id=staff_id).first()
-
-    # Fetch all approved logs for the current staff
     logs = ServiceHour.query.filter_by(staff=staff_id, status=1).all()
 
-    # Create CSV in memory
     output = io.StringIO()
     writer = csv.writer(output)
     writer.writerow([f"Report for: {staff.first_name} {staff.last_name}"])
-    writer.writerow([])  # Empty row for spacing
+    writer.writerow([])
     writer.writerow(['Student', 'Activity', 'Hours', 'Date', 'Date Submitted', 'Group'])
 
     for log in logs:
@@ -531,10 +538,74 @@ def download_reports():
             group.name if group else "N/A"
         ])
 
-    # Return CSV as downloadable file
     response = make_response(output.getvalue())
     response.headers["Content-Disposition"] = "attachment; filename=service_hours_report.csv"
     response.headers["Content-Type"] = "text/csv"
+    return response
+
+
+@app.route('/download/excel')
+def download_excel():
+    staff_id = session.get('username')
+    staff = User.query.filter_by(school_id=staff_id).first()
+    logs = ServiceHour.query.filter_by(staff=staff_id, status=1).all()
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Service Hours"
+    ws.append([f"Report for: {staff.first_name} {staff.last_name}"])
+    ws.append([])
+    ws.append(['Student', 'Activity', 'Hours', 'Date', 'Date Submitted', 'Group'])
+
+    for log in logs:
+        user = User.query.get(log.user_id)
+        group = Group.query.get(log.group_id)
+        ws.append([
+            f"{user.first_name} {user.last_name}" if user else "Unknown",
+            log.description,
+            log.hours,
+            log.date,
+            log.log_time,
+            group.name if group else "N/A"
+        ])
+
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    response = make_response(output.getvalue())
+    response.headers["Content-Disposition"] = "attachment; filename=service_hours_report.xlsx"
+    response.headers["Content-Type"] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    return response
+
+
+@app.route('/download/pdf')
+def download_pdf():
+    staff_id = session.get('username')
+    staff = User.query.filter_by(school_id=staff_id).first()
+    logs = ServiceHour.query.filter_by(staff=staff_id, status=1).all()
+
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+    pdf.cell(200, 10, txt=f"Report for: {staff.first_name} {staff.last_name}", ln=True, align='C')
+    pdf.ln(10)
+
+    pdf.set_font("Arial", size=10)
+    for log in logs:
+        user = User.query.get(log.user_id)
+        group = Group.query.get(log.group_id)
+        pdf.multi_cell(0, 10, txt=f"Student: {user.first_name} {user.last_name if user else 'Unknown'}\n"
+                                   f"Activity: {log.description}\n"
+                                   f"Hours: {log.hours}\n"
+                                   f"Date: {log.date}\n"
+                                   f"Submitted: {log.log_time}\n"
+                                   f"Group: {group.name if group else 'N/A'}\n", border=0)
+        pdf.ln(2)
+
+    response = make_response(pdf.output(dest='S').encode('latin-1'))
+    response.headers["Content-Disposition"] = "attachment; filename=service_hours_report.pdf"
+    response.headers["Content-Type"] = "application/pdf"
     return response
 
 
