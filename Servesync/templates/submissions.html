@@ -93,18 +93,27 @@
             <h2>Submission Details</h2>
             <p><strong>Student:</strong> <span id="modal-student"></span></p>
             <p><strong>Group:</strong> <span id="modal-group"></span></p>
-            <p><strong>Activity:</strong> <span id="modal-activity"></span></p>
-            <p><strong>Hours:</strong> <span id="modal-hours"></span></p>
-            <p><strong>Date:</strong> <span id="modal-date"></span></p>
+            <p><strong>Activity:</strong> 
+              <span id="modal-activity" contenteditable="false" class="editable-field"></span>
+              <i class="fas fa-pencil-alt edit-icon" onclick="makeEditable('modal-activity')"></i>
+            </p>
+            <p><strong>Hours:</strong> 
+              <span id="modal-hours" contenteditable="false" class="editable-field"></span>
+              <i class="fas fa-pencil-alt edit-icon" onclick="makeEditable('modal-hours')"></i>
+            </p>
+            <p><strong>Date:</strong> 
+              <span id="modal-date" contenteditable="false" class="editable-field"></span>
+              <i class="fas fa-pencil-alt edit-icon" onclick="makeEditable('modal-date')"></i>
+            </p>
             <p><strong>Status:</strong> <span id="modal-status"></span></p>
             <p><strong>Date Submitted:</strong> <span id="modal-log-time"></span></p>
-      
+            
             <div class="modal-actions">
               <form method="post" action="/approve-log" style="display:inline;">
                 <input type="hidden" name="log_id" id="approve-log-id">
                 <button type="submit" class="accept-btn">Approve</button>
               </form>
-              <form method="get" action="/edit-log" style="display:inline;">
+              <form method="get" style="display:inline;">
                 <input type="hidden" name="log_id" id="edit-log-id">
                 <button type="submit" class="edit-btn">Edit</button>
               </form>
@@ -113,6 +122,7 @@
                 <button type="submit" class="reject-btn">Reject</button>
               </form>
             </div>
+            <input type="hidden" id="edit-log-id">
           </div>
         </div>
       </div>
@@ -264,6 +274,86 @@
     if (event.target === modal) {
       modal.style.display = "none";
     }
+  }
+  
+  let modalEdited = false;
+
+  function openReviewModal(log) {
+    modalEdited = false;
+    document.getElementById('modal-student').innerText = `${log.student_name} (${log.user_id})`;
+    document.getElementById('modal-activity').innerText = log.description;
+    document.getElementById('modal-hours').innerText = log.hours;
+    document.getElementById('modal-date').innerText = log.formatted_date;
+    document.getElementById('modal-status').innerText = log.status_label;
+    document.getElementById('modal-group').innerText = log.group || "N/A";
+    document.getElementById('modal-log-time').innerText = log.formatted_log_time;
+    document.getElementById('approve-log-id').value = log.id;
+    document.getElementById('reject-log-id').value = log.id;
+    document.getElementById('edit-log-id').value = log.id;
+
+    document.getElementById('reviewModal').style.display = 'block';
+  }
+
+  function closeModal() {
+    document.getElementById('reviewModal').style.display = 'none';
+    if (modalEdited) {
+      window.location.reload();
+    }
+  }
+
+  function makeEditable(id) {
+    const el = document.getElementById(id);
+    el.contentEditable = true;
+    el.focus();
+    el.classList.add("editing");
+
+    function handleKey(event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        el.blur();
+      }
+    }
+
+    function handleBlur() {
+      el.contentEditable = false;
+      el.classList.remove("editing");
+      el.removeEventListener("blur", handleBlur);
+      el.removeEventListener("keydown", handleKey);
+      saveEdits();
+    }
+
+    el.addEventListener("keydown", handleKey);
+    el.addEventListener("blur", handleBlur);
+  }
+
+  function saveEdits() {
+    const logId = document.getElementById('edit-log-id').value;
+
+    // Convert "Apr 30, 2025" to "30-04-2025"
+    const rawDate = document.getElementById('modal-date').innerText.trim();
+    const parsedDate = new Date(rawDate);
+    const formattedDate = ("0" + parsedDate.getDate()).slice(-2) + "-" +
+                          ("0" + (parsedDate.getMonth() + 1)).slice(-2) + "-" +
+                          parsedDate.getFullYear();
+
+    const data = {
+      log_id: logId,
+      description: document.getElementById('modal-activity').innerText.trim(),
+      hours: document.getElementById('modal-hours').innerText.trim(),
+      date: formattedDate
+    };
+
+    fetch('/update-log-field', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+      modalEdited = true;
+    });
   }
 </script>
 {% endblock %}
