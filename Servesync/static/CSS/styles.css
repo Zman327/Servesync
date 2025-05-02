@@ -1449,3 +1449,13 @@ button[type="submit"]:hover {
   flex: 1;
   padding: 10px 0;
 }
+
+.editable-field.editing {
+  border-bottom: 1px dashed #146830;
+  background-color: #f0f8ff;
+}
+.edit-icon {
+  cursor: pointer;
+  margin-left: 8px;
+  color: #146830;
+}

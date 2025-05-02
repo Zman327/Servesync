@@ -392,6 +392,30 @@ def submit_hours():
     return redirect(url_for('logpage'))
 
 
+@app.route('/update-log-field', methods=['POST'])
+def update_log_field():
+    data = request.get_json()
+    log_id = data.get('log_id')
+    description = data.get('description')
+    hours = data.get('hours')
+    date = data.get('date')
+
+    log = ServiceHour.query.get(log_id)
+    if not log:
+        return jsonify({'success': False, 'error': 'Log not found'})
+
+    log.description = description
+    try:
+        log.hours = float(hours)
+        datetime.strptime(date, "%d-%m-%Y")  # Validate format
+        log.date = date
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+    db.session.commit()
+    return jsonify({'success': True})
+
+
 # Route to accept a service log
 @app.route('/approve-log', methods=['POST'])
 def approve_log():
@@ -413,53 +437,6 @@ def reject_log():
             service_log.status = 3  # Set status to Rejected
             db.session.commit()
     return redirect(url_for('staffpage'))
-
-
-# Route to handle editing a service log
-@app.route('/edit-log', methods=['POST'])
-def edit_log():
-    log_id = request.form.get('log_id')
-    description = request.form.get('description')
-    hours = request.form.get('hours')
-    date = request.form.get('date')
-
-    # Validate and check if hours is provided, if not set it to 0 or a default value
-    if not hours:
-        hours = 0.0  # or any default value you prefer
-
-    try:
-        hours = float(hours)  # Ensure it's converted to a float
-    except ValueError:
-        # Handle invalid input for hours
-        flash('Invalid value for hours. Please enter a valid number.')
-        return redirect(url_for('staffpage'))
-
-    # Handle the date parsing to avoid passing None to strptime
-    if date:
-        try:
-            formatted_date = datetime.strptime(date, "%d-%m-%Y")
-        except ValueError:
-            flash('Invalid date format. Please enter the date in DD-MM-YYYY format.')
-            return redirect(url_for('staffpage'))
-    else:
-        formatted_date = None  # or a default date if needed
-
-    # Now update the log entry in the database
-    log = ServiceHour.query.get(log_id)
-
-    if log:
-        log.description = description
-        log.hours = hours  # Valid float value
-        log.date = formatted_date.strftime("%d-%m-%Y") if formatted_date else None
-
-        # Commit the changes to the database
-        db.session.commit()
-
-        flash('Log updated successfully!')
-        return redirect(url_for('staffpage'))
-    else:
-        flash('Log not found')
-        return redirect(url_for('staffpage'))
 
 
 @app.route('/approve-all-pending', methods=['POST'])
