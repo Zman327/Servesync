@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, session, url_for, flash, jsonify, make_response
+import base64
 from flask_sqlalchemy import SQLAlchemy
 from fpdf import FPDF
 from openpyxl import Workbook
@@ -51,9 +52,20 @@ def homepage():
     return render_template('Index.html')
 
 
+@app.route('/')
+def homepage1():
+    return render_template('Index.html')
+
+
 @app.route('/account')
 def accountpage():
     return render_template('account.html')
+
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('homepage'))
 
 
 @app.route('/log')
@@ -65,6 +77,56 @@ def logpage():
     groups = Group.query.all()
 
     return render_template('log.html', staff_members=staff_members, groups=groups)
+
+
+@app.route('/submit-hours', methods=['POST'])
+def submit_hours():
+    user = User.query.filter_by(school_id=session.get('username')).first()
+    if not user:
+        flash('You must be logged in to submit hours.', 'logpage-error')
+        return redirect(url_for('logpage'))
+
+    # Get form data
+    date = request.form['date']
+    group_name = request.form['group']
+    staff_label = request.form['person_in_charge']
+    activity = request.form['activity']
+    activity = request.form['activity'].strip()
+    if not activity or len(activity) > 30:
+        flash("Activity name must not be empty or over 30 characters.", "logpage-error")
+        return redirect(url_for('logpage'))
+    hours = float(request.form['hours'])
+    if hours <= 0 or hours > 24:
+        flash("Hours must be greater than 0 and no more than 24.", "logpage-error")
+        return redirect(url_for('logpage'))
+    details = request.form.get('details', '')
+
+    # Get related group and staff IDs
+    group = Group.query.filter_by(name=group_name).first()
+    staff_school_id = staff_label.split('(')[-1].strip(')')
+    staff = User.query.filter_by(school_id=staff_school_id).first()
+
+    if not group or not staff:
+        flash("Invalid group or staff member.", "logpage-error")
+        return redirect(url_for('logpage'))
+
+    # Create a new service hour record
+    new_log = ServiceHour(
+        user_id=user.school_id,
+        group_id=group.id,
+        hours=hours,
+        date=datetime.strptime(date, "%Y-%m-%d").strftime("%d-%m-%Y"),
+        description=details or activity,
+        time=hours,
+        status=2,  # 2 = Pending
+        log_time=datetime.now().strftime("%d-%m-%Y %H:%M:%S"),
+        staff=staff.school_id
+    )
+
+    db.session.add(new_log)
+    db.session.commit()
+    flash("Your hours have been submitted for review!", "logpage-success")
+    return redirect(url_for('logpage'))
 
 
 @app.route('/test')
@@ -220,7 +282,15 @@ def staffpage():
             except Exception:
                 log.formatted_log_time = log.log_time
             user = User.query.get(log.user_id)
+            # Build picture URL from BLOB or fallback to default
+            if user and user.picture:
+                encoded_picture = base64.b64encode(user.picture).decode('utf-8')
+                picture_url = f"data:image/jpeg;base64,{encoded_picture}"
+            else:
+                picture_url = url_for('static', filename='default-profile.png')
+
             student_name = f"{user.first_name} {user.last_name}" if user else "Unknown"
+
             filtered_logs.append({
                 'id': log.id,
                 'user_id': log.user_id,
@@ -233,7 +303,8 @@ def staffpage():
                 'status_label': log.status_label,
                 'group': log.group_name,
                 'log_time': log.log_time,
-                'formatted_log_time': log.formatted_log_time
+                'formatted_log_time': log.formatted_log_time,
+                'picture_url': picture_url
             })
 
     # Sort and limit to 5 most recent logs
@@ -401,54 +472,6 @@ def login():
 
     return redirect(url_for('homepage'))  # Redirect back to the homepage for another attempt
 
-
-@app.route('/logout')
-def logout():
-    session.clear()
-    return redirect(url_for('homepage'))
-
-
-@app.route('/submit-hours', methods=['POST'])
-def submit_hours():
-    user = User.query.filter_by(school_id=session.get('username')).first()
-    if not user:
-        flash('You must be logged in to submit hours.')
-        return redirect(url_for('logpage'))
-
-    # Get form data
-    date = request.form['date']
-    group_name = request.form['group']
-    staff_label = request.form['person_in_charge']
-    activity = request.form['activity']
-    hours = float(request.form['hours'])
-    details = request.form.get('details', '')
-
-    # Get related group and staff IDs
-    group = Group.query.filter_by(name=group_name).first()
-    staff_school_id = staff_label.split('(')[-1].strip(')')
-    staff = User.query.filter_by(school_id=staff_school_id).first()
-
-    if not group or not staff:
-        flash("Invalid group or staff member.")
-        return redirect(url_for('logpage'))
-
-    # Create a new service hour record
-    new_log = ServiceHour(
-        user_id=user.school_id,
-        group_id=group.id,
-        hours=hours,
-        date=datetime.strptime(date, "%Y-%m-%d").strftime("%d-%m-%Y"),
-        description=details or activity,
-        time=hours,
-        status=2,  # 2 = Pending
-        log_time=datetime.now().strftime("%d-%m-%Y %H:%M:%S"),
-        staff=staff.school_id
-    )
-
-    db.session.add(new_log)
-    db.session.commit()
-    flash("Your hours have been submitted for review!", "success")
-    return redirect(url_for('logpage'))
 
 
 @app.route('/update-log-field', methods=['POST'])

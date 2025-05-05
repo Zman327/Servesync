@@ -59,7 +59,8 @@
       <div class="modal-content">
         <span class="close-btn" onclick="closeModal()">&times;</span>
         <div class="modal-image">
-          <img src="static/Images/Profile/deafult.jpg" alt="Review Image" />
+          <img id="modal-student-img" src="{{ url_for('static', filename='Images/Profile/default.jpg') }}" alt="Student Picture" />
+          <!-- Changed to dynamic student picture -->
         </div>
         <div class="modal-details">
           <h2>Submission Details</h2>
@@ -147,7 +148,7 @@
           <li>Review each submission by clicking the <strong>Review</strong> button next to the entry.</li>
           <li>In the modal that opens, verify the activity details, date, and submitted hours.</li>
           <li>Click <strong>Approve</strong> to accept the hours, or <strong>Reject</strong> to decline.</li>
-          <li>You can also <strong>Edit</strong> a submission if corrections are needed.</li>
+          <li>You can also <strong>Edit</strong> a submission if corrections are needed by pressing the green pencil.</li>
           <li>Use the <strong>Approve All Pending</strong> button to bulk approve if all entries are valid.</li>
         </ul>
         <button class="btn btn-secondary full-width" onclick="closeApproveTipsModal()">Close</button>
@@ -233,6 +234,7 @@
     document.getElementById('modal-hours').innerText = log.hours;
     document.getElementById('modal-date').innerText = log.formatted_date;
     document.getElementById('modal-status').innerText = log.status_label;
+    document.getElementById('modal-student-img').src = log.picture_url;
     document.getElementById('modal-group').innerText = log.group || "N/A";
     document.getElementById('modal-log-time').innerText = log.formatted_log_time;
     document.getElementById('approve-log-id').value = log.id;
