@@ -81,6 +81,13 @@
         <span id="pageIndicator">Page 1</span>
         <button id="nextPage">Next</button>
       </div>
+      <div style="margin-top: -27px; font-weight: bold;">
+        <span style="color: green;">Approved: {{ accepted_count }}</span>
+        &nbsp;&nbsp;&nbsp;
+        <span style="color: orange;">Pending: {{ pending_count }}</span>
+        &nbsp;&nbsp;&nbsp;
+        <span style="color: red;">Rejected: {{ rejected_count }}</span>
+      </div>
 
       <!-- Review Modal -->
       <div id="reviewModal" class="modal review-modal">

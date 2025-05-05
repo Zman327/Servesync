@@ -1,0 +1,57 @@
+{% extends "layout.html" %}
+
+{% block title %}My Activities - ServeSYNC{% endblock %}
+
+{% block content %}
+<h1>My Service Activities</h1>
+
+<input type="text" id="searchInput" placeholder="Search activities..." onkeyup="filterTable()">
+
+<table id="activitiesTable" border="1" cellpadding="5" cellspacing="0">
+    <thead>
+        <tr>
+            <th>Activity</th>
+            <th>Description</th>
+            <th>Hours</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Group</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for activity in activities %}
+        <tr>
+            <td>{{ activity.name }}</td>
+            <td>{{ activity.description }}</td>
+            <td>{{ activity.hours }}</td>
+            <td>{{ activity.date.strftime('%Y-%m-%d') }}</td>
+            <td>{{ activity.status }}</td>
+            <td>{{ activity.group }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script>
+function filterTable() {
+    var input = document.getElementById("searchInput");
+    var filter = input.value.toLowerCase();
+    var table = document.getElementById("activitiesTable");
+    var trs = table.getElementsByTagName("tr");
+
+    for (var i = 1; i < trs.length; i++) {
+        var tds = trs[i].getElementsByTagName("td");
+        var rowText = "";
+        for (var j = 0; j < tds.length; j++) {
+            rowText += tds[j].textContent.toLowerCase() + " ";
+        }
+        if (rowText.indexOf(filter) > -1) {
+            trs[i].style.display = "";
+        } else {
+            trs[i].style.display = "none";
+        }
+    }
+}
+</script>
+
+{% endblock %}

@@ -170,8 +170,17 @@ def studentpage():
 
 @app.route('/staff.dashboard')
 def staffpage():
-    hour = datetime.now().hour
-    greeting = "Good Morning" if hour < 12 else "Good Afternoon" if hour < 18 else "Good Evening"
+    # Get the New Zealand timezone
+    nz_timezone = pytz.timezone('Pacific/Auckland')
+    # Get the current time in New Zealand
+    now = datetime.now(nz_timezone)
+    # Set the greeting based on the New Zealand time
+    if now.hour < 12:
+        greeting = "Good Morning"
+    elif now.hour < 18:
+        greeting = "Good Afternoon"
+    else:
+        greeting = "Good Evening"
 
     staff_id = session.get('username')
     selected_status = request.args.get('status')  # Get status filter from query string
@@ -241,6 +250,40 @@ def staffpage():
     )
 
 
+@app.route('/activity-history')
+def activity_history():
+    return render_template('activity.html')
+
+
+# Route: /activity-history/<int:user_id>
+@app.route('/activity-history/<int:user_id>')
+def activity_history_user(user_id):
+    user = User.query.get(user_id)
+    if not user:
+        flash("User not found.")
+        return redirect(url_for('homepage'))
+
+    logs = ServiceHour.query.filter_by(user_id=user.school_id).order_by(ServiceHour.date.desc()).all()
+
+    for log in logs:
+        log.group_name = Group.query.get(log.group_id).name if log.group_id else "N/A"
+        try:
+            log.formatted_date = datetime.strptime(log.date, "%d-%m-%Y").strftime("%b %d, %Y")
+        except Exception:
+            log.formatted_date = log.date
+        try:
+            log.formatted_log_time = datetime.strptime(log.log_time, "%d-%m-%Y %H:%M:%S").strftime("%b %d, %Y at %I:%M %p")
+        except Exception:
+            log.formatted_log_time = log.log_time
+        log.status_label = {
+            1: 'Approved',
+            2: 'Pending',
+            3: 'Rejected'
+        }.get(log.status, 'Unknown')
+
+    return render_template('activity.html', logs=logs, student=user)
+
+
 @app.route('/submissions')
 def submissions():
     staff_id = session.get('username')
@@ -260,6 +303,10 @@ def submissions():
     }
 
     submission_data = []
+    accepted_count = 0
+    pending_count = 0
+    rejected_count = 0
+
     for log in logs:
         status_label = STATUS_MAP.get(log.status, 'Unknown')
         if not selected_status or status_label == selected_status:
@@ -278,6 +325,7 @@ def submissions():
                 )
             except Exception:
                 formatted_log_time = log.log_time if log.log_time else "N/A"
+
             submission_data.append({
                 'id': log.id,
                 'student_name': student_name,
@@ -293,10 +341,21 @@ def submissions():
                 'formatted_log_time': formatted_log_time
             })
 
+            # Count the status categories
+            if log.status == 1:
+                accepted_count += 1
+            elif log.status == 2:
+                pending_count += 1
+            elif log.status == 3:
+                rejected_count += 1
+
     # Sort by newest first using original log.date format
     submission_data.sort(key=lambda x: datetime.strptime(x["date"], "%b %d, %Y"), reverse=True)
 
-    return render_template('submissions.html', submissions=submission_data)
+    return render_template('submissions.html', submissions=submission_data, 
+                           accepted_count=accepted_count, 
+                           pending_count=pending_count, 
+                           rejected_count=rejected_count)
 
 
 # 404 page to display when a page is not found
@@ -425,7 +484,10 @@ def approve_log():
         if service_log:
             service_log.status = 1  # Set status to Approved
             db.session.commit()
-    return redirect(url_for('staffpage'))
+
+    # Redirect back to the referrer URL or staff page if referrer is not available
+    return redirect(request.referrer or url_for('staffpage'))
+
 
 # Route to reject a service log
 @app.route('/reject-log', methods=['POST'])
@@ -436,7 +498,9 @@ def reject_log():
         if service_log:
             service_log.status = 3  # Set status to Rejected
             db.session.commit()
-    return redirect(url_for('staffpage'))
+
+    # Redirect back to the referrer URL or staff page if referrer is not available
+    return redirect(request.referrer or url_for('staffpage'))
 
 
 @app.route('/approve-all-pending', methods=['POST'])
