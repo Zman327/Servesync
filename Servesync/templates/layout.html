@@ -37,7 +37,7 @@
         {% if session.username %}
         <div class="dropdown">
           <a href="#" class="dropbtn">
-            <img src="static/Images/Profile/deafult.jpg" alt="Avatar" class="avatar">
+            <img src="{{ profile_image or url_for('static', filename='Images/Profile/deafult.jpg') }}" alt="Avatar" class="avatar">
             <span>My Account</span>
           </a>
           <div class="dropdown-content">
@@ -143,6 +143,26 @@
         toggle.classList.remove("bxs-hide");
         toggle.classList.add("bxs-eye");
       }
+    }
+</script>
+  <script>
+    let dropdownTimeout;
+
+    const dropdown = document.querySelector(".dropdown");
+
+    if (dropdown) {
+      dropdown.addEventListener("mouseenter", () => {
+        clearTimeout(dropdownTimeout);
+        const content = dropdown.querySelector(".dropdown-content");
+        if (content) content.style.display = "block";
+      });
+
+      dropdown.addEventListener("mouseleave", () => {
+        dropdownTimeout = setTimeout(() => {
+          const content = dropdown.querySelector(".dropdown-content");
+          if (content) content.style.display = "none";
+        }, 100); // Delay in milliseconds
+      });
     }
   </script>
 </body>

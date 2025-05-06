@@ -47,6 +47,19 @@ with app.app_context():
         __table__ = user_role_table
 
 
+@app.context_processor
+def inject_profile_image():
+    def get_profile_image():
+        if 'username' in session:
+            user = User.query.filter_by(school_id=session['username']).first()
+            if user and user.picture:
+                encoded = base64.b64encode(user.picture).decode('utf-8')
+                return f"data:image/jpeg;base64,{encoded}"
+        return url_for('static', filename='Images/Profile/deafult.jpg')
+
+    return dict(profile_image=get_profile_image())
+
+
 @app.route('/home')
 def homepage():
     return render_template('Index.html')
@@ -57,15 +70,27 @@ def homepage1():
     return render_template('Index.html')
 
 
-@app.route('/account')
-def accountpage():
-    return render_template('account.html')
-
-
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('homepage'))
+
+
+@app.route("/some_route")
+def some_route():
+    user = User.query.filter_by(school_id=session.get('username')).first()
+    if user and user.picture:
+        image_data = base64.b64encode(user.picture).decode('utf-8')
+        profile_image = f"data:image/jpeg;base64,{image_data}"
+    else:
+        profile_image = url_for('static', filename='Images/Profile/deafult.jpg')
+
+    return render_template("some_template.html", profile_image=profile_image)
+
+
+@app.route('/account')
+def accountpage():
+    return render_template('account.html')
 
 
 @app.route('/log')

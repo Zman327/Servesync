@@ -296,10 +296,10 @@ main {
 }
 
 .avatar {
-  height: 32px;
+  height: 42px;
   width: 32px;
   border-radius: 50%;
-  border: 2px solid var(--jungle-green);
+  border: 2px solid #146830;
 }
 
 .dropdown-content {
