@@ -1139,9 +1139,9 @@ button[type="submit"]:hover {
 .review-modal .modal-image img {
   width: 200px;
   height: 280px;
-  object-fit: cover;  
-  border-radius: 1px; 
-  display: block;
+  object-fit: cover;
+  padding-left: 30%;
+  border-radius: 3px; 
 }
 
 /* Modal Header */

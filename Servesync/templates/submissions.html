@@ -47,7 +47,7 @@
         </thead>
         <tbody>
             {% for submission in submissions %}
-            <tr>
+            <tr class="submission-row" data-student-name="{{ submission.student_name }}" data-picture-url="{{ submission.picture_url|default('/static/default-profile.png') }}" data-user-id="{{ submission.user_id }}" data-description="{{ submission.description }}" data-hours="{{ submission.hours }}" data-date="{{ submission.date }}" data-formatted-date="{{ submission.formatted_date }}" data-status-label="{{ submission.status_label }}" data-group="{{ submission.group }}" data-formatted-log-time="{{ submission.formatted_log_time }}" data-id="{{ submission.id }}">
               <td>{{ submission.student_name }}</td>
               <td>{{ submission.description }}</td>
               <td>{{ submission.hours }}</td>
@@ -67,8 +67,7 @@
               <td>{{ submission.group }}</td>
               <td>
                 <a href="javascript:void(0);" 
-                   class="btn btn-primary" 
-                   onclick='openReviewModal({{ submission | tojson | safe }})'>
+                   class="btn btn-primary review-btn">
                    Review
                 </a>
               </td>
@@ -94,7 +93,7 @@
         <div class="modal-content">
           <span class="close-btn" onclick="closeModal()">&times;</span>
           <div class="modal-image">
-            <img src="static/Images/Profile/deafult.jpg" alt="Review Image" />
+            <img id="modal-student-img" src="{{ url_for('static', filename='Images/Profile/default.jpg') }}" alt="Student Picture" />
           </div>
           <div class="modal-details">
             <h2>Submission Details</h2>
@@ -257,23 +256,41 @@
     });
   });
 
-  function openReviewModal(log) {
-    document.getElementById('modal-student').innerText = `${log.student_name} (${log.user_id})`;
-    document.getElementById('modal-activity').innerText = log.description;
-    document.getElementById('modal-hours').innerText = log.hours;
-    document.getElementById('modal-date').innerText = log.date;
-    document.getElementById('modal-status').innerText = log.status_label;
-    document.getElementById('modal-group').innerText = log.group || "N/A";
-    document.getElementById('modal-log-time').innerText = log.formatted_log_time || "N/A";
-    document.getElementById('approve-log-id').value = log.id;
-    document.getElementById('reject-log-id').value = log.id;
-    document.getElementById('edit-log-id').value = log.id;
+  document.querySelectorAll('.submission-row').forEach(function(row) {
+    row.addEventListener('click', function() {
+      const studentName = this.getAttribute('data-student-name');
+      const pictureUrl = this.getAttribute('data-picture-url');
+      const userId = this.getAttribute('data-user-id');
+      const description = this.getAttribute('data-description');
+      const hours = this.getAttribute('data-hours');
+      const date = this.getAttribute('data-date');
+      const formattedDate = this.getAttribute('data-formatted-date');
+      const statusLabel = this.getAttribute('data-status-label');
+      const group = this.getAttribute('data-group');
+      const formattedLogTime = this.getAttribute('data-formatted-log-time');
+      const id = this.getAttribute('data-id');
 
-    document.getElementById('reviewModal').style.display = 'block';
-  }
+      document.getElementById('modal-student').innerText = `${studentName} (${userId})`;
+      document.getElementById('modal-activity').innerText = description;
+      document.getElementById('modal-hours').innerText = hours;
+      document.getElementById('modal-date').innerText = formattedDate || date;
+      document.getElementById('modal-status').innerText = statusLabel;
+      document.getElementById('modal-group').innerText = group || "N/A";
+      document.getElementById('modal-log-time').innerText = formattedLogTime || "N/A";
+      document.getElementById('approve-log-id').value = id;
+      document.getElementById('reject-log-id').value = id;
+      document.getElementById('edit-log-id').value = id;
+      document.getElementById('modal-student-img').src = pictureUrl || '/static/default-profile.png';
+
+      document.getElementById('reviewModal').style.display = 'block';
+    });
+  });
 
   function closeModal() {
     document.getElementById('reviewModal').style.display = 'none';
+    if (modalEdited) {
+      window.location.reload();
+    }
   }
 
   window.onclick = function(event) {
@@ -284,29 +301,6 @@
   }
   
   let modalEdited = false;
-
-  function openReviewModal(log) {
-    modalEdited = false;
-    document.getElementById('modal-student').innerText = `${log.student_name} (${log.user_id})`;
-    document.getElementById('modal-activity').innerText = log.description;
-    document.getElementById('modal-hours').innerText = log.hours;
-    document.getElementById('modal-date').innerText = log.formatted_date;
-    document.getElementById('modal-status').innerText = log.status_label;
-    document.getElementById('modal-group').innerText = log.group || "N/A";
-    document.getElementById('modal-log-time').innerText = log.formatted_log_time;
-    document.getElementById('approve-log-id').value = log.id;
-    document.getElementById('reject-log-id').value = log.id;
-    document.getElementById('edit-log-id').value = log.id;
-
-    document.getElementById('reviewModal').style.display = 'block';
-  }
-
-  function closeModal() {
-    document.getElementById('reviewModal').style.display = 'none';
-    if (modalEdited) {
-      window.location.reload();
-    }
-  }
 
   function makeEditable(id) {
     const el = document.getElementById(id);

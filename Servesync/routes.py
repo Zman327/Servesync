@@ -382,6 +382,11 @@ def submissions():
         status_label = STATUS_MAP.get(log.status, 'Unknown')
         if not selected_status or status_label == selected_status:
             user = User.query.get(log.user_id)
+            if user and user.picture:
+                encoded_picture = base64.b64encode(user.picture).decode('utf-8')
+                picture_url = f"data:image/jpeg;base64,{encoded_picture}"
+            else:
+                picture_url = url_for('static', filename='default-profile.png')
             student_name = f"{user.first_name} {user.last_name}" if user else "Unknown"
             group = Group.query.get(log.group_id)
             group_name = group.name if group else "N/A"
@@ -409,8 +414,9 @@ def submissions():
                 'status_label': status_label,
                 'group': group_name,
                 'log_time': log.log_time,
-                'formatted_log_time': formatted_log_time
-            })
+                'formatted_log_time': formatted_log_time,
+                'picture_url': picture_url  # 👈 add this line
+})
 
             # Count the status categories
             if log.status == 1:
