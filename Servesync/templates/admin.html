@@ -1,0 +1,381 @@
+{% extends "layout.html" %}
+
+{% block title %}ServeSYNC - Admin Dashboard{% endblock %}
+
+{% block content %}
+<main class="dashboard">
+  <div class="left-column">
+    <section class="section staff-profile">
+        <h3><i class="fas fa-user"></i> Your Profile</h3>
+        <p><strong>Name:</strong> {{ session.name }}</p>
+        <p><strong>Role:</strong> {{ session.role }}</p>
+        
+        <div class="stats-row">
+          <div class="stat-box">Hours Approved: <span>{{ approved_hours_this_year }}</span></div>
+          <div class="stat-box pending">Pending: <span>{{ pending_count }}</span></div>
+        </div>
+      </section>
+    <section class="section group-overview">
+      <h3><i class="fas fa-layer-group"></i> Your Groups</h3>
+      <ul>
+        {% for group in attached_groups %}
+          <li>{{ group.name }}</li>
+        {% endfor %}
+      </ul>
+      <br>
+      <a id="manageGroupBtn" class="btn btn-secondary" onclick="openManageGroupModal()">Manage Groups</a>
+
+      <div id="manageGroupModal" class="modal simple-modal">
+        <div class="modal-content">
+          <span class="close-btn" onclick="closeManageGroupModal()">&times;</span>
+          <h2>Manage Groups</h2>
+          <form id="manageGroupForm">
+            <div class="mb-3">
+              <label for="groupSelect" class="form-label">Select Group</label>
+              <select id="groupSelect" class="form-select">
+                {% for group in attached_groups %}
+                  <option value="{{ group.id }}">{{ group.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="groupName" class="form-label">Group Name</label>
+              <input type="text" class="form-control" id="groupName" value="">
+            </div>
+            <button type="submit" class="btn btn-success full-width">Save Changes</button>
+          </form>
+          <hr>
+          <h3>Create New Group</h3>
+          <form id="createWithinManageForm" method="POST" action="/create-group">
+            <div class="mb-3">
+              <label for="newGroupName" class="form-label">Group Name</label>
+              <input type="text" class="form-control" id="newGroupName" name="group_name" required>
+            </div>
+            <button type="submit" class="btn btn-success full-width">Create Group</button>
+          </form>
+        </div>
+      </div>
+    <div id="reviewModal" class="modal review-modal">
+      <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <div class="modal-image">
+          <img id="modal-student-img" src="{{ url_for('static', filename='Images/Profile/default.jpg') }}" alt="Student Picture" />
+        </div>
+        <div class="modal-details">
+          <h2>Submission Details</h2>
+          <p><strong>Student:</strong> <span id="modal-student"></span></p>
+          <p><strong>Group:</strong> <span id="modal-group"></span></p>
+          <p><strong>Activity:</strong> 
+            <span id="modal-activity" contenteditable="false" class="editable-field"></span>
+            <i class="fas fa-pencil-alt edit-icon" onclick="makeEditable('modal-activity')"></i>
+          </p>
+          <p><strong>Hours:</strong> 
+            <span id="modal-hours" contenteditable="false" class="editable-field"></span>
+            <i class="fas fa-pencil-alt edit-icon" onclick="makeEditable('modal-hours')"></i>
+          </p>
+          <p><strong>Date:</strong> 
+            <span id="modal-date" contenteditable="false" class="editable-field"></span>
+            <i class="fas fa-pencil-alt edit-icon" onclick="makeEditable('modal-date')"></i>
+          </p>
+          <p><strong>Status:</strong> <span id="modal-status"></span></p>
+          <p><strong>Date Submitted:</strong> <span id="modal-log-time"></span></p>
+          
+
+          <div class="modal-actions">
+            <form method="post" action="/approve-log" style="display:inline;">
+              <input type="hidden" name="log_id" id="approve-log-id">
+              <input type="hidden" name="redirect_to" value="{{ request.referrer }}">
+              <button type="submit" class="accept-btn">Approve</button>
+            </form>
+            <form method="get" style="display:inline;">
+              <input type="hidden" name="log_id" id="edit-log-id">
+              <button type="submit" class="edit-btn">Edit</button>
+            </form>
+            <form method="post" action="/reject-log" style="display:inline;">
+              <input type="hidden" name="log_id" id="reject-log-id">
+              <input type="hidden" name="redirect_to" value="{{ request.referrer }}">
+              <button type="submit" class="reject-btn">Reject</button>
+            </form>
+          </div>
+          <input type="hidden" id="edit-log-id">
+        </div>
+      </div>
+    </div>
+    </section>
+
+    <section class="section quick-links">
+      <h3><i class="fas fa-link"></i> Quick Tips/Actions</h3>
+      <ul>
+        <li><a href="javascript:void(0);" onclick="openApproveTipsModal()">Approve Hours</a></li>
+        <li><a href="/groups">Add/Delete groups</a></li>
+        <li><a href="javascript:void(0);" onclick="openReportModal()">Download Reports</a></li>
+      </ul>
+    </section>
+  </div>
+
+  <div class="right-column">
+    <div class="welcome-header">
+      <h1 style="font-size: 42px; font-weight: bold;">
+        {{ greeting }}
+        <br>
+        <span style="font-weight: normal;">{{ session.name }}</span>
+      </h1>
+    </div>
+    <!-- Download Reports Modal -->
+    <div id="reportModal" class="modal simple-modal">
+      <div class="modal-content">
+        <span class="close-btn" onclick="closeReportModal()">&times;</span>
+        <h2>Download Reports</h2>
+        <div class="modal-actions">
+          <div class="button-row">
+            <a href="/download/csv" class="btn btn-primary"><i class="fas fa-file-csv"></i> CSV</a>
+            <a href="/download/excel" class="btn btn-primary"><i class="fas fa-file-excel"></i> Excel</a>
+            <a href="/download/pdf" class="btn btn-primary"><i class="fas fa-file-pdf"></i> PDF</a>
+          </div>
+          <button onclick="window.print()" class="btn btn-secondary full-width"><i class="fas fa-print"></i> Print</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Approve Tips Modal -->
+    <div id="approveTipsModal" class="modal simple-modal">
+      <div class="modal-content">
+        <span class="close-btn" onclick="closeApproveTipsModal()">&times;</span>
+        <h2>How to Approve Hours</h2>
+        <p>To approve student-submitted hours:</p>
+        <ul>
+          <li>Review each submission by clicking the <strong>Review</strong> button next to the entry.</li>
+          <li>In the modal that opens, verify the activity details, date, and submitted hours.</li>
+          <li>Click <strong>Approve</strong> to accept the hours, or <strong>Reject</strong> to decline.</li>
+          <li>You can also <strong>Edit</strong> a submission if corrections are needed by pressing the green pencil.</li>
+          <li>Use the <strong>Approve All Pending</strong> button to bulk approve if all entries are valid.</li>
+        </ul>
+        <button class="btn btn-secondary full-width" onclick="closeApproveTipsModal()">Close</button>
+      </div>
+    </div>
+
+    <section class="section recent-submissions">
+      <h3><i class="fas fa-clock"></i> Recent Submissions</h3>
+      <div class="filter-approve-container">
+        
+        <form method="get" action="/staff.dashboard" class="filter-form">
+          <label for="status">Filter by Status:</label>
+          <select name="status" id="status" onchange="this.form.submit()">
+            <option value="">All</option>
+            <option value="Approved" {% if request.args.get('status') == 'Approved' %}selected{% endif %}>Approved</option>
+            <option value="Pending" {% if request.args.get('status') == 'Pending' %}selected{% endif %}>Pending</option>
+            <option value="Rejected" {% if request.args.get('status') == 'Rejected' %}selected{% endif %}>Rejected</option>
+          </select>
+        </form>
+
+        <form method="post" action="/approve-all-pending" class="approve-all-form" style="margin-left: 20px;">
+          <input type="hidden" name="redirect_to" value="{{ request.path }}">
+          <button type="submit" class="btn btn-warning">
+            <i class="fas fa-check-double"></i> Approve All Pending
+          </button>
+        </form>
+
+      </div>
+      <table class="activity-table datatable">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Activity</th>
+            <th>Hours</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in recent_submissions %}
+            <tr>
+              <td>{{ log.user_id }}</td>
+              <td>{{ log.description }}</td>
+              <td>{{ log.hours }}</td>
+              <td>{{ log.formatted_date }}</td>
+              <td class="{{ log.status_label|lower }}">
+                {% if log.status_label == 'Approved' %}
+                  <i class="fas fa-check-circle"></i>
+                {% elif log.status_label == 'Pending' %}
+                  <i class="fas fa-clock"></i>
+                {% elif log.status_label == 'Rejected' %}
+                  <i class="fas fa-times-circle"></i>
+                {% else %}
+                  <i class="fas fa-question-circle"></i>
+                {% endif %}
+                {{ log.status_label }}
+              </td>
+              <td>
+                <a href="javascript:void(0);" 
+                   class="btn btn-primary" 
+                   onclick='openReviewModal({{ log | tojson | safe }})'>
+                   Review
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <br>
+      <a href="/submissions" class="btn btn-secondary">
+        <i class="fas fa-folder-open"></i> View All Submissions
+      </a>
+    </section>
+  </div>
+</main>
+<script>
+  let modalEdited = false;
+  function openReviewModal(log) {
+    modalEdited = false;
+    document.getElementById('modal-student').innerText = `${log.student_name} (${log.user_id})`;
+    document.getElementById('modal-activity').innerText = log.description;
+    document.getElementById('modal-hours').innerText = log.hours;
+    document.getElementById('modal-date').innerText = log.formatted_date;
+    document.getElementById('modal-status').innerText = log.status_label;
+    document.getElementById('modal-student-img').src = log.picture_url;
+    document.getElementById('modal-group').innerText = log.group || "N/A";
+    document.getElementById('modal-log-time').innerText = log.formatted_log_time;
+    document.getElementById('approve-log-id').value = log.id;
+    document.getElementById('reject-log-id').value = log.id;
+    document.getElementById('edit-log-id').value = log.id;
+
+    document.getElementById('reviewModal').style.display = 'block';
+  }
+
+  function closeModal() {
+    document.getElementById('reviewModal').style.display = 'none';
+    if (modalEdited) {
+      window.location.reload();
+    }
+  }
+
+  // Close modal on outside click
+  // (updated to support both modals)
+  function openReportModal() {
+    document.getElementById('reportModal').style.display = 'block';
+  }
+
+  function closeReportModal() {
+    document.getElementById('reportModal').style.display = 'none';
+  }
+
+  function openApproveTipsModal() {
+    document.getElementById('approveTipsModal').style.display = 'block';
+  }
+
+  function closeApproveTipsModal() {
+    document.getElementById('approveTipsModal').style.display = 'none';
+  }
+
+  window.onclick = function(event) {
+    const reviewModal = document.getElementById('reviewModal');
+    const reportModal = document.getElementById('reportModal');
+    const approveTipsModal = document.getElementById('approveTipsModal');
+    const manageGroupModal = document.getElementById('manageGroupModal');
+    if (event.target === reviewModal) {
+      reviewModal.style.display = "none";
+    } else if (event.target === reportModal) {
+      reportModal.style.display = "none";
+    } else if (event.target === approveTipsModal) {
+      approveTipsModal.style.display = "none";
+    } else if (event.target === manageGroupModal) {
+      manageGroupModal.style.display = "none";
+    }
+  }
+
+  function makeEditable(id) {
+    const el = document.getElementById(id);
+    el.contentEditable = true;
+    el.focus();
+    el.classList.add("editing");
+
+    function handleKey(event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        el.blur();
+      }
+    }
+
+    function handleBlur() {
+      el.contentEditable = false;
+      el.classList.remove("editing");
+      el.removeEventListener("blur", handleBlur);
+      el.removeEventListener("keydown", handleKey);
+      saveEdits();
+    }
+
+    el.addEventListener("keydown", handleKey);
+    el.addEventListener("blur", handleBlur);
+  }
+
+  function saveEdits() {
+    const logId = document.getElementById('edit-log-id').value;
+
+    // Convert "Apr 30, 2025" to "30-04-2025"
+    const rawDate = document.getElementById('modal-date').innerText.trim();
+    const parsedDate = new Date(rawDate);
+    const formattedDate = ("0" + parsedDate.getDate()).slice(-2) + "-" +
+                          ("0" + (parsedDate.getMonth() + 1)).slice(-2) + "-" +
+                          parsedDate.getFullYear();
+
+    const data = {
+      log_id: logId,
+      description: document.getElementById('modal-activity').innerText.trim(),
+      hours: document.getElementById('modal-hours').innerText.trim(),
+      date: formattedDate
+    };
+
+    fetch('/update-log-field', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+      modalEdited = true;
+    });
+  }
+
+  function openManageGroupModal() {
+    document.getElementById('manageGroupModal').style.display = 'block';
+  }
+
+  function closeManageGroupModal() {
+    document.getElementById('manageGroupModal').style.display = 'none';
+  }
+</script>
+
+  <!-- Bootstrap JS for Modal -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    document.getElementById('manageGroupForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      var groupId = document.getElementById('groupSelect').value;
+      var groupName = document.getElementById('groupName').value;
+
+      fetch('/update-group', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          groupId: groupId,
+          groupName: groupName
+        })
+      }).then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            alert('Group updated successfully');
+          } else {
+            alert('Error updating group');
+          }
+          closeManageGroupModal();
+        });
+    });
+  </script>
+
+{% endblock %}

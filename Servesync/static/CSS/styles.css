@@ -1496,3 +1496,11 @@ button[type="submit"]:hover {
   color: #721c24;
   border: 1px solid #f5c6cb;
 }
+
+.feature-icon {
+  font-size: 70px;
+  margin-top: 10px;
+  align-items: center;
+  color: #06451b;
+  display: block;
+}

@@ -22,13 +22,17 @@
     <nav class="landing-nav">
       <ul class="nav-links">
         <li><a href="/home">Home</a></li>
-        {% if session.role != 'Staff' %}
+        {% if session.role == 'Student' %}
           <li><a href="/log">Log</a></li>
         {% endif %}
         {% if session.role == 'Staff' %}
           <li><a href="/staff.dashboard">Dashboard</a></li>
-        {% else %}
+        {% elif session.role == 'Admin' %}
+          <li><a href="/admin.dashboard">Dashboard</a></li>
+        {% elif session.role == 'Student' %}
           <li><a href="/student.dashboard">Dashboard</a></li>
+        {% else %}
+          <li> <a onclick="openLoginModal()"></i> Dashboard</button></a></li>
         {% endif %}
       </ul>
 
@@ -38,7 +42,7 @@
         <div class="dropdown">
           <a href="#" class="dropbtn">
             <img src="{{ profile_image or url_for('static', filename='Images/Profile/deafult.jpg') }}" alt="Avatar" class="avatar">
-            <span>My Account</span>
+            <span>My Account ▼</span>
           </a>
           <div class="dropdown-content">
             <div class="dropdown-header">
@@ -46,8 +50,13 @@
               <small>{{ session.username }} | {{ session.role }} Account</small>
             </div>
             <a href="/account">Account</a>
+            {% if session.role == 'Staff' %}
+            <a href="/staff.dashboard">Dashboard</a>
+            {% elif session.role == 'Admin' %}
+            <a href="/admin.dashboard">Dashboard</a>
+            {% else %}
             <a href="/student.dashboard">Dashboard</a>
-            <a href="#">Data</a>
+            {% endif %}
             <a href="/logout">Logout</a>
           </div>
         </div>

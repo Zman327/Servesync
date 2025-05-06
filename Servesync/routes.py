@@ -159,6 +159,26 @@ def testpage():
     return render_template('test.html')
 
 
+@app.route('/admin.dashboard')
+def adminpage():
+    # Get the New Zealand timezone
+    nz_timezone = pytz.timezone('Pacific/Auckland')
+    # Get the current time in New Zealand
+    now = datetime.now(nz_timezone)
+    # Set the greeting based on the New Zealand time
+    if now.hour < 12:
+        greeting = "Good Morning"
+    elif now.hour < 18:
+        greeting = "Good Afternoon"
+    else:
+        greeting = "Good Evening"
+
+    # Get all users
+    users = User.query.all()
+
+    return render_template('admin.html', greeting=greeting, users=users)
+
+
 @app.route('/student.dashboard')
 def studentpage():
     # Get the New Zealand timezone
@@ -494,6 +514,8 @@ def login():
             print(f"Session set: {session}")
             if role_name.lower() == 'staff':
                 return redirect(url_for('staffpage'))
+            elif role_name.lower() == 'admin':
+                return redirect(url_for('adminpage'))
             else:
                 return redirect(url_for('studentpage'))
         else:
@@ -502,7 +524,6 @@ def login():
         flash('No user found with that username!')
 
     return redirect(url_for('homepage'))  # Redirect back to the homepage for another attempt
-
 
 
 @app.route('/update-log-field', methods=['POST'])
