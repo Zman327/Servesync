@@ -174,26 +174,105 @@ def adminpage():
     else:
         greeting = "Good Evening"
 
-    users = User.query.all()
+    users = User.query.filter_by(role=1).all()  # Only include students
     student_count = User.query.filter_by(role=1).count()
     approved_hours_total = db.session.query(func.sum(User.hours)).scalar() or 0
 
-    # --- NEW: Group new submissions by month ---
-    submissions = db.session.query(ServiceHour.log_time).all()
+    # --- Fetch all submissions and status counts for admin dashboard ---
+    STATUS_MAP = {
+        1: 'Approved',
+        2: 'Pending',
+        3: 'Rejected'
+    }
 
+    submission_data = []
+    accepted_count = 0
+    pending_count = 0
+    rejected_count = 0
+
+    logs = ServiceHour.query.all()
+    for log in logs:
+        status_label = STATUS_MAP.get(log.status, 'Unknown')
+        user = User.query.get(log.user_id)
+        if user and user.picture:
+            encoded_picture = base64.b64encode(user.picture).decode('utf-8')
+            picture_url = f"data:image/jpeg;base64,{encoded_picture}"
+        else:
+            picture_url = url_for('static', filename='default-profile.png')
+        student_name = f"{user.first_name} {user.last_name}" if user else "Unknown"
+        group = Group.query.get(log.group_id)
+        group_name = group.name if group else "N/A"
+        try:
+            formatted_date = datetime.strptime(log.date, "%d-%m-%Y").strftime("%b %d, %Y")
+        except Exception:
+            formatted_date = log.date
+        try:
+            formatted_log_time = (
+                datetime.strptime(log.log_time, "%d-%m-%Y %H:%M:%S").strftime("%b %d, %Y at %I:%M %p")
+                if log.log_time else "N/A"
+            )
+        except Exception:
+            formatted_log_time = log.log_time if log.log_time else "N/A"
+
+        submission_data.append({
+            'id': log.id,
+            'student_name': student_name,
+            'user_id': log.user_id,
+            'description': log.description,
+            'hours': log.hours,
+            'date': formatted_date,
+            'formatted_date': formatted_date,
+            'status': log.status,
+            'status_label': status_label,
+            'group': group_name,
+            'log_time': log.log_time,
+            'formatted_log_time': formatted_log_time,
+            'picture_url': picture_url
+        })
+
+        if log.status == 1:
+            accepted_count += 1
+        elif log.status == 2:
+            pending_count += 1
+        elif log.status == 3:
+            rejected_count += 1
+
+    # Submissions per month chart (already existing)
+    submissions = db.session.query(ServiceHour.log_time).all()
     monthly_counts = defaultdict(int)
     for log in submissions:
         try:
             dt = datetime.strptime(log[0], "%d-%m-%Y %H:%M:%S")
-            month_str = dt.strftime("%b %Y")  # e.g., "May 2025"
+            month_str = dt.strftime("%b %Y")
             monthly_counts[month_str] += 1
-        except Exception as e:
-            continue  # handle or log malformed dates
-
-    # Sort months chronologically
+        except:
+            continue
     sorted_months = sorted(monthly_counts.items(), key=lambda x: datetime.strptime(x[0], "%b %Y"))
     chart_labels = [item[0] for item in sorted_months]
     chart_data = [item[1] for item in sorted_months]
+
+    # --- NEW: Award distribution for pie chart ---
+    awards = Award.query.order_by(Award.threshold.desc()).all()
+    award_distribution = {award.name: 0 for award in awards}
+    award_distribution['Not achieved'] = 0
+
+    for user in users:
+        awarded = False
+        user_hours = user.hours or 0  # Handle None hours
+        for award in awards:
+            if user_hours >= award.threshold:
+                award_distribution[award.name] += 1
+                awarded = True
+                break
+        if not awarded:
+            award_distribution['Not achieved'] += 1
+
+    award_labels = list(award_distribution.keys())
+    award_counts = list(award_distribution.values())
+
+    # Extract award colors
+    award_colors = [award.colour for award in awards]
+    award_colors.append('#FF3131')  # Fallback for 'Not achieved'
 
     return render_template(
         'admin.html',
@@ -202,7 +281,15 @@ def adminpage():
         student_count=student_count,
         approved_hours_total=approved_hours_total,
         chart_labels=json.dumps(chart_labels),
-        chart_data=json.dumps(chart_data)
+        chart_data=json.dumps(chart_data),
+        award_labels=json.dumps(award_labels),
+        award_counts=json.dumps(award_counts),
+        award_colors=json.dumps(award_colors),
+        submissions=submission_data,
+        pending_submissions=pending_count,
+        accepted_count=accepted_count,
+        rejected_count=rejected_count,
+        pending_count=pending_count
     )
 
 
