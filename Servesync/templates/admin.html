@@ -12,7 +12,7 @@
     width: 250px;
     background-color: #0b5e3e;
     color: white;
-    height: 100vh;
+    height: 75vh;
     padding: 40px 20px;
     font-family: 'Segoe UI', sans-serif;
     display: flex;
@@ -55,7 +55,7 @@
 
   .main-content {
     flex: 1;
-    background-color: #fafdfa;
+    background-color: #f0fdf4;
     padding: 30px;
   }
 
@@ -142,7 +142,7 @@
           class="stat-box">Total Students: <span>{{ student_count }}</span>
         </div>
           <div 
-          class="stat-box">Approved Hours (All): <span>{{ approved_hours_total }}</span>
+          class="stat-box">Total Approved Hours: <span>{{ approved_hours_total | round(2) }}</span> 
         </div>
           <div 
           class="stat-box pending">Pending Submissions: <span>{{ pending_submissions }}</span>
@@ -254,15 +254,19 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-  // Sample Student Growth Over Time
+  const chartLabels = {{ chart_labels | safe }};
+  const chartData = {{ chart_data | safe }};
+
+  // Student Growth Over Time
   new Chart(document.getElementById('chart-students-over-time'), {
     type: 'line',
     data: {
-      labels: ['Jan','Feb','Mar','Apr','May'],
+      labels: chartLabels,
       datasets: [{ 
         label: 'New Submissions',
-        data: [10, 15, 12, 20, 18],
+        data: chartData,
         fill: false,
+        borderColor: 'rgb(75, 192, 192)',
         tension: 0.1
       }]
     },

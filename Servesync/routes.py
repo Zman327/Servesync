@@ -3,12 +3,16 @@ import base64
 from flask_sqlalchemy import SQLAlchemy
 from fpdf import FPDF
 from openpyxl import Workbook
-from sqlalchemy import MetaData, Table
+from sqlalchemy import MetaData, Table, func
 from datetime import datetime
+from collections import defaultdict
 import os
 import csv
 import io
 import pytz
+from collections import OrderedDict
+from sqlalchemy import asc
+import json
 
 
 app = Flask(__name__, template_folder='templates')
@@ -171,14 +175,34 @@ def adminpage():
         greeting = "Good Evening"
 
     users = User.query.all()
-    # Count only student users (role == 1)
     student_count = User.query.filter_by(role=1).count()
+    approved_hours_total = db.session.query(func.sum(User.hours)).scalar() or 0
+
+    # --- NEW: Group new submissions by month ---
+    submissions = db.session.query(ServiceHour.log_time).all()
+
+    monthly_counts = defaultdict(int)
+    for log in submissions:
+        try:
+            dt = datetime.strptime(log[0], "%d-%m-%Y %H:%M:%S")
+            month_str = dt.strftime("%b %Y")  # e.g., "May 2025"
+            monthly_counts[month_str] += 1
+        except Exception as e:
+            continue  # handle or log malformed dates
+
+    # Sort months chronologically
+    sorted_months = sorted(monthly_counts.items(), key=lambda x: datetime.strptime(x[0], "%b %Y"))
+    chart_labels = [item[0] for item in sorted_months]
+    chart_data = [item[1] for item in sorted_months]
 
     return render_template(
         'admin.html',
         greeting=greeting,
         users=users,
-        student_count=student_count
+        student_count=student_count,
+        approved_hours_total=approved_hours_total,
+        chart_labels=json.dumps(chart_labels),
+        chart_data=json.dumps(chart_data)
     )
 
 
@@ -483,6 +507,11 @@ def submissions():
                            rejected_count=rejected_count)
 
 
+@app.route('/about')
+def aboutpage():
+    return render_template('about.html')
+
+
 # 404 page to display when a page is not found
 # helps re-direct users back to home page
 @app.errorhandler(404) # noqa:
@@ -526,7 +555,7 @@ def login():
     else:
         flash('No user found with that username!')
 
-    return redirect(url_for('homepage'))  # Redirect back to the homepage for another attempt
+    return redirect(url_for('homepage')) 
 
 
 @app.route('/update-log-field', methods=['POST'])

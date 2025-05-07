@@ -1,0 +1,151 @@
+{% extends "layout.html" %}
+
+{% block title %}ServeSYNC - About Page{% endblock %}
+
+{% block content %}
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    .header-left {
+      flex: 1;
+      background-color: #2E7D32;
+      padding: 60px 40px;
+      box-sizing: border-box;
+    }
+
+    .header-left h1 {
+      margin-top: 0;
+      color: #fff;
+      font-size: 24px;
+    }
+
+    .header-right {
+      flex: 1;
+      background-image: url('ea6ac8_44cc9bc639fe48859dadc40993972822~mv2.webp');
+      background-size: cover;
+      background-position: center;
+      position: relative;
+    }
+
+    .donate-label {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      transform: rotate(90deg);
+      color: white;
+      font-size: 14px;
+    }
+
+    .about-label {
+      background-color: #66BB6A;
+      flex: 1;
+      padding: 20px;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .about-label h2 {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      font-size: 36px;
+      margin: 0;
+    }
+
+    .about-text {
+      flex: 2;
+      padding: 40px;
+      background-color: white;
+      box-sizing: border-box;
+    }
+
+    .about-text p {
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    .footer-image {
+      flex: 1;
+      background-image: url('ea6ac8_44cc9bc639fe48859dadc40993972822~mv2.webp');
+      background-size: cover;
+      background-position: center;
+    }
+
+    .footer-text {
+      flex: 1;
+      background-color: #A8E6CF;
+      color: white;
+      padding: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .footer-text p {
+      font-size: 16px;
+      line-height: 1.6;
+      max-width: 400px;
+    }
+
+    .flex-wrap {
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    .header {
+      height: 400px;
+    }
+
+    .footer {
+      min-height: 300px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header Section -->
+  <div class="flex-wrap header">
+    <div class="header-left">
+        <h1>Welcome to ServeSYNC<br>Your streamlined platform for tracking and submitting student service hours.</h1>
+    </div>
+    <div class="header-right">
+      <div class="donate-label">♡ DONATE</div>
+    </div>
+  </div>
+
+  <!-- About Section -->
+  <div class="flex-wrap">
+    <div class="about-label">
+      <h2>About us</h2>
+    </div>
+    <div class="about-text">
+      <p>
+        ServeSYNC is designed to simplify how students log, manage, and verify their service hours. Whether you’re volunteering for school requirements, scholarships, or personal development, ServeSYNC makes the process transparent and efficient.
+      </p>
+      <p>
+        Our platform enables students to submit service entries, get approval from supervisors, and track their progress toward service goals. Teachers and staff can review, approve, or provide feedback with just a few clicks. ServeSYNC empowers students to take ownership of their contributions while keeping everything organized in one place.
+      </p>
+    </div>
+  </div>
+
+  <!-- Footer Section -->
+  <div class="flex-wrap footer">
+    <div class="footer-image"></div>
+    <div class="footer-text">
+      <p>
+        Our goal is to support and recognize student contribution to the community by providing a reliable and intuitive platform. At ServeSYNC, we believe service should be celebrated, and tracking it should be simple.
+      </p>
+    </div>
+  </div>
+
+  <!-- Optional JS Placeholder -->
+  <script>
+    // Add any interactive features here
+    console.log("About page loaded.");
+  </script>
+</body>
+</html>
+{% endblock %}
