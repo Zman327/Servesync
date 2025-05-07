@@ -55,7 +55,7 @@
 
   .main-content {
     flex: 1;
-    background-color: #f1fdf3;
+    background-color: #fafdfa;
     padding: 30px;
   }
 
@@ -65,23 +65,59 @@
     margin-bottom: 20px;
   }
 
+  .greeting h1 {
+    font-size: 28px;
+    color: #2e7d32;
+    margin-bottom: 40px;
+  }
+
   .stats-container {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 30px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 20px;
+    margin-bottom: 30px;
+  }
+  .stat-box {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    text-align: center;
+    font-size: 18px;
+    color: #333;
+  }
+  .stat-box span {
+    display: block;
+    margin-top: 10px;
+    font-size: 24px;
+    font-weight: bold;
   }
   .charts-grid {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 20px;
-    margin-top: 30px;
+    margin-top: 20px;
   }
   .chart-container {
     background: white;
     padding: 15px;
     border-radius: 8px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+  .content-section {
+    flex: 1;
+  }
+  .chart-container {
+    position: relative;
+    min-height: 300px;
+  }
+  .chart-container canvas {
+    width: 100% !important;
+    height: 100% !important;
   }
 </style>
 
@@ -102,14 +138,14 @@
         <h1>{{ greeting }}, {{ session.name }}</h1>
       </div>
       <div class="stats-container">
-        <div class="section staff-profile">
-          <div class="stat-box">Total Students: <span>{{ users|length }}</span></div>
+          <div 
+          class="stat-box">Total Students: <span>{{ student_count }}</span>
         </div>
-        <div class="section staff-profile">
-          <div class="stat-box">Approved Hours (All): <span>{{ approved_hours_total }}</span></div>
+          <div 
+          class="stat-box">Approved Hours (All): <span>{{ approved_hours_total }}</span>
         </div>
-        <div class="section staff-profile">
-          <div class="stat-box pending">Pending Submissions: <span>{{ pending_submissions }}</span></div>
+          <div 
+          class="stat-box pending">Pending Submissions: <span>{{ pending_submissions }}</span>
         </div>
       </div>
       <div class="charts-grid">
@@ -224,13 +260,13 @@
     data: {
       labels: ['Jan','Feb','Mar','Apr','May'],
       datasets: [{ 
-        label: 'New Students',
+        label: 'New Submissions',
         data: [10, 15, 12, 20, 18],
         fill: false,
         tension: 0.1
       }]
     },
-    options: { responsive: true }
+    options: { responsive: true, maintainAspectRatio: false }
   });
 
   // Sample Hours by Group (Bar)
@@ -243,7 +279,7 @@
         data: [120, 90, 150, 80]
       }]
     },
-    options: { responsive: true }
+    options: { responsive: true, maintainAspectRatio: false }
   });
 
   // Sample Submission Status (Pie)
@@ -255,7 +291,7 @@
         data: [60, 25, 15]
       }]
     },
-    options: { responsive: true }
+    options: { responsive: true, maintainAspectRatio: false }
   });
 </script>
 {% endblock %}

@@ -161,11 +161,8 @@ def testpage():
 
 @app.route('/admin.dashboard')
 def adminpage():
-    # Get the New Zealand timezone
     nz_timezone = pytz.timezone('Pacific/Auckland')
-    # Get the current time in New Zealand
     now = datetime.now(nz_timezone)
-    # Set the greeting based on the New Zealand time
     if now.hour < 12:
         greeting = "Good Morning"
     elif now.hour < 18:
@@ -173,10 +170,16 @@ def adminpage():
     else:
         greeting = "Good Evening"
 
-    # Get all users
     users = User.query.all()
+    # Count only student users (role == 1)
+    student_count = User.query.filter_by(role=1).count()
 
-    return render_template('admin.html', greeting=greeting, users=users)
+    return render_template(
+        'admin.html',
+        greeting=greeting,
+        users=users,
+        student_count=student_count
+    )
 
 
 @app.route('/student.dashboard')
@@ -196,9 +199,10 @@ def studentpage():
     # Get the current logged-in user
     user = User.query.filter_by(school_id=session.get('username')).first()
 
-    # Get user's approved hours (sum of approved logs)
     approved_logs = ServiceHour.query.filter_by(user_id=user.school_id, status=1).all()
     user_hours = sum(log.hours for log in approved_logs) if approved_logs else 0
+    user.hours = user_hours
+    db.session.commit()
 
     # Find the highest award
     max_award = Award.query.order_by(Award.threshold.desc()).first()
