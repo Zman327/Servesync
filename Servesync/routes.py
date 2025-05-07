@@ -460,8 +460,7 @@ def submissions():
                 'group': group_name,
                 'log_time': log.log_time,
                 'formatted_log_time': formatted_log_time,
-                'picture_url': picture_url  # 👈 add this line
-})
+                'picture_url': picture_url})
 
             # Count the status categories
             if log.status == 1:
@@ -474,9 +473,9 @@ def submissions():
     # Sort by newest first using original log.date format
     submission_data.sort(key=lambda x: datetime.strptime(x["date"], "%b %d, %Y"), reverse=True)
 
-    return render_template('submissions.html', submissions=submission_data, 
-                           accepted_count=accepted_count, 
-                           pending_count=pending_count, 
+    return render_template('submissions.html', submissions=submission_data,
+                           accepted_count=accepted_count,
+                           pending_count=pending_count,
                            rejected_count=rejected_count)
 
 

@@ -28,11 +28,14 @@
         {% if session.role == 'Staff' %}
           <li><a href="/staff.dashboard">Dashboard</a></li>
         {% elif session.role == 'Admin' %}
-          <li><a href="/admin.dashboard">Dashboard</a></li>
+          <li><a href="/staff.dashboard">Dashboard</a></li>
         {% elif session.role == 'Student' %}
           <li><a href="/student.dashboard">Dashboard</a></li>
         {% else %}
           <li> <a onclick="openLoginModal()"></i> Dashboard</button></a></li>
+        {% endif %}
+        {% if session.role == 'Admin'%}
+        <li><a href="/admin.dashboard">Admin</a></li>
         {% endif %}
       </ul>
 
