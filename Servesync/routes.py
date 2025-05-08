@@ -105,7 +105,7 @@ def logpage():
     # Get all groups from the group table
     groups = Group.query.all()
 
-    return render_template('log.html', staff_members=staff_members, groups=groups)
+    return render_template('student/log.html', staff_members=staff_members, groups=groups)
 
 
 @app.route('/submit-hours', methods=['POST'])
@@ -177,6 +177,21 @@ def adminpage():
     users = User.query.filter_by(role=1).all()  # Only include students
     student_count = User.query.filter_by(role=1).count()
     approved_hours_total = db.session.query(func.sum(User.hours)).scalar() or 0
+
+    # --- Top student calculation ---
+    top_student = (
+        db.session.query(User)
+        .filter_by(role=1)
+        .order_by(User.hours.desc())
+        .first()
+    )
+    top_student_name = f"{top_student.first_name} {top_student.last_name}" if top_student else "N/A"
+    top_student_hours = top_student.hours if top_student else 0
+
+    if top_student and top_student.picture:
+        top_student_picture = f"data:image/jpeg;base64,{base64.b64encode(top_student.picture).decode('utf-8')}"
+    else:
+        top_student_picture = url_for('static', filename='default-profile.png')
 
     # --- Fetch all submissions and status counts for admin dashboard ---
     STATUS_MAP = {
@@ -274,8 +289,25 @@ def adminpage():
     award_colors = [award.colour for award in awards]
     award_colors.append('#FF3131')  # Fallback for 'Not achieved'
 
+    # --- Build All Students table data ---
+    student_table_data = []
+    for student in users:
+        full_name = f"{student.first_name} {student.last_name}"
+        form_class = getattr(student, 'form', None) or 'N/A'
+        awarded_name = next(
+            (award.name for award in awards if (student.hours or 0) >= award.threshold),
+            'Not achieved'
+        )
+        student_table_data.append({
+            'school_id': student.school_id,
+            'name': full_name,
+            'form': form_class,
+            'hours': student.hours or 0,
+            'award': awarded_name
+        })
+
     return render_template(
-        'admin.html',
+        'admin/admin.html',
         greeting=greeting,
         users=users,
         student_count=student_count,
@@ -289,8 +321,24 @@ def adminpage():
         pending_submissions=pending_count,
         accepted_count=accepted_count,
         rejected_count=rejected_count,
-        pending_count=pending_count
+        pending_count=pending_count,
+        top_student_name=top_student_name,
+        top_student_hours=top_student_hours,
+        top_student_picture=top_student_picture,
+        all_students=student_table_data
     )
+
+
+# --- Review Student Route ---
+@app.route('/review-student/<user_id>')
+def review_student(user_id):
+    # Placeholder: implement review logic for student with user_id
+    student = User.query.filter_by(school_id=user_id).first()
+    if not student:
+        flash("Student not found.", "admin-error")
+        return redirect(url_for('adminpage'))
+    # You can add more details here as needed
+    return render_template('review_student.html', student=student)
 
 
 @app.route('/student.dashboard')
@@ -374,7 +422,7 @@ def studentpage():
 
     # Pass the next_award_threshold and recent_logs to the template
     return render_template(
-        'student.html',
+        'student/student.html',
         greeting=greeting,
         user=user,
         user_hours=user_hours,
@@ -472,7 +520,7 @@ def staffpage():
     recent_logs = filtered_logs[:5]
 
     return render_template(
-        'staff.html',
+        'staff/staff.html',
         greeting=greeting,
         recent_submissions=recent_logs,
         pending_count=pending_count,
@@ -483,7 +531,7 @@ def staffpage():
 
 @app.route('/activity-history')
 def activity_history():
-    return render_template('activity.html')
+    return render_template('student/activity.html')
 
 
 # Route: /activity-history/<int:user_id>
@@ -588,7 +636,7 @@ def submissions():
     # Sort by newest first using original log.date format
     submission_data.sort(key=lambda x: datetime.strptime(x["date"], "%b %d, %Y"), reverse=True)
 
-    return render_template('submissions.html', submissions=submission_data,
+    return render_template('staff/submissions.html', submissions=submission_data,
                            accepted_count=accepted_count,
                            pending_count=pending_count,
                            rejected_count=rejected_count)
