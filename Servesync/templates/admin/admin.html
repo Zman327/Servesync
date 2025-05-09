@@ -67,7 +67,7 @@
 
   .greeting h1 {
     font-size: 28px;
-    color: #2e7d32;
+    color: #0b5e3e;
     margin-bottom: 40px;
   }
 
@@ -126,6 +126,73 @@
   .chart-container canvas {
     width: 100% !important;
     height: 100% !important;
+  }
+
+  .quick-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap; /* This ensures they wrap on smaller screens */
+  margin-top: 10px;
+  }
+
+  .quick-actions a {
+    color: var(--tiber);
+    padding: 10px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+  }
+
+  .quick-actions a:hover {
+    color: var(--jungle-green);
+  }
+
+  .top-student-card {
+  text-align: left;
+  padding: 20px;
+  border-left: 6px solid #0b5e3e;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  }
+
+  .top-student-card .card-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #0b5e3e;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .top-student-card .student-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .top-student-card .student-info img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #0b5e3e;
+  }
+
+  .top-student-card .student-text {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .top-student-card .student-name {
+    font-weight: 600;
+    font-size: 16px;
+  }
+
+  .top-student-card .student-hours {
+    font-size: 14px;
+    color: #666;
   }
 </style>
 
@@ -306,22 +373,26 @@
   <!-- STUDENTS SECTION -->
   <div id="content-students" class="content-section" style="display: none;">
     <div class="stats-container-sub">
-        <div 
-        class="stat-box">Total Students: <span>{{ student_count }}</span>
-      </div>
-      <div class="stat-box">
-        <div>- Top Student -</div>
-        <div style="display: flex; align-items: center;">
-          <img src="{{ top_student_picture }}" alt="Top Student" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; margin-right: 15%;">
-          <div>
-            <div>{{ top_student_name }}</div>
-            <div style="font-size: 0.9em; color: #666;">({{ top_student_hours }} hrs)</div>
+      <div class="stat-box top-student-card">
+        <div class="card-title">
+          <i class="fas fa-star"></i> Top Student
+        </div>
+        <div class="student-info">
+          <img src="{{ top_student_picture }}" alt="Top Student">
+          <div class="student-text">
+            <div class="student-name">{{ top_student_name }}</div>
+            <div class="student-hours">({{ top_student_hours }} hours)</div>
           </div>
         </div>
       </div>
-        <div 
-        class="stat-box pending">Pending Submissions: <span>{{ pending_submissions }}</span>
-      </div>
+      <section class="section quick-links">
+        <h3><i class="fas fa-link"></i> Quick Actions</h3>
+        <div class="quick-actions">
+          <a href="javascript:void(0);" onclick="openApproveTipsModal()">Add Students</a>
+          <a href="/groups">Remove Students</a>
+          <a href="javascript:void(0);" onclick="openReportModal()">Download Reports</a>
+        </div>
+      </section>
     </div>
     <div class="right-column full-width">
         <div class="section">
@@ -352,7 +423,7 @@
                   <td>{{ student.hours }}</td>
                   <td>{{ student.award }}</td>
                   <td>
-                    <a href="{{ url_for('review_student', user_id=student.school_id) }}" class="btn btn-primary">Review</a>
+                    <a href="{{ url_for('review_student', user_id=student.school_id) }}" class="btn btn-primary">Information</a>
                   </td>
                 </tr>
                 {% endfor %}
@@ -389,348 +460,29 @@
                 </p>
                 <p><strong>Status:</strong> <span id="modal-status"></span></p>
                 <p><strong>Date Submitted:</strong> <span id="modal-log-time"></span></p>
-                
-                <div class="modal-actions">
-                  <form method="post" action="/approve-log" style="display:inline;">
-                    <input type="hidden" name="log_id" id="approve-log-id">
-                    <button type="submit" class="accept-btn">Approve</button>
-                  </form>
-                  <form method="get" style="display:inline;">
-                    <input type="hidden" name="log_id" id="edit-log-id">
-                    <button type="submit" class="edit-btn">Edit</button>
-                  </form>
-                  <form method="post" action="/reject-log" style="display:inline;">
-                    <input type="hidden" name="log_id" id="reject-log-id">
-                    <button type="submit" class="reject-btn">Reject</button>
-                  </form>
-                </div>
-                <input type="hidden" id="edit-log-id">
               </div>
             </div>
           </div>
-    
         </div>
       </div>
   </div>
 </div>
-<script>
-  document.querySelectorAll('.sidebar ul li a').forEach(link => {
-    link.addEventListener('click', e => {
-      e.preventDefault();
-      const target = link.getAttribute('data-target');
-      document.querySelectorAll('.content-section').forEach(sec => sec.style.display = 'none');
-      document.getElementById(`content-${target}`).style.display = 'block';
-      document.querySelector('.sidebar ul li a.active').classList.remove('active');
-      link.classList.add('active');
-    });
-  });
 
-</script>
-<!-- Chart.js -->
+
+
+<!-- Load Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Define chart data using Jinja variables -->
 <script>
   const chartLabels = {{ chart_labels | safe }};
   const chartData = {{ chart_data | safe }};
-
-  // Student Growth Over Time
-  new Chart(document.getElementById('chart-students-over-time'), {
-    type: 'line',
-    data: {
-      labels: chartLabels,
-      datasets: [{ 
-        label: 'New Submissions',
-        data: chartData,
-        fill: false,
-        borderColor: 'rgb(75, 192, 192)',
-        tension: 0.1
-      }]
-    },
-    options: { responsive: true, maintainAspectRatio: false }
-  });
-
-  // Sample Hours by Group (Bar)
-  new Chart(document.getElementById('chart-hours-by-group'), {
-    type: 'bar',
-    data: {
-      labels: ['Group A','Group B','Group C','Group D'],
-      datasets: [{
-        label: 'Approved Hours',
-        data: [120, 90, 150, 80]
-      }]
-    },
-    options: { responsive: true, maintainAspectRatio: false }
-  });
-
-  // Award Distribution Chart (Pie)
-  new Chart(document.getElementById('chart-award-distribution'), {
-    type: 'pie',
-    data: {
-      labels: {{ award_labels | safe }},
-      datasets: [{
-        data: {{ award_counts | safe }},
-        backgroundColor: {{ award_colors | safe }}
-      }]
-    },
-    options: { responsive: true, maintainAspectRatio: false }
-  });
-
-  document.addEventListener("DOMContentLoaded", function () {
-    const rows = Array.from(document.querySelectorAll("#submissionsTable tbody tr"));
-    const rowsPerPage = 7;
-    let currentPage = 1;
-    const totalPages = Math.ceil(rows.length / rowsPerPage);
-    const pageIndicator = document.getElementById("pageIndicator");
-    const prevBtn = document.getElementById("prevPage");
-    const nextBtn = document.getElementById("nextPage");
-
-    function showPage(page) {
-      const start = (page - 1) * rowsPerPage;
-      const end = start + rowsPerPage;
-      rows.forEach((row, index) => {
-        row.style.display = index >= start && index < end ? "" : "none";
-      });
-      pageIndicator.textContent = `Page ${page}`;
-      prevBtn.disabled = page === 1;
-      nextBtn.disabled = page === totalPages || totalPages === 0;
-    }
-
-    prevBtn.addEventListener("click", () => {
-      if (currentPage > 1) {
-        currentPage--;
-        showPage(currentPage);
-      }
-    });
-
-    nextBtn.addEventListener("click", () => {
-      if (currentPage < totalPages) {
-        currentPage++;
-        showPage(currentPage);
-      }
-    });
-
-    // Default sort by Date (column 3) descending
-    rows.sort((a, b) => {
-      const cellA = a.cells[3].innerText;
-      const cellB = b.cells[3].innerText;
-      return new Date(cellB) - new Date(cellA);
-    });
-    rows.forEach(row => row.parentNode.appendChild(row));
-    showPage(currentPage);
-
-    // Sorting functionality
-    let currentSortedColumn = null;
-    let currentSortAsc = true;
-
-    document.querySelectorAll(".sortable").forEach(header => {
-      header.addEventListener("click", () => {
-        const column = parseInt(header.getAttribute("data-column"));
-
-        // Remove classes from all headers and icons
-        document.querySelectorAll(".sortable").forEach(h => h.classList.remove("asc", "desc"));
-        document.querySelectorAll(".sort-icon").forEach(icon => icon.classList.remove("active"));
-
-        // Determine sort direction
-        if (currentSortedColumn === column) {
-          currentSortAsc = !currentSortAsc;
-        } else {
-          currentSortAsc = true;
-          currentSortedColumn = column;
-        }
-
-        // Set sort direction classes
-        header.classList.add(currentSortAsc ? "asc" : "desc");
-
-        // Highlight icon
-        const icon = header.querySelector(".sort-icon");
-        if (icon) icon.classList.add("active");
-
-        // Sort rows
-        rows.sort((a, b) => {
-          const cellA = a.cells[column].innerText;
-          const cellB = b.cells[column].innerText;
-
-          if (column === 3) {
-            return currentSortAsc
-              ? new Date(cellA) - new Date(cellB)
-              : new Date(cellB) - new Date(cellA);
-          }
-
-          const valA = cellA.toLowerCase();
-          const valB = cellB.toLowerCase();
-
-          if (!isNaN(valA) && !isNaN(valB)) {
-            return currentSortAsc ? valA - valB : valB - valA;
-          }
-
-          return currentSortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
-        });
-
-        rows.forEach(row => row.parentNode.appendChild(row));
-        showPage(currentPage);
-      });
-    });
-  });
-
-    // Unified search and pagination functionality:
-    document.addEventListener("DOMContentLoaded", function () {
-      const allRows = Array.from(document.querySelectorAll("#submissionsTable tbody tr"));
-      const rowsPerPage = 7;
-      let currentPage = 1;
-      let filteredRows = [...allRows];
-
-      const pageIndicator = document.getElementById("pageIndicator");
-      const prevBtn = document.getElementById("prevPage");
-      const nextBtn = document.getElementById("nextPage");
-      const searchInput = document.getElementById("searchInput");
-
-      function showPage(page) {
-        const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
-        const start = (page - 1) * rowsPerPage;
-        const end = start + rowsPerPage;
-
-        allRows.forEach(row => row.style.display = "none");
-        filteredRows.slice(start, end).forEach(row => row.style.display = "");
-
-        pageIndicator.textContent = `Page ${page}`;
-        prevBtn.disabled = page === 1;
-        nextBtn.disabled = page === totalPages || totalPages === 0;
-      }
-
-      function updateSearchAndPagination() {
-        const searchTerm = searchInput.value.toLowerCase();
-
-        filteredRows = allRows.filter(row => {
-          const studentName = row.cells[0].textContent.toLowerCase();
-          const date = row.cells[3].textContent.toLowerCase();
-          const group = row.cells[5].textContent.toLowerCase();
-          return studentName.includes(searchTerm) || date.includes(searchTerm) || group.includes(searchTerm);
-        });
-
-        currentPage = 1;
-        showPage(currentPage);
-      }
-
-      searchInput.addEventListener("input", updateSearchAndPagination);
-
-      prevBtn.addEventListener("click", () => {
-        if (currentPage > 1) {
-          currentPage--;
-          showPage(currentPage);
-        }
-      });
-
-      nextBtn.addEventListener("click", () => {
-        const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
-        if (currentPage < totalPages) {
-          currentPage++;
-          showPage(currentPage);
-        }
-      });
-
-      updateSearchAndPagination();
-    });
-
-  document.querySelectorAll('.submission-row').forEach(function(row) {
-    row.addEventListener('click', function() {
-      const studentName = this.getAttribute('data-student-name');
-      const pictureUrl = this.getAttribute('data-picture-url');
-      const userId = this.getAttribute('data-user-id');
-      const description = this.getAttribute('data-description');
-      const hours = this.getAttribute('data-hours');
-      const date = this.getAttribute('data-date');
-      const formattedDate = this.getAttribute('data-formatted-date');
-      const statusLabel = this.getAttribute('data-status-label');
-      const group = this.getAttribute('data-group');
-      const formattedLogTime = this.getAttribute('data-formatted-log-time');
-      const id = this.getAttribute('data-id');
-
-      document.getElementById('modal-student').innerText = `${studentName} (${userId})`;
-      document.getElementById('modal-activity').innerText = description;
-      document.getElementById('modal-hours').innerText = hours;
-      document.getElementById('modal-date').innerText = formattedDate || date;
-      document.getElementById('modal-status').innerText = statusLabel;
-      document.getElementById('modal-group').innerText = group || "N/A";
-      document.getElementById('modal-log-time').innerText = formattedLogTime || "N/A";
-      document.getElementById('approve-log-id').value = id;
-      document.getElementById('reject-log-id').value = id;
-      document.getElementById('edit-log-id').value = id;
-      document.getElementById('modal-student-img').src = pictureUrl || '/static/default-profile.png';
-
-      document.getElementById('reviewModal').style.display = 'block';
-    });
-  });
-
-  function closeModal() {
-    document.getElementById('reviewModal').style.display = 'none';
-    if (modalEdited) {
-      window.location.reload();
-    }
-  }
-
-  window.onclick = function(event) {
-    const modal = document.getElementById('reviewModal');
-    if (event.target === modal) {
-      modal.style.display = "none";
-    }
-  }
-  
-  let modalEdited = false;
-
-  function makeEditable(id) {
-    const el = document.getElementById(id);
-    el.contentEditable = true;
-    el.focus();
-    el.classList.add("editing");
-
-    function handleKey(event) {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        el.blur();
-      }
-    }
-
-    function handleBlur() {
-      el.contentEditable = false;
-      el.classList.remove("editing");
-      el.removeEventListener("blur", handleBlur);
-      el.removeEventListener("keydown", handleKey);
-      saveEdits();
-    }
-
-    el.addEventListener("keydown", handleKey);
-    el.addEventListener("blur", handleBlur);
-  }
-
-  function saveEdits() {
-    const logId = document.getElementById('edit-log-id').value;
-
-    // Convert "Apr 30, 2025" to "30-04-2025"
-    const rawDate = document.getElementById('modal-date').innerText.trim();
-    const parsedDate = new Date(rawDate);
-    const formattedDate = ("0" + parsedDate.getDate()).slice(-2) + "-" +
-                          ("0" + (parsedDate.getMonth() + 1)).slice(-2) + "-" +
-                          parsedDate.getFullYear();
-
-    const data = {
-      log_id: logId,
-      description: document.getElementById('modal-activity').innerText.trim(),
-      hours: document.getElementById('modal-hours').innerText.trim(),
-      date: formattedDate
-    };
-
-    fetch('/update-log-field', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(result => {
-      modalEdited = true;
-    });
-  }
+  const awardLabels = {{ award_labels | safe }};
+  const awardCounts = {{ award_counts | safe }};
+  const awardColors = {{ award_colors | safe }};
 </script>
 
+<!-- Load external JavaScript -->
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 
 {% endblock %}
