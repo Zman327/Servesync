@@ -238,11 +238,32 @@ function closeModal() {
   }
 }
 
+// Open Add Student Modal
+function openAddStudentModal() {
+  document.getElementById('addStudentModal').style.display = 'block';
+}
+// Close Add Student Modal
+function closeAddStudentModal() {
+  document.getElementById('addStudentModal').style.display = 'none';
+}
+
+function openBulkUploadModal() {
+  document.getElementById('bulkUploadModal').style.display = 'block';
+}
+
+function closeBulkUploadModal() {
+  document.getElementById('bulkUploadModal').style.display = 'none';
+}
+
 window.onclick = function(event) {
   const modal = document.getElementById('reviewModal');
+  const addModal = document.getElementById('addStudentModal');
+  const bulkModal = document.getElementById('bulkUploadModal');
   if (event.target === modal) {
     modal.style.display = "none";
   }
+  if (event.target === addModal) closeAddStudentModal();
+  if (event.target === bulkModal) closeBulkUploadModal();
 }
 
 let modalEdited = false;
@@ -300,3 +321,71 @@ function saveEdits() {
     modalEdited = true;
   });
 }
+
+// SEARCH AND PAGINATION FOR ALL STUDENTS TABLE
+document.addEventListener("DOMContentLoaded", function () {
+  const rows = Array.from(document.querySelectorAll("#studentsTable tbody tr"));
+  const rowsPerPage = 7;
+  let currentPage = 1;
+  let filteredRows = [...rows];
+
+  const pageIndicator = document.getElementById("studentPageIndicator");
+  const prevBtn = document.getElementById("studentPrevPage");
+  const nextBtn = document.getElementById("studentNextPage");
+  const searchInput = document.getElementById("studentSearchInput");
+
+  // Function to display rows for the current page
+  function showPage(page) {
+    const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
+    const start = (page - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+
+    // Hide all rows, then show only those in the current page range
+    rows.forEach(row => row.style.display = "none");
+    filteredRows.slice(start, end).forEach(row => row.style.display = "");
+
+    pageIndicator.textContent = `Page ${page}`;
+    prevBtn.disabled = page === 1;
+    nextBtn.disabled = page === totalPages || totalPages === 0;
+  }
+
+  // Function to filter rows based on the search term and reset pagination
+  function updateSearchAndPagination() {
+    const searchTerm = searchInput.value.toLowerCase();
+
+    filteredRows = rows.filter(row => {
+      const schoolId = row.cells[0].textContent.toLowerCase();
+      const name = row.cells[1].textContent.toLowerCase();
+      const form = row.cells[2].textContent.toLowerCase();
+      const award = row.cells[4].textContent.toLowerCase();
+      return (
+        schoolId.includes(searchTerm) ||
+        name.includes(searchTerm) ||
+        form.includes(searchTerm) ||
+        award.includes(searchTerm)
+      );
+    });
+
+    currentPage = 1;
+    showPage(currentPage);
+  }
+
+  // Event listeners for search input and pagination buttons
+  searchInput.addEventListener("input", updateSearchAndPagination);
+  prevBtn.addEventListener("click", () => {
+    if (currentPage > 1) {
+      currentPage--;
+      showPage(currentPage);
+    }
+  });
+  nextBtn.addEventListener("click", () => {
+    const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
+    if (currentPage < totalPages) {
+      currentPage++;
+      showPage(currentPage);
+    }
+  });
+
+  // Initialize display
+  updateSearchAndPagination();
+});

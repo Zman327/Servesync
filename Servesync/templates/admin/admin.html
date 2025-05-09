@@ -259,7 +259,7 @@
           <!-- Search bar and Approve All Pending button -->
           <div class="search-approve-container">
             <div class="search-container" style="flex: 1;">
-              <input type="text" id="searchInput" placeholder="Search by School ID, Student or Form Class" />
+              <input type="text" id="studentSearchInput" placeholder="Search by School ID, Student or Form Class" />
             </div>
           </div>
           <table class="activity-table datatable" id="studentsTable">
@@ -289,9 +289,9 @@
               </tbody>
           </table>
           <div class="pagination">
-            <button id="prevPage">Previous</button>
-            <span id="pageIndicator">Page 1</span>
-            <button id="nextPage">Next</button>
+            <button id="studentPrevPage">Previous</button>
+            <span id="studentPageIndicator">Page 1</span>
+            <button id="studentNextPage">Next</button>
           </div>
     
           <!-- Review Modal -->
@@ -339,31 +339,6 @@
   const awardLabels = {{ award_labels | safe }};
   const awardCounts = {{ award_counts | safe }};
   const awardColors = {{ award_colors | safe }};
-</script>
-<script>
-  // Open Add Student Modal
-  function openAddStudentModal() {
-    document.getElementById('addStudentModal').style.display = 'block';
-  }
-  // Close Add Student Modal
-  function closeAddStudentModal() {
-    document.getElementById('addStudentModal').style.display = 'none';
-  }
-
-  function openBulkUploadModal() {
-    document.getElementById('bulkUploadModal').style.display = 'block';
-  }
-
-  function closeBulkUploadModal() {
-    document.getElementById('bulkUploadModal').style.display = 'none';
-  }
-
-  window.onclick = function(event) {
-    const addModal = document.getElementById('addStudentModal');
-    const bulkModal = document.getElementById('bulkUploadModal');
-    if (event.target === addModal) closeAddStudentModal();
-    if (event.target === bulkModal) closeBulkUploadModal();
-  }
 </script>
 
 <!-- Load external JavaScript -->
