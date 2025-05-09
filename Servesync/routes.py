@@ -13,6 +13,7 @@ import pytz
 from collections import OrderedDict
 from sqlalchemy import asc
 import json
+from werkzeug.security import generate_password_hash
 
 
 app = Flask(__name__, template_folder='templates')
@@ -327,6 +328,48 @@ def adminpage():
         top_student_picture=top_student_picture,
         all_students=student_table_data
     )
+
+
+@app.route('/add-student', methods=['POST'])
+def add_student():
+    first_name = request.form['first_name']
+    last_name = request.form['last_name']
+    school_id = request.form['school_id']
+    form_class = request.form['form']
+    password = request.form['password']
+    image_file = request.files['image']
+
+    # Convert image to binary
+    picture_data = image_file.read() if image_file else None
+
+    # Hash the password
+    hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+
+    # Create email from school_id
+    email = f"{school_id}@burnside.school.nz"
+
+    # Create a new user object using reflected columns
+    new_student = User(
+        first_name=first_name,
+        last_name=last_name,
+        school_id=school_id,
+        form=form_class,
+        password=hashed_password,
+        role=1,  # assuming 1 means student
+        picture=picture_data,
+        hours=0,  # or any default you want
+        email=email
+    )
+
+    try:
+        db.session.add(new_student)
+        db.session.commit()
+        flash('Student added successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error adding student: {e}', 'danger')
+
+    return redirect(url_for('adminpage'))
 
 
 # --- Review Student Route ---
@@ -694,7 +737,7 @@ def login():
     else:
         flash('No user found with that username!')
 
-    return redirect(url_for('homepage')) 
+    return redirect(url_for('homepage'))
 
 
 @app.route('/update-log-field', methods=['POST'])
