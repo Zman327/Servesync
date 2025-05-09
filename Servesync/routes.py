@@ -73,8 +73,6 @@ def homepage1():
     return render_template('Index.html')
 
 
-from werkzeug.security import generate_password_hash, check_password_hash
-
 @app.route('/login', methods=['POST'])
 def login():
     username = request.form['username']
@@ -234,6 +232,7 @@ def adminpage():
     users = User.query.filter_by(role=1).all()  # Only include students
     student_count = User.query.filter_by(role=1).count()
     approved_hours_total = db.session.query(func.sum(User.hours)).scalar() or 0
+    total_submissions = ServiceHour.query.count()
 
     # --- Top student calculation ---
     top_student = (
@@ -351,16 +350,18 @@ def adminpage():
     for student in users:
         full_name = f"{student.first_name} {student.last_name}"
         form_class = getattr(student, 'form', None) or 'N/A'
-        awarded_name = next(
-            (award.name for award in awards if (student.hours or 0) >= award.threshold),
-            'Not achieved'
+        matched_award = next(
+            ((award.name, award.colour) for award in awards if (student.hours or 0) >= award.threshold),
+            ('Not achieved', '#FF3131')
         )
+
         student_table_data.append({
             'school_id': student.school_id,
             'name': full_name,
             'form': form_class,
             'hours': student.hours or 0,
-            'award': awarded_name
+            'award': matched_award[0],
+            'award_color': matched_award[1]
         })
 
     return render_template(
@@ -382,7 +383,8 @@ def adminpage():
         top_student_name=top_student_name,
         top_student_hours=top_student_hours,
         top_student_picture=top_student_picture,
-        all_students=student_table_data
+        all_students=student_table_data,
+        total_submissions=total_submissions,
     )
 
 

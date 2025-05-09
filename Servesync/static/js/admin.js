@@ -1,4 +1,24 @@
+// General-purpose table sorting function
+function sortTableByColumn(tableId, columnIndex, ascending = true) {
+  const table = document.getElementById(tableId);
+  const tbody = table.tBodies[0];
+  const rows = Array.from(tbody.querySelectorAll("tr"));
 
+  const sortedRows = rows.sort((a, b) => {
+    const aText = a.children[columnIndex].textContent.trim().toLowerCase();
+    const bText = b.children[columnIndex].textContent.trim().toLowerCase();
+
+    const aVal = parseFloat(aText);
+    const bVal = parseFloat(bText);
+
+    if (!isNaN(aVal) && !isNaN(bVal)) {
+      return ascending ? aVal - bVal : bVal - aVal;
+    }
+    return ascending ? aText.localeCompare(bText) : bText.localeCompare(aText);
+  });
+
+  sortedRows.forEach(row => tbody.appendChild(row));
+}
 
 document.querySelectorAll('.sidebar ul li a').forEach(link => {
   link.addEventListener('click', e => {
@@ -10,6 +30,9 @@ document.querySelectorAll('.sidebar ul li a').forEach(link => {
     link.classList.add('active');
   });
 });
+
+// Register ChartDataLabels plugin
+Chart.register(ChartDataLabels);
 
 // Student Growth Over Time
 new Chart(document.getElementById('chart-students-over-time'), {
@@ -50,7 +73,26 @@ new Chart(document.getElementById('chart-award-distribution'), {
       backgroundColor: awardColors
     }]
   },
-  options: { responsive: true, maintainAspectRatio: false }
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      datalabels: {
+        color: '#fff',
+        font: {
+          weight: 'bold',
+          size: 14
+        },
+        formatter: (value, context) => {
+          const data = context.chart.data.datasets[0].data;
+          const total = data.reduce((acc, val) => acc + val, 0);
+          const percentage = (value / total) * 100;
+          return percentage >= 1 ? `${percentage.toFixed(1)}%` : '';
+        }
+      }
+    }
+  },
+  plugins: [ChartDataLabels]
 });
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -389,3 +431,52 @@ document.addEventListener("DOMContentLoaded", function () {
   // Initialize display
   updateSearchAndPagination();
 });
+// Update "Choose File" label when file is selected
+document.addEventListener("DOMContentLoaded", function () {
+  const fileInput = document.getElementById("studentImage");
+  const fileChosen = document.getElementById("file-chosen");
+
+  if (fileInput && fileChosen) {
+    fileInput.addEventListener("change", function () {
+      fileChosen.textContent = this.files.length > 0 ? this.files[0].name : "No file chosen";
+    });
+  }
+});
+// Open Download Reports Modal
+function openReportModal() {
+  document.getElementById('reportModal').style.display = 'block';
+}
+
+// Close Download Reports Modal
+function closeReportModal() {
+  document.getElementById('reportModal').style.display = 'none';
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  const openDownloadBtn = document.getElementById("openDownloadModal");
+  if (openDownloadBtn) {
+    openDownloadBtn.addEventListener("click", openReportModal);
+  }
+});
+
+// Optionally close modal when clicking outside
+window.addEventListener("click", function (event) {
+  const reportModal = document.getElementById("reportModal");
+  if (event.target === reportModal) {
+    reportModal.style.display = "none";
+  }
+});
+  // General-purpose sortable columns for any table with .sortable headers
+  document.querySelectorAll(".sortable").forEach(header => {
+    header.addEventListener("click", () => {
+      const table = header.closest("table");
+      const tableId = table.id;
+      const columnIndex = parseInt(header.dataset.column);
+      const currentAscending = header.classList.contains("asc");
+
+      document.querySelectorAll(".sortable").forEach(h => h.classList.remove("asc", "desc"));
+      header.classList.add(currentAscending ? "desc" : "asc");
+
+      sortTableByColumn(tableId, columnIndex, !currentAscending);
+    });
+  });
