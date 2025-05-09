@@ -354,6 +354,12 @@ def adminpage():
             ((award.name, award.colour) for award in awards if (student.hours or 0) >= award.threshold),
             ('Not achieved', '#FF3131')
         )
+        # Set student image like top student image
+        if student.picture:
+            encoded_picture = base64.b64encode(student.picture).decode('utf-8')
+            picture_url = f"data:image/jpeg;base64,{encoded_picture}"
+        else:
+            picture_url = url_for('static', filename='default-profile.png')
 
         student_table_data.append({
             'school_id': student.school_id,
@@ -361,7 +367,8 @@ def adminpage():
             'form': form_class,
             'hours': student.hours or 0,
             'award': matched_award[0],
-            'award_color': matched_award[1]
+            'award_color': matched_award[1],
+            'picture_url': picture_url  # Add picture URL here
         })
 
     return render_template(

@@ -243,34 +243,72 @@ document.addEventListener("DOMContentLoaded", function () {
   updateSearchAndPagination();
 });
 
-document.querySelectorAll('.submission-row').forEach(function(row) {
-  row.addEventListener('click', function() {
-    const studentName = this.getAttribute('data-student-name');
-    const pictureUrl = this.getAttribute('data-picture-url');
-    const userId = this.getAttribute('data-user-id');
-    const description = this.getAttribute('data-description');
-    const hours = this.getAttribute('data-hours');
-    const date = this.getAttribute('data-date');
-    const formattedDate = this.getAttribute('data-formatted-date');
-    const statusLabel = this.getAttribute('data-status-label');
-    const group = this.getAttribute('data-group');
-    const formattedLogTime = this.getAttribute('data-formatted-log-time');
-    const id = this.getAttribute('data-id');
+// Review Modal and Student Info Modal Handlers
+document.addEventListener("DOMContentLoaded", function () {
+  // Review Modal Handler
+  document.querySelectorAll(".review-btn").forEach(button => {
+    button.addEventListener("click", function () {
+      const row = this.closest(".submission-row");
 
-    document.getElementById('modal-student').innerText = `${studentName} (${userId})`;
-    document.getElementById('modal-activity').innerText = description;
-    document.getElementById('modal-hours').innerText = hours;
-    document.getElementById('modal-date').innerText = formattedDate || date;
-    document.getElementById('modal-status').innerText = statusLabel;
-    document.getElementById('modal-group').innerText = group || "N/A";
-    document.getElementById('modal-log-time').innerText = formattedLogTime || "N/A";
-    document.getElementById('approve-log-id').value = id;
-    document.getElementById('reject-log-id').value = id;
-    document.getElementById('edit-log-id').value = id;
-    document.getElementById('modal-student-img').src = pictureUrl || '/static/default-profile.png';
-
-    document.getElementById('reviewModal').style.display = 'block';
+      // Open Review Modal with submission data
+      openReviewModal({
+        pictureUrl: row.dataset.pictureUrl,
+        studentName: row.dataset.studentName,
+        group: row.dataset.group,
+        description: row.dataset.description,
+        hours: row.dataset.hours,
+        date: row.dataset.date,
+        status: row.dataset.statusLabel,
+        formattedLogTime: row.dataset.formattedLogTime,
+        submissionId: row.dataset.id
+      });
+    });
   });
+
+  // Function to open the Review Modal and populate fields
+  function openReviewModal(data) {
+    document.getElementById("modal-student-img").src = data.pictureUrl || '/static/default-profile.png';
+    document.getElementById("modal-student").textContent = data.studentName;
+    document.getElementById("modal-group").textContent = data.group;
+    document.getElementById("modal-activity").textContent = data.description;
+    document.getElementById("modal-hours").textContent = data.hours;
+    document.getElementById("modal-date").textContent = data.date;
+    document.getElementById("modal-status").textContent = data.status;
+    document.getElementById("modal-log-time").textContent = data.formattedLogTime;
+    document.getElementById("approve-log-id").value = data.submissionId;
+    document.getElementById("edit-log-id").value = data.submissionId;
+    document.getElementById("reject-log-id").value = data.submissionId;
+
+    document.getElementById("reviewModal").style.display = "block";
+  }
+
+  // Function to open the Student Info Modal and populate fields
+  document.querySelectorAll(".info-btn").forEach(button => {
+    button.addEventListener("click", function () {
+      const row = this.closest(".student-row");
+      openStudentInfoModal({
+        pictureUrl: row.dataset.pictureUrl,
+        name: row.dataset.name,
+        school_id: row.dataset.schoolId,
+        form: row.dataset.form,
+        hours: row.dataset.hours,
+        award: row.dataset.award,
+        award_color: row.dataset.awardColor
+      });
+    });
+  });
+
+  function openStudentInfoModal(student) {
+    document.getElementById("info-student-img").src = student.pictureUrl || '/static/default-profile.png';
+    document.getElementById("modal-student-name").textContent = student.name;
+    document.getElementById("modal-student-id").textContent = student.school_id;
+    document.getElementById("modal-student-form").textContent = student.form;
+    document.getElementById("modal-student-hours").textContent = student.hours;
+    const awardElem = document.getElementById("modal-student-award");
+    awardElem.textContent = student.award;
+    awardElem.style.color = student.award_color;
+    document.getElementById("studentInfoModal").style.display = "block";
+  }
 });
 
 function closeModal() {
@@ -450,6 +488,24 @@ function openReportModal() {
 // Close Download Reports Modal
 function closeReportModal() {
   document.getElementById('reportModal').style.display = 'none';
+}
+
+// Student Info Modal Functions
+// Modified to accept consistent keys and set the correct image element
+function openStudentInfoModal(student) {
+  document.getElementById("info-student-img").src = student.pictureUrl || '/static/default-profile.png';
+  document.getElementById("modal-student-name").textContent = student.name;
+  document.getElementById("modal-student-id").textContent = student.school_id;
+  document.getElementById("modal-student-form").textContent = student.form;
+  document.getElementById("modal-student-hours").textContent = student.hours;
+  const awardElem = document.getElementById("modal-student-award");
+  awardElem.textContent = student.award;
+  awardElem.style.color = student.award_color;
+  document.getElementById("studentInfoModal").style.display = "block";
+}
+
+function closeStudentInfoModal() {
+  document.getElementById("studentInfoModal").style.display = "none";
 }
 
 document.addEventListener("DOMContentLoaded", function () {

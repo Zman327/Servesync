@@ -87,7 +87,18 @@
             </thead>
             <tbody>
                 {% for submission in submissions %}
-                <tr class="submission-row" data-student-name="{{ submission.student_name }}" data-picture-url="{{ submission.picture_url|default('/static/default-profile.png') }}" data-user-id="{{ submission.user_id }}" data-description="{{ submission.description }}" data-hours="{{ submission.hours }}" data-date="{{ submission.date }}" data-formatted-date="{{ submission.formatted_date }}" data-status-label="{{ submission.status_label }}" data-group="{{ submission.group }}" data-formatted-log-time="{{ submission.formatted_log_time }}" data-id="{{ submission.id }}">
+                <tr class="submission-row"
+                    data-student-name="{{ submission.student_name }}"
+                    data-picture-url="{{ submission.picture_url|default('/static/default-profile.png') }}"
+                    data-user-id="{{ submission.user_id }}"
+                    data-description="{{ submission.description }}"
+                    data-hours="{{ submission.hours }}"
+                    data-date="{{ submission.date }}"
+                    data-formatted-date="{{ submission.formatted_date }}"
+                    data-status-label="{{ submission.status_label }}"
+                    data-group="{{ submission.group }}"
+                    data-formatted-log-time="{{ submission.formatted_log_time }}"
+                    data-id="{{ submission.id }}">
                   <td>{{ submission.student_name }}</td>
                   <td>{{ submission.description }}</td>
                   <td>{{ submission.hours }}</td>
@@ -106,10 +117,7 @@
                   </td>
                   <td>{{ submission.group }}</td>
                   <td>
-                    <a href="javascript:void(0);" 
-                       class="btn btn-primary review-btn">
-                       Review
-                    </a>
+                    <a href="javascript:void(0);" class="btn btn-primary review-btn">Review</a>
                   </td>
                 </tr>
                 {% endfor %}
@@ -153,7 +161,6 @@
                 </p>
                 <p><strong>Status:</strong> <span id="modal-status"></span></p>
                 <p><strong>Date Submitted:</strong> <span id="modal-log-time"></span></p>
-                
                 <div class="modal-actions">
                   <form method="post" action="/approve-log" style="display:inline;">
                     <input type="hidden" name="log_id" id="approve-log-id">
@@ -168,7 +175,6 @@
                     <button type="submit" class="reject-btn">Reject</button>
                   </form>
                 </div>
-                <input type="hidden" id="edit-log-id">
               </div>
             </div>
           </div>
@@ -300,14 +306,21 @@
             </thead>
             <tbody>
                 {% for student in all_students %}
-                <tr>
+                <tr class="student-row"
+                    data-picture-url="{{ student.picture_url | default('/static/default-profile.png') }}"
+                    data-name="{{ student.name }}"
+                    data-school-id="{{ student.school_id }}"
+                    data-form="{{ student.form }}"
+                    data-hours="{{ student.hours }}"
+                    data-award="{{ student.award }}"
+                    data-award-color="{{ student.award_color }}">
                   <td>{{ student.school_id }}</td>
                   <td>{{ student.name }}</td>
                   <td>{{ student.form }}</td>
                   <td>{{ student.hours }}</td>
                   <td><span style="color: {{ student.award_color }}; font-weight: bold;">{{ student.award }}</span></td>
                   <td>
-                    <a href="{{ url_for('review_student', user_id=student.school_id) }}" class="btn btn-primary">Information</a>
+                    <a href="javascript:void(0);" class="btn btn-primary info-btn">Information</a>
                   </td>
                 </tr>
                 {% endfor %}
@@ -318,32 +331,30 @@
             <span id="studentPageIndicator">Page 1</span>
             <button id="studentNextPage">Next</button>
           </div>
-    
-          <!-- Review Modal -->
-          <div id="reviewModal" class="modal review-modal">
+          <!-- Student Info Modal -->
+          <div id="studentInfoModal" class="modal review-modal">
             <div class="modal-content">
-              <span class="close-btn" onclick="closeModal()">&times;</span>
+              <span class="close-btn" onclick="closeStudentInfoModal()">&times;</span>
               <div class="modal-image">
-                <img id="modal-student-img" src="{{ url_for('static', filename='Images/Profile/default.jpg') }}" alt="Student Picture" />
+                <img id="info-student-img" src="{{ url_for('static', filename='Images/Profile/default.jpg') }}" alt="Student Picture" />
               </div>
               <div class="modal-details">
-                <h2>Submission Details</h2>
-                <p><strong>Student:</strong> <span id="modal-student"></span></p>
-                <p><strong>Group:</strong> <span id="modal-group"></span></p>
-                <p><strong>Activity:</strong> 
-                  <span id="modal-activity" contenteditable="false" class="editable-field"></span>
-                  <i class="fas fa-pencil-alt edit-icon" onclick="makeEditable('modal-activity')"></i>
+                <h2>Student Details</h2>
+                <p><strong>Name:</strong> <span id="modal-student-name"></span> 
+                  <i class="fas fa-pencil-alt edit-icon" onclick="makeEditable('modal-student-award')"></i></p>
+                
+                <p><strong>School ID:</strong> <span id="modal-student-id"></span>
+                <i class="fas fa-pencil-alt edit-icon" onclick="makeEditable('modal-student-award')"></i></p>
+                <p><strong>Form:</strong> 
+                  <span id="modal-student-form" contenteditable="false" class="editable-field"></span>
+                  <i class="fas fa-pencil-alt edit-icon" onclick="makeEditable('modal-student-award')"></i>
                 </p>
-                <p><strong>Hours:</strong> 
-                  <span id="modal-hours" contenteditable="false" class="editable-field"></span>
-                  <i class="fas fa-pencil-alt edit-icon" onclick="makeEditable('modal-hours')"></i>
+                <p><strong>Total Hours:</strong> 
+                  <span id="modal-student-hours" contenteditable="false" class="editable-field"></span>
                 </p>
-                <p><strong>Date:</strong> 
-                  <span id="modal-date" contenteditable="false" class="editable-field"></span>
-                  <i class="fas fa-pencil-alt edit-icon" onclick="makeEditable('modal-date')"></i>
+                <p><strong>Award:</strong> 
+                  <span id="modal-student-award" contenteditable="false" class="editable-field" style="font-weight: bold;"></span>
                 </p>
-                <p><strong>Status:</strong> <span id="modal-status"></span></p>
-                <p><strong>Date Submitted:</strong> <span id="modal-log-time"></span></p>
               </div>
             </div>
           </div>
