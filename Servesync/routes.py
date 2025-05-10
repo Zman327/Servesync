@@ -12,10 +12,25 @@ import io
 import pytz
 import json
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_dance.contrib.google import make_google_blueprint, google
 
 
 app = Flask(__name__, template_folder='templates')
 app.secret_key = 'your_secret_key'
+
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'  # Allow HTTP for local dev
+google_bp = make_google_blueprint(
+    client_id="26915404481-5bcada6j7otusedjet7p5g93pn08rp69.apps.googleusercontent.com",
+    client_secret="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",
+    redirect_url="http://127.0.0.1:5000/google_login/callback",  # Exact URL for the callback
+    scope=[
+        "openid",
+        "https://www.googleapis.com/auth/userinfo.email",
+        "https://www.googleapis.com/auth/userinfo.profile"
+    ]
+)
+
+app.register_blueprint(google_bp, url_prefix="/google_login")
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'ServeSync.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -145,6 +160,40 @@ def some_route():
         profile_image = url_for('static', filename='Images/Profile/deafult.jpg')
 
     return render_template("some_template.html", profile_image=profile_image)
+
+
+@app.route("/google_login/callback")
+def google_login_callback():
+    if not google.authorized:
+        return redirect(url_for("google.login"))
+
+    resp = google.get("/oauth2/v2/userinfo")
+    if not resp.ok:
+        flash("Failed to fetch user info from Google.")
+        return redirect(url_for("homepage"))
+
+    user_info = resp.json()
+    email = user_info["email"]
+    name = user_info["name"]
+
+    user = User.query.filter_by(email=email).first()
+
+    if user:
+        session['username'] = user.school_id
+        session['name'] = f"{user.first_name} {user.last_name}"
+        role_name = db.session.execute(
+            db.text("SELECT name FROM user_role WHERE id = :id"), {"id": user.role}
+        ).scalar()
+        session['role'] = role_name
+        if role_name.lower() == 'staff':
+            return redirect(url_for('staffpage'))
+        elif role_name.lower() == 'admin':
+            return redirect(url_for('adminpage'))
+        else:
+            return redirect(url_for('studentpage'))
+    else:
+        flash("No account found for this Google email.")
+        return redirect(url_for("homepage"))
 
 
 @app.route('/account')
