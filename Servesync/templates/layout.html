@@ -52,11 +52,15 @@
               <strong>{{ session.name }}</strong><br>
               <small>{{ session.username }} | {{ session.role }} Account</small>
             </div>
-            <a href="/account">Account</a>
+            {% if session.role == 'Student' %}
+            <a href="/log">Log Hours</a>
+            {% elif session.role == 'Admin' %}
+            <a href="/admin.dashboard">Admin Controls</a>
+            {% endif %}
             {% if session.role == 'Staff' %}
             <a href="/staff.dashboard">Dashboard</a>
             {% elif session.role == 'Admin' %}
-            <a href="/admin.dashboard">Dashboard</a>
+            <a href="/staff.dashboard">Dashboard</a>
             {% else %}
             <a href="/student.dashboard">Dashboard</a>
             {% endif %}
