@@ -9,6 +9,29 @@
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+  <style>
+    .flash-messages {
+      margin-bottom: 15px;
+      padding: 10px;
+      color: #b00020;
+      border-radius: 5px;
+      text-align: center;
+    }
+    @keyframes shake {
+      0% { transform: translateX(0); }
+      20% { transform: translateX(-5px); }
+      40% { transform: translateX(5px); }
+      60% { transform: translateX(-5px); }
+      80% { transform: translateX(5px); }
+      100% { transform: translateX(0); }
+    }
+
+    input.error {
+      border: 1.5px solid #b00020;
+      animation: shake 0.3s;
+      background-color: #fff0f0;
+    }
+  </style>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 </head>
@@ -101,16 +124,28 @@
       <form action="/login" method="POST" class="floating-form">
         <div class="form-group">
           <i class='bx bxs-user'></i>
-          <input type="text" id="username" name="username" placeholder=" " required>
+          <input type="text" id="username" name="username" placeholder=" " required
+            class="{% if messages %}error{% endif %}">
           <label for="username">Username</label>
         </div>
 
         <div class="form-group">
           <i class='bx bxs-lock-alt' id="lockIcon" onclick="togglePasswordVisibility()"></i>
-          <input type="password" id="password" name="password" placeholder=" " required>
+          <input type="password" id="password" name="password" placeholder=" " required
+            class="{% if messages %}error{% endif %}">
           <label for="password">Password</label>
           <i class="bx bxs-eye" id="togglePassword" onclick="togglePasswordVisibility()"></i>
         </div>
+
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <div class="flash-messages">
+            {% for message in messages %}
+              <div class="flash-message">{{ message }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+        {% endwith %}
 
         <button type="submit">Log In</button>
         <div class="or-separator">or</div>
@@ -160,7 +195,7 @@
         toggle.classList.add("bxs-eye");
       }
     }
-</script>
+  </script>
   <script>
     let dropdownTimeout;
 
@@ -180,6 +215,19 @@
         }, 100); // Delay in milliseconds
       });
     }
+  </script>
+  <script>
+    window.onload = function () {
+      const flashMessages = document.querySelector(".flash-messages");
+      if (flashMessages) {
+        openLoginModal();
+        setTimeout(() => {
+          document.querySelectorAll('input.error').forEach(input => {
+            input.classList.remove('error');
+          });
+        }, 1000);
+      }
+    };
   </script>
 </body>
 </html>

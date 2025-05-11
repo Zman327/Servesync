@@ -23,7 +23,7 @@ os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'  # Allow HTTP for local dev
 google_bp = make_google_blueprint(
     client_id="26915404481-5bcada6j7otusedjet7p5g93pn08rp69.apps.googleusercontent.com",
     client_secret="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",
-    redirect_url="http://127.0.0.1:5000/google_login/callback",  # when live use https://zeyad327.pythonanywhere.com/google_login/google/authorized
+    redirect_url="http://127.0.0.1:5000/google_login/callback",  # when live use https://zeyad327.pythonanywhere.com/google_login/callback
     scope=[
         "openid",
         "https://www.googleapis.com/auth/userinfo.email",

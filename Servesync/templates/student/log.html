@@ -7,33 +7,36 @@
   <div class="left-column">
     <div class="section form-card">
       <h2 class="center-text">Log Your Service Hours</h2>
-      <form action="/submit-hours" method="post" class="floating-form" autocomplete="off">
+      <form action="/submit-hours" method="post" class="floating-form" autocomplete="off" novalidate>
         <div class="form-group">
             <i class="fas fa-calendar-alt"></i>
             <input type="date" name="date" id="date" required placeholder=" ">
-            <label for="date">Date of Activity</label>
+            <label for="date">Date of Activity <span class="required-asterisk">*</span></label>
         </div>
         <div class="form-group">
           <i class="fas fa-tasks"></i>
           <input type="text" name="activity" id="activity" required placeholder=" " maxlength="30">
-          <label for="activity">Activity Name</label>
+          <label for="activity">Activity Name <span class="required-asterisk">*</span></label>
         </div>
         <div class="form-group autocomplete-group" style="position: relative;">
           <i class="fas fa-users"></i>
           <input type="text" id="group" name="group" required placeholder=" ">
-          <label for="group">Group</label>
+          <label for="group">Group <span class="required-asterisk">*</span></label>
           <ul id="group-suggestions" class="autocomplete-list"></ul>
         </div>
         <div class="form-group autocomplete-group" style="position: relative;">
           <i class="fas fa-user-tie"></i>
           <input type="text" name="person_in_charge" id="person_in_charge" required placeholder=" ">
-          <label for="person_in_charge">Person in Charge</label>
+          <label for="person_in_charge">Person in Charge <span class="required-asterisk">*</span></label>
           <ul id="staff-suggestions" class="autocomplete-list"></ul>
         </div>
         <div class="form-group">
           <i class="fas fa-clock"></i>
           <input type="number" name="hours" id="hours" required step="0.5" min="0" max="24" placeholder=" ">
-          <label for="hours">Hours Completed</label>
+          <label for="hours">Hours Completed <span class="required-asterisk">*</span></label>
+        </div>
+        <div id="form-error-message" class="form-error-message" style="display: none;">
+          *Please fill out all required fields.
         </div>
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -87,11 +90,58 @@
     const form = document.querySelector("form");
     if (form) {
       form.addEventListener("submit", (e) => {
+        document.getElementById("form-error-message").style.display = "none";
+        let hasError = false;
+        form.querySelectorAll("input[required]").forEach((input) => {
+          if (!input.value.trim()) {
+            input.classList.add("input-error");
+            const icon = input.parentElement.querySelector('i');
+            const label = input.parentElement.querySelector('label');
+            if (icon) {
+              icon.classList.add("input-error-icon");
+              setTimeout(() => icon.classList.remove("input-error-icon"), 600);
+            }
+            if (label) {
+              label.classList.add("label-error");
+              setTimeout(() => label.classList.remove("label-error"), 600);
+            }
+            hasError = true;
+            setTimeout(() => input.classList.remove("input-error"), 600);
+          }
+        });
+
         const hoursInput = document.getElementById("hours");
         const hours = parseFloat(hoursInput.value);
         if (hours <= 0) {
-          e.preventDefault();
+          hoursInput.classList.add("input-error");
+          const hoursIcon = hoursInput.parentElement.querySelector('i');
+          const hoursLabel = hoursInput.parentElement.querySelector('label');
+          if (hoursIcon) {
+            hoursIcon.classList.add("input-error-icon");
+            setTimeout(() => hoursIcon.classList.remove("input-error-icon"), 600);
+          }
+          if (hoursLabel) {
+            hoursLabel.classList.add("label-error");
+            setTimeout(() => hoursLabel.classList.remove("label-error"), 600);
+          }
           alert("Hours must be greater than 0.");
+          e.preventDefault();
+          return;
+        }
+
+        if (hasError) {
+          const errorMessage = document.getElementById("form-error-message");
+          errorMessage.style.display = "block";
+          errorMessage.classList.remove("fade-out"); // reset if already fading
+
+          setTimeout(() => {
+            errorMessage.classList.add("fade-out");
+            setTimeout(() => {
+              errorMessage.style.display = "none";
+              errorMessage.classList.remove("fade-out");
+            }, 500); // match the CSS transition duration
+          }, 2000); // visible for 2 seconds
+          e.preventDefault();
           return;
         }
 
@@ -193,5 +243,6 @@
       }
     });
   });
+</script>
 </script>
 {% endblock %}
