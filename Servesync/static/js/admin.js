@@ -320,14 +320,17 @@ function closeModal() {
 
 // Open Add Student Modal
 function openAddStudentModal() {
+  closeBulkUploadModal();
   document.getElementById('addStudentModal').style.display = 'block';
 }
+
 // Close Add Student Modal
 function closeAddStudentModal() {
   document.getElementById('addStudentModal').style.display = 'none';
 }
 
 function openBulkUploadModal() {
+  closeAddStudentModal();
   document.getElementById('bulkUploadModal').style.display = 'block';
 }
 

@@ -13,6 +13,9 @@ import pytz
 import json
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_dance.contrib.google import make_google_blueprint, google
+import pandas as pd
+import requests
+from werkzeug.utils import secure_filename
 
 
 app = Flask(__name__, template_folder='templates')
@@ -108,7 +111,7 @@ def login():
 
         # If password is hashed, check with check_password_hash
         # If it's plain text, check directly
-        if user.password.startswith('$pbkdf2') and check_password_hash(user.password, password):
+        if user.password.startswith('pbkdf2') and check_password_hash(user.password, password):
             session['username'] = user.school_id
             session['name'] = f"{user.first_name} {user.last_name}"
             role_name = db.session.execute(
@@ -483,6 +486,121 @@ def add_student():
     except Exception as e:
         db.session.rollback()
         flash(f'Error adding student: {e}', 'danger')
+
+    return redirect(url_for('adminpage'))
+
+
+@app.route('/bulk-upload-students', methods=['POST'])
+def bulk_upload_students():
+    file = request.files.get('bulk_file')
+    if not file:
+        flash('No file uploaded', 'danger')
+        return redirect(url_for('adminpage'))
+
+    filename = file.filename.lower()
+    df = None
+
+    try:
+        if filename.endswith('.csv'):
+            try:
+                df = pd.read_csv(file, encoding='utf-8')
+            except UnicodeDecodeError:
+                df = pd.read_csv(file, encoding='latin1')
+        elif filename.endswith(('.xls', '.xlsx')):
+            df = pd.read_excel(file, engine='openpyxl')
+        else:
+            flash('Unsupported file format. Please upload a .csv or .xlsx file.', 'danger')
+            return redirect(url_for('adminpage'))
+    except Exception as e:
+        flash(f'Error reading file: {e}', 'danger')
+        return redirect(url_for('adminpage'))
+
+    # Normalize and validate required columns (case-insensitive)
+    # Step 1: lowercase and strip all column headers
+    df.columns = [col.strip().lower() for col in df.columns]
+
+    # Step 2: Check for all required columns
+    required_cols = ['first name', 'last name', 'student id', 'tutor', 'password']
+    missing = [col for col in required_cols if col not in df.columns]
+    if missing:
+        flash(f"Missing required columns: {[col.title() for col in missing]}", "danger")
+        return redirect(url_for('adminpage'))
+
+    # Step 3: Rename the columns for consistent access later
+    rename_map = {
+        'first name': 'First Name',
+        'last name': 'Last Name',
+        'student id': 'Student ID',
+        'tutor': 'Tutor',
+        'password': 'Password',
+        'image': 'Image'  # Optional, handled if present
+    }
+    df.rename(columns=rename_map, inplace=True)
+
+    added_count = 0
+
+    for _, row in df.iterrows():
+        try:
+            first_name = row['First Name']
+            last_name = row['Last Name']
+            school_id = row['Student ID']
+            form_class = row['Tutor']
+            raw_pass = row['Password']
+            image_val = row.get('Image', None)
+
+            # Hash the password
+            hashed_password = generate_password_hash(raw_pass, method='pbkdf2:sha256')
+
+            # Process image (URL or base64)
+            picture_data = None
+            if isinstance(image_val, str):
+                val = image_val.strip()
+                if val.lower().startswith(('http://', 'https://')):
+                    try:
+                        resp = requests.get(val, timeout=5)
+                        if resp.status_code == 200:
+                            picture_data = resp.content
+                    except Exception:
+                        picture_data = None
+                else:
+                    try:
+                        picture_data = base64.b64decode(val)
+                    except Exception:
+                        picture_data = None
+
+            # Build student email
+            email = f"{school_id}@burnside.school.nz"
+
+            if User.query.filter_by(email=email).first():
+                continue  # or optionally log/flash a warning about duplicate
+
+            # Create and stage the student
+            new_student = User(
+                first_name=first_name,
+                last_name=last_name,
+                school_id=school_id,
+                form=form_class,
+                password=hashed_password,
+                role=1,
+                picture=picture_data,
+                hours=0,
+                email=email
+            )
+            db.session.add(new_student)
+            added_count += 1
+
+        except KeyError as ke:
+            flash(f"Missing column in row: {ke}", "warning")
+        except Exception as err:
+            flash(f"Error processing a row: {err}", "warning")
+
+    # Commit all new users
+    try:
+        db.session.commit()
+        flash(f'{added_count} students added successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error committing to database: {e}', 'danger')
 
     return redirect(url_for('adminpage'))
 

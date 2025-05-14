@@ -255,15 +255,19 @@
       </div>
       <!-- Bulk Upload Modal -->
       <div id="bulkUploadModal" class="student-modal">
-        <div class="modal-content">
+        <div class="student-modal-content">
           <span class="close-btn" onclick="closeBulkUploadModal()">&times;</span>
           <h2>Bulk Upload Students</h2>
           <form id="bulkUploadForm" action="/bulk-upload-students" method="post" enctype="multipart/form-data">
-            <div class="form-group-add-student">
-              <label for="bulkFile">Upload CSV or Excel File</label>
-              <input type="file" id="bulkFile" name="bulk_file" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" required>
+            <div class="form-row">
+              <div class="form-group-add-student">
+                <label for="bulkFile">Upload XLSX File</label>
+                <input type="file" id="bulkFile" name="bulk_file" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" required>
+              </div>
             </div>
-            <button type="submit">Upload</button>
+            <div class="form-row">
+              <button type="submit" class="btn btn-primary">Upload</button>
+            </div>
           </form>
         </div>
       </div>

@@ -699,7 +699,7 @@ body.page-404 {
   transform: translateY(-50%);
   font-size: 18px;
   color: #888;
-  z-index: 10001;
+  z-index: 99;
 }
 
 /* Password Visibility Icon */
@@ -1277,14 +1277,16 @@ button[type="submit"]:hover {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   border: none;
   width: 100%;
-  z-index: 10;
+  z-index: 1000001;
   max-height: 200px;
   overflow-y: auto;
 }
+
 .autocomplete-list li {
   padding: 8px;
   cursor: pointer;
 }
+
 .autocomplete-list li:hover {
   background-color: #eee;
 }
