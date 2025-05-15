@@ -648,6 +648,16 @@ function closeAddStaffModal() {
   document.getElementById('addStaffModal').style.display = 'none';
 }
 
+function openBulkUploadModalstaff() {
+    closeAddStaffModal();
+    document.getElementById('bulkUploadModalstaff').style.display = 'block';
+  }
+  
+  // Close Add Staff Modal
+  function closeBulkUploadModalstaff() {
+    document.getElementById('bulkUploadModalstaff').style.display = 'none';
+  }
+
 // Handle staff image file input change
 const staffFileInput = document.getElementById('staffImage');
 const staffFileChosen = document.getElementById('file-chosen-staff');
@@ -660,4 +670,59 @@ if (staffFileInput) {
       staffFileChosen.textContent = "No file chosen";
     }
   });
+}
+
+function openAddAdminModal() {
+document.getElementById("addAdminModal").style.display = "block";
+}
+
+function closeAddAdminModal() {
+document.getElementById("addAdminModal").style.display = "none";
+}
+
+function searchStaffForAdmin() {
+const query = document.getElementById("adminSearchInput").value.toLowerCase();
+const resultsContainer = document.getElementById("adminSearchResults");
+resultsContainer.innerHTML = "";
+
+const staffList = window.allStaff || [];
+
+const filtered = staffList.filter(staff =>
+    staff.name.toLowerCase().includes(query) ||
+    staff.school_id.toLowerCase().includes(query)
+);
+
+if (filtered.length === 0) {
+    resultsContainer.innerHTML = "<p>No staff found.</p>";
+    return;
+}
+
+filtered.forEach(staff => {
+    const staffItem = document.createElement("div");
+    staffItem.className = "search-result";
+    staffItem.innerHTML = `
+    <p><strong>${staff.name}</strong> (${staff.school_id})</p>
+    <button class="btn btn-primary" onclick="promoteToAdmin('${staff.school_id}')">Make Admin</button>
+    `;
+    resultsContainer.appendChild(staffItem);
+});
+}
+
+function promoteToAdmin(schoolId) {
+fetch('/promote-to-admin', {
+    method: 'POST',
+    headers: {
+    'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ school_id: schoolId })
+})
+.then(res => res.json())
+.then(data => {
+    if (data.success) {
+    alert("Staff promoted to admin!");
+    location.reload();
+    } else {
+    alert("Failed to promote staff.");
+    }
+});
 }

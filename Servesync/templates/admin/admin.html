@@ -13,11 +13,11 @@
     </ul>
     <div class="mini-controls">
       <a href="javascript:void(0);" class="btn btn-danger" onclick="openAddStaffModal()">
-        <i class="fa-solid fa-school"></i> Add New Staff
+        <i class="fa-solid fa-school"></i> Add New Staff Members
       </a>
       <br>
       <br>
-      <a href="/" class="btn btn-danger">
+      <a href="javascript:void(0);" class="btn btn-danger" onclick="openAddAdminModal()">
         <i class="fas fa-user-shield"></i> Add New Admins
       </a>
     </div>
@@ -65,10 +65,57 @@
             <button type="submit">Add staff member</button>
           </form>
           <div style="text-align: center; margin-top: 15px;">
-            <a href="javascript:void(0);" onclick="openBulkUploadModal()" style="font-size: 14px; color: #0b5e3e; text-decoration: underline;">Bulk import via file</a>
+            <a href="javascript:void(0);" onclick="openBulkUploadModalstaff()" style="font-size: 14px; color: #0b5e3e; text-decoration: underline;">Bulk import via file</a>
           </div>
         </div>
       </div>
+      <!-- Bulk add staff modal -->
+      <div id="bulkUploadModalstaff" class="student-modal">
+        <div class="student-modal-content">
+          <span class="close-btn" onclick="closeBulkUploadModalstaff()">&times;</span>
+          <h2>Bulk Upload Staff Members</h2>
+          <form id="bulkUploadForm" action="/bulk-upload-staff" method="post" enctype="multipart/form-data">
+            <div class="form-row">
+              <div class="form-group-add-student">
+                <label for="bulkFile">Upload XLSX or CSV File</label>
+                <div class="custom-file-upload">
+                  <label for="bulkFile" class="upload-btn">Choose File</label>
+                  <span id="file-chosen-bulk">No file chosen</span>
+                  <input type="file" id="bulkFile" name="bulk_file" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" required>
+                </div>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Upload</button>
+          </form>
+        </div>
+      </div>
+
+        <!-- Add Admin Modal -->
+      <div id="addAdminModal" class="student-modal">
+        <div class="student-modal-content">
+          <span class="close-btn" onclick="closeAddAdminModal()">&times;</span>
+          <h2>Manage Admins</h2>
+
+          <div class="form-group-add-student">
+            <label for="adminSearchInput">Search Staff by Name or ID</label>
+            <input type="text" id="adminSearchInput" placeholder="Search..." onkeyup="searchStaffForAdmin()" class="styled-search-input" />
+          </div>
+
+          <div id="adminSearchResults" class="search-results-container">
+            <!-- Filtered staff will be shown here -->
+          </div>
+
+          <hr>
+
+          <h3>Current Admins</h3>
+          <ul id="currentAdminsList">
+            {% for admin in current_admins %}
+              <li>{{ admin.name }} ({{ admin.school_id }})</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+      
   <div id="content-dashboard" class="content-section" style="display: block;">
     <div class="main-content">
       <div class="greeting">
@@ -476,7 +523,6 @@
         </div>
       </div>
   </div>
-</div>
 
 <!-- Load Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -490,6 +536,7 @@
   const awardCounts = {{ award_counts | safe }};
   const awardColors = {{ award_colors | safe }};
   window.allStudents = {{ all_students | tojson | safe }};
+  window.allStaff = {{ all_staff | tojson | safe }};
 </script>
 
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>

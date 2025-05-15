@@ -286,6 +286,24 @@ def adminpage():
     student_count = User.query.filter_by(role=1).count()
     approved_hours_total = db.session.query(func.sum(User.hours)).scalar() or 0
     total_submissions = ServiceHour.query.count()
+    admins = User.query.filter_by(role=3).all()
+    staff = User.query.filter_by(role=2).all()
+
+    staff_dicts = []
+    for s in staff:
+        full_name = f"{s.first_name} {s.last_name}"
+        staff_dicts.append({
+            'name': full_name,
+            'school_id': s.school_id
+        })
+
+    admin_dicts = []
+    for a in admins:
+        full_name = f"{a.first_name} {a.last_name}"
+        admin_dicts.append({
+            'name': full_name,
+            'school_id': a.school_id
+        })
 
     # --- Top student calculation ---
     top_student = (
@@ -445,6 +463,7 @@ def adminpage():
         top_student_picture=top_student_picture,
         all_students=student_table_data,
         total_submissions=total_submissions,
+        all_staff=staff_dicts, current_admins=admin_dicts
     )
 
 
@@ -598,6 +617,121 @@ def bulk_upload_students():
     try:
         db.session.commit()
         flash(f'{added_count} students added successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error committing to database: {e}', 'danger')
+
+    return redirect(url_for('adminpage'))
+
+
+@app.route('/bulk-upload-staff', methods=['POST'])
+def bulk_upload_staff():
+    file = request.files.get('bulk_file')
+    if not file:
+        flash('No file uploaded', 'danger')
+        return redirect(url_for('adminpage'))
+
+    filename = file.filename.lower()
+    df = None
+
+    try:
+        if filename.endswith('.csv'):
+            try:
+                df = pd.read_csv(file, encoding='utf-8')
+            except UnicodeDecodeError:
+                df = pd.read_csv(file, encoding='latin1')
+        elif filename.endswith(('.xls', '.xlsx')):
+            df = pd.read_excel(file, engine='openpyxl')
+        else:
+            flash('Unsupported file format. Please upload a .csv or .xlsx file.', 'danger')
+            return redirect(url_for('adminpage'))
+    except Exception as e:
+        flash(f'Error reading file: {e}', 'danger')
+        return redirect(url_for('adminpage'))
+
+    # Normalize and validate required columns (case-insensitive)
+    # Step 1: lowercase and strip all column headers
+    df.columns = [col.strip().lower() for col in df.columns]
+
+    # Step 2: Check for all required columns
+    required_cols = ['first name', 'last name', 'student id', 'tutor', 'password']
+    missing = [col for col in required_cols if col not in df.columns]
+    if missing:
+        flash(f"Missing required columns: {[col.title() for col in missing]}", "danger")
+        return redirect(url_for('adminpage'))
+
+    # Step 3: Rename the columns for consistent access later
+    rename_map = {
+        'first name': 'First Name',
+        'last name': 'Last Name',
+        'student id': 'Student ID',
+        'tutor': 'Tutor',
+        'password': 'Password',
+        'image': 'Image'  # Optional, handled if present
+    }
+    df.rename(columns=rename_map, inplace=True)
+
+    added_count = 0
+
+    for _, row in df.iterrows():
+        try:
+            first_name = row['First Name']
+            last_name = row['Last Name']
+            school_id = row['Student ID']
+            form_class = row['Tutor']
+            raw_pass = row['Password']
+            image_val = row.get('Image', None)
+
+            # Hash the password
+            hashed_password = generate_password_hash(raw_pass, method='pbkdf2:sha256')
+
+            # Process image (URL or base64)
+            picture_data = None
+            if isinstance(image_val, str):
+                val = image_val.strip()
+                if val.lower().startswith(('http://', 'https://')):
+                    try:
+                        resp = requests.get(val, timeout=5)
+                        if resp.status_code == 200:
+                            picture_data = resp.content
+                    except Exception:
+                        picture_data = None
+                else:
+                    try:
+                        picture_data = base64.b64decode(val)
+                    except Exception:
+                        picture_data = None
+
+            # Build staff email
+            email = f"{school_id}@burnside.school.nz"
+
+            if User.query.filter_by(email=email).first():
+                continue
+
+            # Create and stage the staff
+            new_staff = User(
+                first_name=first_name,
+                last_name=last_name,
+                school_id=school_id,
+                form=form_class,
+                password=hashed_password,
+                role=2,
+                picture=picture_data,
+                hours=None,
+                email=email
+            )
+            db.session.add(new_staff)
+            added_count += 1
+
+        except KeyError as ke:
+            flash(f"Missing column in row: {ke}", "warning")
+        except Exception as err:
+            flash(f"Error processing a row: {err}", "warning")
+
+    # Commit all new users
+    try:
+        db.session.commit()
+        flash(f'{added_count} Staff members added successfully!', 'success')
     except Exception as e:
         db.session.rollback()
         flash(f'Error committing to database: {e}', 'danger')
