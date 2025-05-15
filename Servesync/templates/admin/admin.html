@@ -12,12 +12,63 @@
       <li><a href="" data-target="students"><i class="fas fa-user-graduate"></i> Students</a></li>
     </ul>
     <div class="mini-controls">
+      <a href="javascript:void(0);" class="btn btn-danger" onclick="openAddStaffModal()">
+        <i class="fa-solid fa-school"></i> Add New Staff
+      </a>
+      <br>
+      <br>
       <a href="/" class="btn btn-danger">
         <i class="fas fa-user-shield"></i> Add New Admins
       </a>
     </div>
   </div>
-
+      <!-- Add Staff Modal -->
+      <div id="addStaffModal" class="student-modal">
+        <div class="student-modal-content">
+          <span class="close-btn" onclick="closeAddStaffModal()">&times;</span>
+          <h2>Add New Staff Member</h2>
+          <form id="addStudentForm" action="/add-staff" method="post" enctype="multipart/form-data">
+            <div class="form-row">
+              <div class="form-group-add-student">
+                <label for="studentFirstName">First Name</label>
+                <input type="text" id="studentFirstName" name="first_name" placeholder="Enter staff member's first name" required>
+              </div>
+              <div class="form-group-add-student">
+                <label for="studentLastName">Last Name</label>
+                <input type="text" id="studentLastName" name="last_name" placeholder="Enter staff member's last name" required>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group-add-student">
+                <label for="studentSchoolId">Staff ID</label>
+                <input type="text" id="studentSchoolId" name="school_id" placeholder="Enter staff member's school ID" required>
+              </div>
+              <div class="form-group-add-student">
+                <label for="studentForm">Form</label>
+                <input type="text" id="studentForm" name="form" placeholder="Enter staff member's form class" required>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group-add-student">
+                <label for="studentImage">Profile Image</label>
+                <div class="custom-file-upload">
+                  <label for="studentImage" class="upload-btn">Choose Image</label>
+                  <span id="file-chosen">No file chosen</span>
+                  <input type="file" id="studentImage" name="image" accept="image/*">
+                </div>
+              </div>
+              <div class="form-group-add-student">
+                <label for="studentPassword">Password</label>
+                <input type="password" id="studentPassword" name="password" placeholder="Enter password" required>
+              </div>
+            </div>
+            <button type="submit">Add staff member</button>
+          </form>
+          <div style="text-align: center; margin-top: 15px;">
+            <a href="javascript:void(0);" onclick="openBulkUploadModal()" style="font-size: 14px; color: #0b5e3e; text-decoration: underline;">Bulk import via file</a>
+          </div>
+        </div>
+      </div>
   <div id="content-dashboard" class="content-section" style="display: block;">
     <div class="main-content">
       <div class="greeting">

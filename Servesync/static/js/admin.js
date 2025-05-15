@@ -394,7 +394,7 @@ function sortTableByColumn(tableId, columnIndex, ascending = true) {
         el.blur();
       }
     }
-  
+
     function handleBlur() {
       el.contentEditable = false;
       el.classList.remove("editing");
@@ -503,17 +503,29 @@ function sortTableByColumn(tableId, columnIndex, ascending = true) {
     // Initialize display
     updateSearchAndPagination();
   });
-  // Update "Choose File" label when file is selected
-  document.addEventListener("DOMContentLoaded", function () {
-    const fileInput = document.getElementById("studentImage");
-    const fileChosen = document.getElementById("file-chosen");
-  
-    if (fileInput && fileChosen) {
-      fileInput.addEventListener("change", function () {
-        fileChosen.textContent = this.files.length > 0 ? this.files[0].name : "No file chosen";
-      });
-    }
-  });
+// Update "Choose File" label when file is selected (single student image)
+document.addEventListener("DOMContentLoaded", function () {
+  const fileInput = document.getElementById("studentImage");
+  const fileChosen = document.getElementById("file-chosen");
+
+  if (fileInput && fileChosen) {
+    fileInput.addEventListener("change", function () {
+      fileChosen.textContent = this.files.length > 0 ? this.files[0].name : "No file chosen";
+    });
+  }
+});
+
+// Update "Choose File" label when bulk upload file is selected
+document.addEventListener("DOMContentLoaded", function () {
+  const bulkFileInput = document.getElementById("bulkFile");
+  const bulkFileChosen = document.getElementById("file-chosen-bulk");
+
+  if (bulkFileInput && bulkFileChosen) {
+    bulkFileInput.addEventListener("change", function () {
+      bulkFileChosen.textContent = this.files.length > 0 ? this.files[0].name : "No file chosen";
+    });
+  }
+});
   // Open Download Reports Modal
   function openReportModal() {
     document.getElementById('reportModal').style.display = 'block';
@@ -619,9 +631,33 @@ function searchStudentForRemoval() {
   }
   
   function openBulkRemoveModal() {
+    closeRemoveStudentModal(); // Ensure the remove modal is closed
     document.getElementById('bulkRemoveModal').style.display = 'block';
   }
   
   function closeBulkRemoveModal() {
     document.getElementById('bulkRemoveModal').style.display = 'none';
   }
+// Open Add Staff Modal
+function openAddStaffModal() {
+  document.getElementById('addStaffModal').style.display = 'block';
+}
+
+// Close Add Staff Modal
+function closeAddStaffModal() {
+  document.getElementById('addStaffModal').style.display = 'none';
+}
+
+// Handle staff image file input change
+const staffFileInput = document.getElementById('staffImage');
+const staffFileChosen = document.getElementById('file-chosen-staff');
+
+if (staffFileInput) {
+  staffFileInput.addEventListener('change', function() {
+    if (this.files.length > 0) {
+      staffFileChosen.textContent = this.files[0].name;
+    } else {
+      staffFileChosen.textContent = "No file chosen";
+    }
+  });
+}

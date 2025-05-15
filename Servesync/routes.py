@@ -623,6 +623,48 @@ def remove_student():
     return redirect(url_for('adminpage'))
 
 
+@app.route('/add-staff', methods=['POST'])
+def add_staff():
+    first_name = request.form['first_name']
+    last_name = request.form['last_name']
+    school_id = request.form['school_id']
+    form_class = request.form['form']
+    password = request.form['password']
+    image_file = request.files['image']
+
+    # Convert image to binary
+    picture_data = image_file.read() if image_file else None
+
+    # Hash the password
+    hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+
+    # Create email from school_id
+    email = f"{school_id}@burnside.school.nz"
+
+    # Create a new user object using reflected columns
+    new_student = User(
+        first_name=first_name,
+        last_name=last_name,
+        school_id=school_id,
+        form=form_class,
+        password=hashed_password,
+        role=2,
+        hours=None,  # or any default you want
+        picture=picture_data,
+        email=email
+    )
+
+    try:
+        db.session.add(new_student)
+        db.session.commit()
+        flash('Staff added successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error adding Staff: {e}', 'danger')
+
+    return redirect(url_for('adminpage'))
+
+
 # --- Review Student Route ---
 @app.route('/review-student/<user_id>')
 def review_student(user_id):
