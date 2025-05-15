@@ -1,6 +1,3 @@
-
-
-
 let modalEdited = false;
 function openReviewModal(log) {
   modalEdited = false;

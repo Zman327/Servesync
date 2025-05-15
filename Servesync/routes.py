@@ -375,7 +375,7 @@ def adminpage():
     chart_labels = [item[0] for item in sorted_months]
     chart_data = [item[1] for item in sorted_months]
 
-    # --- NEW: Award distribution for pie chart ---
+    # --- Award distribution for pie chart ---
     awards = Award.query.order_by(Award.threshold.desc()).all()
     award_distribution = {award.name: 0 for award in awards}
     award_distribution['Not achieved'] = 0
@@ -601,6 +601,24 @@ def bulk_upload_students():
     except Exception as e:
         db.session.rollback()
         flash(f'Error committing to database: {e}', 'danger')
+
+    return redirect(url_for('adminpage'))
+
+
+@app.route('/remove-students', methods=['POST'])
+def remove_student():
+    student_id = request.form.get('student_id')
+    print("🧪 Form student_id received:", student_id)
+
+    student = User.query.filter_by(school_id=student_id).first()
+
+    if student:
+        ServiceHour.query.filter_by(user_id=student.school_id).delete()
+        db.session.delete(student)
+        db.session.commit()
+        flash("Student successfully removed.", "success")
+    else:
+        flash("Student not found.", "error")
 
     return redirect(url_for('adminpage'))
 
@@ -1129,6 +1147,148 @@ def download_pdf():
 
     response = make_response(pdf.output(dest='S').encode('latin-1'))
     response.headers["Content-Disposition"] = "attachment; filename=service_hours_report.pdf"
+    response.headers["Content-Type"] = "application/pdf"
+    return response
+
+
+# --- Admin Download All Students as CSV ---
+@app.route('/admin/download/students/csv')
+def admin_download_students_csv():
+
+    students = User.query.filter_by(role=1).all()  # Assuming role=1 is student
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["Admin Export - All Student Data"])
+    writer.writerow([])
+    writer.writerow([
+        'School ID', 'First Name', 'Last Name', 'Email', 'Form', 'Role', 'Award',
+        'Total Hours', 'Last Service Date'
+    ])
+
+    for student in students:
+        award_name = "Not achieved"
+        awards = Award.query.order_by(Award.threshold.desc()).all()
+        for award in awards:
+            if (student.hours or 0) >= award.threshold:
+                award_name = award.name
+                break
+
+        logs = ServiceHour.query.filter_by(user_id=student.school_id, status=1).all()
+        total_hours = sum(log.hours for log in logs)
+        last_log_date = max((log.date for log in logs), default='N/A')
+
+        role_name = db.session.execute(
+            db.text("SELECT name FROM user_role WHERE id = :id"), {"id": student.role}
+        ).scalar()
+
+        writer.writerow([
+            student.school_id,
+            student.first_name,
+            student.last_name,
+            student.email,
+            student.form,
+            role_name or "N/A",
+            award_name,
+            total_hours,
+            last_log_date
+        ])
+
+    response = make_response(output.getvalue())
+    response.headers["Content-Disposition"] = "attachment; filename=all_students_report.csv"
+    response.headers["Content-Type"] = "text/csv"
+    return response
+
+
+# --- Admin Download All Students as Excel ---
+@app.route('/admin/download/students/excel')
+def admin_download_students_excel():
+
+    students = User.query.filter_by(role=1).all()
+    awards = Award.query.order_by(Award.threshold.desc()).all()
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Student Data"
+    ws.append(["Admin Export - All Student Data"])
+    ws.append([])
+    ws.append([
+        'School ID', 'First Name', 'Last Name', 'Email', 'Form', 'Role', 'Award',
+        'Total Hours', 'Last Service Date'
+    ])
+
+    for student in students:
+        award_name = "Not achieved"
+        for award in awards:
+            if (student.hours or 0) >= award.threshold:
+                award_name = award.name
+                break
+
+        logs = ServiceHour.query.filter_by(user_id=student.school_id, status=1).all()
+        total_hours = sum(log.hours for log in logs)
+        last_log_date = max((log.date for log in logs), default='N/A')
+
+        role_name = db.session.execute(
+            db.text("SELECT name FROM user_role WHERE id = :id"), {"id": student.role}
+        ).scalar()
+
+        ws.append([
+            student.school_id,
+            student.first_name,
+            student.last_name,
+            student.email,
+            student.form,
+            role_name or "N/A",
+            award_name,
+            total_hours,
+            last_log_date
+        ])
+
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    response = make_response(output.getvalue())
+    response.headers["Content-Disposition"] = "attachment; filename=all_students_report.xlsx"
+    response.headers["Content-Type"] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    return response
+
+
+# --- Admin Download All Students as PDF ---
+@app.route('/admin/download/students/pdf')
+def admin_download_students_pdf():
+
+    students = User.query.filter_by(role=1).all()
+    awards = Award.query.order_by(Award.threshold.desc()).all()
+
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+    pdf.cell(200, 10, txt="Admin Export - All Student Data", ln=True, align='C')
+    pdf.ln(10)
+
+    for student in students:
+        award_name = "Not achieved"
+        for award in awards:
+            if (student.hours or 0) >= award.threshold:
+                award_name = award.name
+                break
+
+        logs = ServiceHour.query.filter_by(user_id=student.school_id, status=1).all()
+        total_hours = sum(log.hours for log in logs)
+        last_log_date = max((log.date for log in logs), default='N/A')
+
+        role_name = db.session.execute(
+            db.text("SELECT name FROM user_role WHERE id = :id"), {"id": student.role}
+        ).scalar()
+
+        pdf.cell(200, 10, txt=f"{student.first_name} {student.last_name} ({student.school_id})", ln=True)
+        pdf.cell(200, 10, txt=f"Email: {student.email}, Form: {student.form}, Role: {role_name or 'N/A'}", ln=True)
+        pdf.cell(200, 10, txt=f"Award: {award_name}, Total Hours: {total_hours}, Last Submission: {last_log_date}", ln=True)
+        pdf.ln(5)
+
+    response = make_response(pdf.output(dest='S').encode('latin-1'))
+    response.headers["Content-Disposition"] = "attachment; filename=all_students_report.pdf"
     response.headers["Content-Type"] = "application/pdf"
     return response
 

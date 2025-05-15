@@ -8,7 +8,6 @@
     <h1>Admin Controls</h1>
     <ul>
       <li><a href="" class="active" data-target="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-      <li><a href="" data-target="groups"><i class="fas fa-users"></i> Groups</a></li>
       <li><a href="" data-target="submissions"><i class="fas fa-file-alt"></i> Submissions</a></li>
       <li><a href="" data-target="students"><i class="fas fa-user-graduate"></i> Students</a></li>
     </ul>
@@ -47,10 +46,6 @@
         </div>
       </div>
     </div>
-  </div>
-  <!-- Content sections -->
-  <div id="content-groups" class="content-section" style="display: none;">
-    <!-- TODO: Add Groups content here -->
   </div>
   <div id="content-submissions" class="content-section" style="display: none;">
     <div class="stats-container-sub">
@@ -202,7 +197,7 @@
         <h3><i class="fas fa-link"></i> Quick Actions</h3>
         <div class="quick-actions">
           <a href="javascript:void(0);" onclick="openAddStudentModal()">Add Students</a>
-          <a href="/groups">Remove Students</a>
+          <a href="javascript:void(0);" onclick="openRemoveStudentModal()">Remove Students</a>
           <a href="javascript:void(0);" onclick="openReportModal()">Download Reports</a>
         </div>
       </section>
@@ -253,6 +248,50 @@
           </div>
         </div>
       </div>
+      <!-- Remove Student Modal -->
+      <div id="removeStudentModal" class="student-modal">
+        <div class="student-modal-content">
+          <span class="close-btn" onclick="closeRemoveStudentModal()">&times;</span>
+          <h2>Remove Student</h2>
+          <form id="searchStudentForm" onsubmit="return false;">
+            <div class="form-row">
+              <div class="form-group-add-student">
+                <label for="removeSearchInput">Search Student by Name or school ID</label>
+                <input type="text" id="removeSearchInput" class="styled-search-input" placeholder="Search by name or school ID..." onkeyup="searchStudentForRemoval()" required>
+              </div>
+            </div>
+          </form>
+          <div id="studentRemoveResult" class="student-info-card" style="display: none;">
+            <form id="removeStudentForm" action="/remove-students" method="post">
+              <input type="hidden" name="student_id" id="studentIdToRemove">
+              <div class="form-row">
+                <div class="form-group-add-student">
+                  <label>Name</label>
+                  <input type="text" id="removeStudentName" disabled>
+                </div>
+                <div class="form-group-add-student">
+                  <label>School ID</label>
+                  <input type="text" id="removeStudentSchoolId" disabled>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group-add-student">
+                  <label>Form Class</label>
+                  <input type="text" id="removeStudentFormClass" disabled>
+                </div>
+                <div class="form-group-add-student">
+                  <label>Total Hours</label>
+                  <input type="text" id="removeStudentHours" disabled>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-danger">Remove Student</button>
+            </form>
+          </div>
+          <div style="text-align: center; margin-top: 15px;">
+            <a href="javascript:void(0);" onclick="openBulkRemoveModal()" style="font-size: 14px; color: #a30000; text-decoration: underline;">Bulk remove via file</a>
+          </div>
+        </div>
+      </div>
       <!-- Bulk Upload Modal -->
       <div id="bulkUploadModal" class="student-modal">
         <div class="student-modal-content">
@@ -261,13 +300,35 @@
           <form id="bulkUploadForm" action="/bulk-upload-students" method="post" enctype="multipart/form-data">
             <div class="form-row">
               <div class="form-group-add-student">
-                <label for="bulkFile">Upload XLSX File</label>
-                <input type="file" id="bulkFile" name="bulk_file" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" required>
+                <label for="bulkFile">Upload XLSX or CSV File</label>
+                <div class="custom-file-upload">
+                  <label for="bulkFile" class="upload-btn">Choose File</label>
+                  <span id="file-chosen-bulk">No file chosen</span>
+                  <input type="file" id="bulkFile" name="bulk_file" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" required>
+                </div>
               </div>
             </div>
+            <button type="submit" class="btn btn-primary">Upload</button>
+          </form>
+        </div>
+      </div>
+      <!-- Bulk Remove Modal -->
+      <div id="bulkRemoveModal" class="student-modal">
+        <div class="student-modal-content">
+          <span class="close-btn" onclick="closeBulkRemoveModal()">&times;</span>
+          <h2>Bulk Remove Students</h2>
+          <form id="bulkRemoveForm" action="/bulk-remove-students" method="post" enctype="multipart/form-data">
             <div class="form-row">
-              <button type="submit" class="btn btn-primary">Upload</button>
+              <div class="form-group-add-student">
+                <label for="bulkRemoveFile">Upload CSV File with Student IDs</label>
+                <div class="custom-file-upload">
+                  <label for="bulkRemoveFile" class="upload-btn">Choose File</label>
+                  <span id="file-chosen-bulk-remove">No file chosen</span>
+                  <input type="file" id="bulkRemoveFile" name="bulk_remove_file" accept=".csv" required>
+                </div>
+              </div>
             </div>
+            <button type="submit" class="btn btn-danger">Remove Students</button>
           </form>
         </div>
       </div>
@@ -278,11 +339,11 @@
           <h2>Download Reports</h2>
           <div class="modal-actions">
             <div class="button-row">
-              <a href="/download/csv" class="btn btn-primary"><i class="fas fa-file-csv"></i> CSV</a>
-              <a href="/download/excel" class="btn btn-primary"><i class="fas fa-file-excel"></i> Excel</a>
-              <a href="/download/pdf" class="btn btn-primary"><i class="fas fa-file-pdf"></i> PDF</a>
+              <a href="/admin/download/students/csv" class="btn btn-primary"><i class="fas fa-file-csv"></i> CSV</a>
+              <a href="/admin/download/students/excel" class="btn btn-primary"><i class="fas fa-file-excel"></i> Excel</a>
+              <a href="/admin/download/students/pdf" class="btn btn-primary"><i class="fas fa-file-pdf"></i> PDF</a>
             </div>
-            <button onclick="window.print()" class="btn btn-secondary full-width"><i class="fas fa-print"></i> Print</button>
+            <button onclick="printTable()" class="btn btn-secondary full-width"><i class="fas fa-print"></i> Print</button>
           </div>
         </div>
       </div>
@@ -304,7 +365,7 @@
                 <th data-column="1" class="sortable">Name <span class="sort-icon">⇅</span></th>
                 <th data-column="2" class="sortable">Form <span class="sort-icon">⇅</span></th>
                 <th data-column="3" class="sortable">Hours <span class="sort-icon">⇅</span></th>
-                <th data-column="4" class="sortable">Award <span class="sort-icon">⇅</span></th>
+                <th data-column="4" class="sortable">Award </th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -346,7 +407,6 @@
                 <h2>Student Details</h2>
                 <p><strong>Name:</strong> <span id="modal-student-name"></span> 
                   <i class="fas fa-pencil-alt edit-icon" onclick="makeEditable('modal-student-award')"></i></p>
-                
                 <p><strong>School ID:</strong> <span id="modal-student-id"></span>
                 <i class="fas fa-pencil-alt edit-icon" onclick="makeEditable('modal-student-award')"></i></p>
                 <p><strong>Form:</strong> 
@@ -367,8 +427,6 @@
   </div>
 </div>
 
-
-
 <!-- Load Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
@@ -380,9 +438,9 @@
   const awardLabels = {{ award_labels | safe }};
   const awardCounts = {{ award_counts | safe }};
   const awardColors = {{ award_colors | safe }};
+  window.allStudents = {{ all_students | tojson | safe }};
 </script>
 
-<!-- Load external JavaScript -->
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 
 {% endblock %}
