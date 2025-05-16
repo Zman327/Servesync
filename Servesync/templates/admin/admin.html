@@ -90,27 +90,41 @@
         </div>
       </div>
 
-        <!-- Add Admin Modal -->
-      <div id="addAdminModal" class="student-modal">
+      <!-- Add Admin Modal -->
+      <div id="addAdminModal" class="student-modal" role="dialog" aria-modal="true" aria-labelledby="addAdminTitle">
         <div class="student-modal-content">
           <span class="close-btn" onclick="closeAddAdminModal()">&times;</span>
-          <h2>Manage Admins</h2>
 
-          <div class="form-group-add-student">
-            <label for="adminSearchInput">Search Staff by Name or ID</label>
-            <input type="text" id="adminSearchInput" placeholder="Search..." onkeyup="searchStaffForAdmin()" class="styled-search-input" />
+          <h2 id="addAdminTitle" class="modal-title">Manage Admins</h2>
+
+          <!-- Search Input -->
+          <div class="search-approve-container">
+            <div class="search-container">
+              <input
+                type="text"
+                id="adminSearchInput"
+                class="search-bar"
+                placeholder="Search staff by name or ID..."
+                onkeyup="searchStaffForAdmin()"
+              />
+            </div>
           </div>
 
+          <!-- Search Results -->
           <div id="adminSearchResults" class="search-results-container">
-            <!-- Filtered staff will be shown here -->
+            <!-- Dynamic results populated here -->
           </div>
 
           <hr>
 
+          <!-- Current Admins List -->
           <h3>Current Admins</h3>
-          <ul id="currentAdminsList">
+          <ul id="currentAdminsList" class="admin-list">
             {% for admin in current_admins %}
-              <li>{{ admin.name }} ({{ admin.school_id }})</li>
+              <li id="admin-{{ admin.school_id }}">
+                <span>{{ admin.name }} ({{ admin.school_id }})</span>
+                <button class="remove-admin-btn" onclick="removeAdmin('{{ admin.school_id }}')">Remove</button>
+              </li>
             {% endfor %}
           </ul>
         </div>

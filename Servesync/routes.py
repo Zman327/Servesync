@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from fpdf import FPDF
 from openpyxl import Workbook
 from sqlalchemy import MetaData, Table, func
-from datetime import datetime
+from datetime import datetime, timedelta
 from collections import defaultdict
 import os
 import csv
@@ -15,11 +15,16 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_dance.contrib.google import make_google_blueprint, google
 import pandas as pd
 import requests
-from werkzeug.utils import secure_filename
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 
 app = Flask(__name__, template_folder='templates')
 app.secret_key = 'your_secret_key'
+
+# Dictionary to track last time a staff member was notified
+last_notified = {}
 
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'  # Allow HTTP for local dev
 
@@ -467,6 +472,43 @@ def adminpage():
     )
 
 
+@app.route('/promote-to-admin', methods=['POST'])
+def promote_to_admin():
+    data = request.get_json()
+    school_id = data.get('school_id')
+    user = User.query.filter_by(school_id=school_id).first()
+
+    if user and user.role != 3:
+        user.role = 3  # Promote to admin
+        db.session.commit()
+        return jsonify(success=True, message=f"{user.first_name} {user.last_name} is now an admin.")
+
+    return jsonify(success=False, message="User not found or already an admin."), 400
+
+
+@app.route('/admin/remove', methods=['POST'])
+def remove_admin():
+    data = request.get_json()
+    school_id = data.get('school_id')
+    user = User.query.filter_by(school_id=school_id).first()
+
+    if user and user.role == 3:
+        user.role = 2
+        db.session.commit()
+        return jsonify({'status': 'success', 'message': f"{user.first_name} {user.last_name} removed as admin."})
+    return jsonify({'status': 'error', 'message': 'User not found or not an admin.'}), 400
+
+
+@app.route('/api/current_admins')
+def api_current_admins():
+    admins = User.query.filter_by(role=3).all()
+    result = [{
+        'name': f"{a.first_name} {a.last_name}",
+        'school_id': a.school_id
+    } for a in admins]
+    return jsonify(result)
+
+
 @app.route('/add-student', methods=['POST'])
 def add_student():
     first_name = request.form['first_name']
@@ -908,95 +950,7 @@ def studentpage():
     )
 
 
-@app.route('/staff.dashboard')
-def staffpage():
-    # Get the New Zealand timezone
-    nz_timezone = pytz.timezone('Pacific/Auckland')
-    # Get the current time in New Zealand
-    now = datetime.now(nz_timezone)
-    # Set the greeting based on the New Zealand time
-    if now.hour < 12:
-        greeting = "Good Morning"
-    elif now.hour < 18:
-        greeting = "Good Afternoon"
-    else:
-        greeting = "Good Evening"
 
-    staff_id = session.get('username')
-    selected_status = request.args.get('status')  # Get status filter from query string
-
-    # Fetch all service logs for the current staff
-    logs = ServiceHour.query.filter_by(staff=staff_id).all()
-    # Fetch the groups attached to this staff member
-    attached_groups = Group.query.filter_by(staff=staff_id).all()
-
-    pending_count = sum(1 for log in logs if log.status == 2)
-
-    # Calculate total approved hours this year
-    current_year = datetime.now().year
-    approved_hours_this_year = sum(
-        log.hours for log in logs
-        if log.status == 1 and datetime.strptime(log.date, "%d-%m-%Y").year == current_year
-    )
-
-    STATUS_MAP = {
-        1: 'Approved',
-        2: 'Pending',
-        3: 'Rejected'
-    }
-
-    filtered_logs = []
-
-    for log in logs:
-        log.status_label = STATUS_MAP.get(log.status, 'Unknown')
-        if not selected_status or log.status_label == selected_status:
-            log.group_name = Group.query.get(log.group_id).name if log.group_id else "N/A"
-            try:
-                log.formatted_date = datetime.strptime(log.date, "%d-%m-%Y").strftime("%b %d, %Y")
-            except Exception:
-                log.formatted_date = log.date
-            try:
-                log.formatted_log_time = datetime.strptime(log.log_time, "%d-%m-%Y %H:%M:%S").strftime("%b %d, %Y at %I:%M %p")
-            except Exception:
-                log.formatted_log_time = log.log_time
-            user = User.query.get(log.user_id)
-            # Build picture URL from BLOB or fallback to default
-            if user and user.picture:
-                encoded_picture = base64.b64encode(user.picture).decode('utf-8')
-                picture_url = f"data:image/jpeg;base64,{encoded_picture}"
-            else:
-                picture_url = url_for('static', filename='default-profile.png')
-
-            student_name = f"{user.first_name} {user.last_name}" if user else "Unknown"
-
-            filtered_logs.append({
-                'id': log.id,
-                'user_id': log.user_id,
-                'student_name': student_name,
-                'description': log.description,
-                'hours': log.hours,
-                'date': log.date,
-                'formatted_date': log.formatted_date,
-                'status': log.status,
-                'status_label': log.status_label,
-                'group': log.group_name,
-                'log_time': log.log_time,
-                'formatted_log_time': log.formatted_log_time,
-                'picture_url': picture_url
-            })
-
-    # Sort and limit to 5 most recent logs
-    filtered_logs.sort(key=lambda log: datetime.strptime(log["date"], "%d-%m-%Y"), reverse=True)
-    recent_logs = filtered_logs[:5]
-
-    return render_template(
-        'staff/staff.html',
-        greeting=greeting,
-        recent_submissions=recent_logs,
-        pending_count=pending_count,
-        attached_groups=attached_groups,
-        approved_hours_this_year=approved_hours_this_year
-    )
 
 
 @app.route('/activity-history')
@@ -1230,6 +1184,149 @@ def get_all_staff():
 @app.route('/reports')
 def download_reports():
     return render_template('reports.html')
+
+
+# Email sending function
+def send_email(to_email, subject, message_body):
+    # Email configuration
+    sender_name = "ServeSYNC"
+    sender_email = "servesync.bhs@gmail.com"
+    sender_password = "gfun ewwp qbfn rqyq"  # Gmail App Password
+
+    # Create the email
+    msg = MIMEMultipart()
+    msg['From'] = sender_name
+    msg['To'] = to_email
+    msg['Subject'] = subject
+    msg.attach(MIMEText(message_body, 'plain'))
+
+    try:
+        # Connect to the server and send the email
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()  # Secure the connection
+        server.login(sender_email, sender_password)
+        server.sendmail(sender_email, to_email, msg.as_string())
+        server.quit()
+
+        print("Email sent successfully!")
+        return True
+    except Exception as e:
+        print(f"Failed to send email: {e}")
+        return False
+
+
+# Function to check and notify staff about pending submissions
+def check_and_notify_pending_submissions(staff_id, staff_email):
+    now = datetime.now()
+    logs = ServiceHour.query.filter_by(staff=staff_id).all()
+    pending_count = sum(1 for log in logs if log.status == 2)
+
+    last_time = last_notified.get(staff_id)
+    if pending_count >= 10 and (not last_time or now - last_time > timedelta(hours=24)):
+        subject = "Reminder: You Have 10+ Pending Submissions"
+        message = f"Kia ora,\n\nYou currently have {pending_count} pending submissions on ServeSYNC. Please review them when you can.\n\nNgā mihi,\nServeSYNC Team"
+        try:
+            send_email(staff_email, subject, message)
+            last_notified[staff_id] = now
+        except Exception as e:
+            print(f"Failed to send email notification: {e}")
+
+
+@app.route('/staff.dashboard')
+def staffpage():
+    # Get the New Zealand timezone
+    nz_timezone = pytz.timezone('Pacific/Auckland')
+    # Get the current time in New Zealand
+    now = datetime.now(nz_timezone)
+    # Set the greeting based on the New Zealand time
+    if now.hour < 12:
+        greeting = "Good Morning"
+    elif now.hour < 18:
+        greeting = "Good Afternoon"
+    else:
+        greeting = "Good Evening"
+
+    staff_id = session.get('username')
+    staff_email = None
+    staff_user = User.query.filter_by(school_id=staff_id).first()
+    if staff_user:
+        staff_email = staff_user.email
+    if staff_email:
+        check_and_notify_pending_submissions(staff_id, staff_email)
+    selected_status = request.args.get('status')  # Get status filter from query string
+
+    # Fetch all service logs for the current staff
+    logs = ServiceHour.query.filter_by(staff=staff_id).all()
+    # Fetch the groups attached to this staff member
+    attached_groups = Group.query.filter_by(staff=staff_id).all()
+
+    pending_count = sum(1 for log in logs if log.status == 2)
+
+    # Calculate total approved hours this year
+    current_year = datetime.now().year
+    approved_hours_this_year = sum(
+        log.hours for log in logs
+        if log.status == 1 and datetime.strptime(log.date, "%d-%m-%Y").year == current_year
+    )
+
+    STATUS_MAP = {
+        1: 'Approved',
+        2: 'Pending',
+        3: 'Rejected'
+    }
+
+    filtered_logs = []
+
+    for log in logs:
+        log.status_label = STATUS_MAP.get(log.status, 'Unknown')
+        if not selected_status or log.status_label == selected_status:
+            log.group_name = Group.query.get(log.group_id).name if log.group_id else "N/A"
+            try:
+                log.formatted_date = datetime.strptime(log.date, "%d-%m-%Y").strftime("%b %d, %Y")
+            except Exception:
+                log.formatted_date = log.date
+            try:
+                log.formatted_log_time = datetime.strptime(log.log_time, "%d-%m-%Y %H:%M:%S").strftime("%b %d, %Y at %I:%M %p")
+            except Exception:
+                log.formatted_log_time = log.log_time
+            user = User.query.get(log.user_id)
+            # Build picture URL from BLOB or fallback to default
+            if user and user.picture:
+                encoded_picture = base64.b64encode(user.picture).decode('utf-8')
+                picture_url = f"data:image/jpeg;base64,{encoded_picture}"
+            else:
+                picture_url = url_for('static', filename='default-profile.png')
+
+            student_name = f"{user.first_name} {user.last_name}" if user else "Unknown"
+
+            filtered_logs.append({
+                'id': log.id,
+                'user_id': log.user_id,
+                'student_name': student_name,
+                'description': log.description,
+                'hours': log.hours,
+                'date': log.date,
+                'formatted_date': log.formatted_date,
+                'status': log.status,
+                'status_label': log.status_label,
+                'group': log.group_name,
+                'log_time': log.log_time,
+                'formatted_log_time': log.formatted_log_time,
+                'picture_url': picture_url
+            })
+
+    # Sort and limit to 5 most recent logs
+    filtered_logs.sort(key=lambda log: datetime.strptime(log["date"], "%d-%m-%Y"), reverse=True)
+    recent_logs = filtered_logs[:5]
+
+    return render_template(
+        'staff/staff.html',
+        greeting=greeting,
+        recent_submissions=recent_logs,
+        pending_count=pending_count,
+        attached_groups=attached_groups,
+        approved_hours_this_year=approved_hours_this_year
+    )
 
 
 @app.route('/download/csv')

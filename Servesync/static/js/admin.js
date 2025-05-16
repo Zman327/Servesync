@@ -654,9 +654,9 @@ function openBulkUploadModalstaff() {
   }
   
   // Close Add Staff Modal
-  function closeBulkUploadModalstaff() {
+function closeBulkUploadModalstaff() {
     document.getElementById('bulkUploadModalstaff').style.display = 'none';
-  }
+}
 
 // Handle staff image file input change
 const staffFileInput = document.getElementById('staffImage');
@@ -709,20 +709,59 @@ filtered.forEach(staff => {
 }
 
 function promoteToAdmin(schoolId) {
-fetch('/promote-to-admin', {
-    method: 'POST',
-    headers: {
-    'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ school_id: schoolId })
-})
-.then(res => res.json())
-.then(data => {
-    if (data.success) {
-    alert("Staff promoted to admin!");
-    location.reload();
-    } else {
-    alert("Failed to promote staff.");
-    }
-});
+    fetch('/promote-to-admin', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ school_id: schoolId })
+    })
+    .then(response => response.json())
+    .then(data => {
+      alert(data.message);
+      if (data.success || data.status === 'success') {
+        document.getElementById("adminSearchInput").value = "";
+        searchStaffForAdmin(); // Refresh search results
+        refreshCurrentAdmins(); // Update admin list without reload
+      }
+    })
+    .catch(error => {
+      console.error("Error promoting to admin:", error);
+      alert("An error occurred while promoting to admin.");
+    });
 }
+
+function refreshCurrentAdmins() {
+fetch('/api/current_admins')
+    .then(res => res.json())
+    .then(admins => {
+    const list = document.getElementById("currentAdminsList");
+    list.innerHTML = "";
+
+    admins.forEach(admin => {
+        const item = document.createElement("li");
+        item.innerHTML = `
+        <span>${admin.name} (${admin.school_id})</span>
+        <button class="remove-admin-btn" onclick="removeAdmin('${admin.school_id}')">Remove</button>
+        `;
+        list.appendChild(item);
+    });
+    });
+}
+
+function removeAdmin(schoolId) {
+    fetch('/admin/remove', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ school_id: schoolId })
+    })
+    .then(response => response.json())
+    .then(data => {
+      alert(data.message);
+      if (data.status === 'success') {
+        refreshCurrentAdmins();
+      }
+    });
+  }
