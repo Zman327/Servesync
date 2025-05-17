@@ -1191,7 +1191,7 @@ def send_email(to_email, subject, message_body):
     # Email configuration
     sender_name = "ServeSYNC"
     sender_email = "servesync.bhs@gmail.com"
-    sender_password = "gfun ewwp qbfn rqyq"  # Gmail App Password
+    sender_password = "gfun ewwp qbfn rqyq"  # Gmail App Password NOT Hardcode
 
     # Create the email
     msg = MIMEMultipart()
@@ -1223,8 +1223,22 @@ def check_and_notify_pending_submissions(staff_id, staff_email):
 
     last_time = last_notified.get(staff_id)
     if pending_count >= 10 and (not last_time or now - last_time > timedelta(hours=24)):
-        subject = "Reminder: You Have 10+ Pending Submissions"
-        message = f"Kia ora,\n\nYou currently have {pending_count} pending submissions on ServeSYNC. Please review them when you can.\n\nNgā mihi,\nServeSYNC Team"
+        # Fetch staff name from the database
+        staff_user = User.query.filter_by(school_id=staff_id).first()
+        full_name = f"{staff_user.first_name} {staff_user.last_name}" if staff_user else "Staff Member"
+
+        subject = "Action Required: 10+ Pending Submissions on ServeSYNC"
+        message = (
+            f"Kia ora {full_name} ({staff_id}),\n\n"
+            f"This is a friendly reminder that you currently have *{pending_count}* pending student submissions "
+            f"awaiting your review in ServeSYNC.\n\n"
+            "We encourage you to log in and process these as soon as you're able:\n"
+            "👉 https://zeyad327.pythonanywhere.com/staff.dashboard\n\n"
+            "If you have any questions or need support, please feel free to reach out.\n\n"
+            "Ngā mihi nui,\n"
+            "— The ServeSYNC Team"
+        )
+
         try:
             send_email(staff_email, subject, message)
             last_notified[staff_id] = now
@@ -1234,6 +1248,9 @@ def check_and_notify_pending_submissions(staff_id, staff_email):
 
 @app.route('/staff.dashboard')
 def staffpage():
+    if 'username' not in session:
+        flash("Please log in to access the staff dashboard.", "error")
+        return redirect('/')  # or wherever your login modal is available
     # Get the New Zealand timezone
     nz_timezone = pytz.timezone('Pacific/Auckland')
     # Get the current time in New Zealand

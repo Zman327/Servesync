@@ -226,4 +226,18 @@
 </main>
 <script src="{{ url_for('static', filename='js/staff.js') }}"></script>
 
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        {% if category == 'error' and 'log in' in message.lower() %}
+          if (typeof openLoginModal === 'function') {
+            openLoginModal();
+          }
+        {% endif %}
+      {% endfor %}
+    {% endwith %}
+  });
+</script>
+
 {% endblock %}
