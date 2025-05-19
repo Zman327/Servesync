@@ -285,7 +285,6 @@
               </div>
             </div>
           </div>
-    
         </div>
       </div>
   </div>
@@ -551,6 +550,7 @@
   const awardColors = {{ award_colors | safe }};
   window.allStudents = {{ all_students | tojson | safe }};
   window.allStaff = {{ all_staff | tojson | safe }};
+  const statusData = {{ submission_status_data | tojson | safe }};
 </script>
 
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>

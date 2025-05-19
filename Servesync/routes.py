@@ -468,7 +468,13 @@ def adminpage():
         top_student_picture=top_student_picture,
         all_students=student_table_data,
         total_submissions=total_submissions,
-        all_staff=staff_dicts, current_admins=admin_dicts
+        all_staff=staff_dicts,
+        current_admins=admin_dicts,
+        submission_status_data=json.dumps({
+            "Approved": accepted_count,
+            "Pending": pending_count,
+            "Rejected": rejected_count
+        })
     )
 
 

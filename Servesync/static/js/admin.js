@@ -62,14 +62,19 @@ function sortTableByColumn(tableId, columnIndex, ascending = true) {
     }
   });
   
-  // Sample Hours by Group (Bar)
-  new Chart(document.getElementById('chart-hours-by-group'), {
+// Submission Status Overview (Bar Chart)
+new Chart(document.getElementById('chart-hours-by-group'), {
     type: 'bar',
     data: {
-      labels: ['Group A','Group B','Group C','Group D'],
+      labels: ['Approved', 'Pending', 'Rejected'],
       datasets: [{
-        label: 'Approved Hours',
-        data: [120, 90, 150, 80]
+        label: 'Number of Submissions',
+        data: [120, 30, 10], // Replace these with real counts from Flask
+        backgroundColor: [
+          '#4CAF50',  // Approved - green
+          '#FFC107',  // Pending - amber
+          '#F44336'   // Rejected - red
+        ]
       }]
     },
     options: {
@@ -78,9 +83,21 @@ function sortTableByColumn(tableId, columnIndex, ascending = true) {
       plugins: {
         title: {
           display: true,
-          text: 'Hours by Group',
+          text: 'Submission Status Overview',
           font: {
             size: 18
+          }
+        },
+        legend: {
+          display: false
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Submission Count'
           }
         }
       }
