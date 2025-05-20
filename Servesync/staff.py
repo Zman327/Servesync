@@ -1,5 +1,24 @@
+from flask import Blueprint
+from flask import render_template, request, redirect, session, url_for, flash, jsonify, make_response # noqa
+import base64
+from fpdf import FPDF
+from openpyxl import Workbook
+from datetime import datetime, timedelta
+import csv
+import io
+import pytz
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from models import db, User, Group, ServiceHour
+
+
+staff_bp = Blueprint('staff', __name__)
+last_notified = {}
+
+
 # Route to reject a service log
-@app.route('/reject-log', methods=['POST'])
+@staff_bp.route('/reject-log', methods=['POST'])
 def reject_log():
     log_id = request.form.get('log_id')
     if log_id:
@@ -8,11 +27,11 @@ def reject_log():
             service_log.status = 3  # Set status to Rejected
             db.session.commit()
 
-    # Redirect back to the referrer URL or staff page if referrer is not available
-    return redirect(request.referrer or url_for('staffpage'))
+# Redirect back to the referrer URL or staff page if referrer is not available
+    return redirect(request.referrer or url_for('staff.staffpage'))
 
 
-@app.route('/approve-all-pending', methods=['POST'])
+@staff_bp.route('/approve-all-pending', methods=['POST'])
 def approve_all_pending():
     staff_id = session.get('username')
     if not staff_id:
@@ -27,6 +46,7 @@ def approve_all_pending():
     # Use redirect target from form if provided
     redirect_to = request.form.get('redirect_to', '/staff.dashboard')
     return redirect(redirect_to)
+
 
 # Email sending function
 def send_email(to_email, subject, message_body):
@@ -64,19 +84,19 @@ def check_and_notify_pending_submissions(staff_id, staff_email):
     pending_count = sum(1 for log in logs if log.status == 2)
 
     last_time = last_notified.get(staff_id)
-    if pending_count >= 10 and (not last_time or now - last_time > timedelta(hours=24)):
+    if pending_count >= 10 and (not last_time or now - last_time > timedelta(hours=24)):  # noqa
         # Fetch staff name from the database
         staff_user = User.query.filter_by(school_id=staff_id).first()
-        full_name = f"{staff_user.first_name} {staff_user.last_name}" if staff_user else "Staff Member"
+        full_name = f"{staff_user.first_name} {staff_user.last_name}" if staff_user else "Staff Member"  # noqa
 
         subject = "Action Required: 10+ Pending Submissions on ServeSYNC"
         message = (
             f"Kia ora {full_name} ({staff_id}),\n\n"
-            f"This is a friendly reminder that you currently have *{pending_count}* pending student submissions "
+            f"This is a friendly reminder that you currently have *{pending_count}* pending student submissions "  # noqa
             f"awaiting your review in ServeSYNC.\n\n"
-            "We encourage you to log in and process these as soon as you're able:\n"
+            "We encourage you to log in and process these as soon as you're able:\n"  # noqa
             "👉 https://zeyad327.pythonanywhere.com/staff.dashboard\n\n"
-            "If you have any questions or need support, please feel free to reach out.\n\n"
+            "If you have any questions or need support, please feel free to reach out.\n\n"  # noqa
             "Ngā mihi nui,\n"
             "— The ServeSYNC Team"
         )
@@ -88,7 +108,7 @@ def check_and_notify_pending_submissions(staff_id, staff_email):
             print(f"Failed to send email notification: {e}")
 
 
-@app.route('/staff.dashboard')
+@staff_bp.route('/staff.dashboard')
 def staffpage():
     if 'username' not in session:
         flash("Please log in to access the staff dashboard.", "error")
@@ -112,7 +132,7 @@ def staffpage():
         staff_email = staff_user.email
     if staff_email:
         check_and_notify_pending_submissions(staff_id, staff_email)
-    selected_status = request.args.get('status')  # Get status filter from query string
+    selected_status = request.args.get('status')
 
     # Fetch all service logs for the current staff
     logs = ServiceHour.query.filter_by(staff=staff_id).all()
@@ -125,7 +145,7 @@ def staffpage():
     current_year = datetime.now().year
     approved_hours_this_year = sum(
         log.hours for log in logs
-        if log.status == 1 and datetime.strptime(log.date, "%d-%m-%Y").year == current_year
+        if log.status == 1 and datetime.strptime(log.date, "%d-%m-%Y").year == current_year  # noqa
     )
 
     STATUS_MAP = {
@@ -139,24 +159,24 @@ def staffpage():
     for log in logs:
         log.status_label = STATUS_MAP.get(log.status, 'Unknown')
         if not selected_status or log.status_label == selected_status:
-            log.group_name = Group.query.get(log.group_id).name if log.group_id else "N/A"
+            log.group_name = Group.query.get(log.group_id).name if log.group_id else "N/A" # noqa
             try:
-                log.formatted_date = datetime.strptime(log.date, "%d-%m-%Y").strftime("%b %d, %Y")
+                log.formatted_date = datetime.strptime(log.date, "%d-%m-%Y").strftime("%b %d, %Y") # noqa
             except Exception:
                 log.formatted_date = log.date
             try:
-                log.formatted_log_time = datetime.strptime(log.log_time, "%d-%m-%Y %H:%M:%S").strftime("%b %d, %Y at %I:%M %p")
+                log.formatted_log_time = datetime.strptime(log.log_time, "%d-%m-%Y %H:%M:%S").strftime("%b %d, %Y at %I:%M %p") # noqa
             except Exception:
                 log.formatted_log_time = log.log_time
             user = User.query.get(log.user_id)
             # Build picture URL from BLOB or fallback to default
             if user and user.picture:
-                encoded_picture = base64.b64encode(user.picture).decode('utf-8')
+                encoded_picture = base64.b64encode(user.picture).decode('utf-8') # noqa
                 picture_url = f"data:image/jpeg;base64,{encoded_picture}"
             else:
                 picture_url = url_for('static', filename='default-profile.png')
 
-            student_name = f"{user.first_name} {user.last_name}" if user else "Unknown"
+            student_name = f"{user.first_name} {user.last_name}" if user else "Unknown" # noqa
 
             filtered_logs.append({
                 'id': log.id,
@@ -175,7 +195,7 @@ def staffpage():
             })
 
     # Sort and limit to 5 most recent logs
-    filtered_logs.sort(key=lambda log: datetime.strptime(log["date"], "%d-%m-%Y"), reverse=True)
+    filtered_logs.sort(key=lambda log: datetime.strptime(log["date"], "%d-%m-%Y"), reverse=True) # noqa
     recent_logs = filtered_logs[:5]
 
     return render_template(
@@ -188,10 +208,10 @@ def staffpage():
     )
 
 
-@app.route('/submissions')
+@staff_bp.route('/submissions')
 def submissions():
     staff_id = session.get('username')
-    selected_status = request.args.get('status')  # Get status filter from query string
+    selected_status = request.args.get('status')
 
     # Get groups this staff manages
     attached_groups = Group.query.filter_by(staff=staff_id).all()
@@ -216,20 +236,20 @@ def submissions():
         if not selected_status or status_label == selected_status:
             user = User.query.get(log.user_id)
             if user and user.picture:
-                encoded_picture = base64.b64encode(user.picture).decode('utf-8')
+                encoded_picture = base64.b64encode(user.picture).decode('utf-8') # noqa
                 picture_url = f"data:image/jpeg;base64,{encoded_picture}"
             else:
                 picture_url = url_for('static', filename='default-profile.png')
-            student_name = f"{user.first_name} {user.last_name}" if user else "Unknown"
+            student_name = f"{user.first_name} {user.last_name}" if user else "Unknown" # noqa
             group = Group.query.get(log.group_id)
             group_name = group.name if group else "N/A"
             try:
-                formatted_date = datetime.strptime(log.date, "%d-%m-%Y").strftime("%b %d, %Y")
+                formatted_date = datetime.strptime(log.date, "%d-%m-%Y").strftime("%b %d, %Y") # noqa
             except Exception:
                 formatted_date = log.date
             try:
                 formatted_log_time = (
-                    datetime.strptime(log.log_time, "%d-%m-%Y %H:%M:%S").strftime("%b %d, %Y at %I:%M %p")
+                    datetime.strptime(log.log_time, "%d-%m-%Y %H:%M:%S").strftime("%b %d, %Y at %I:%M %p") # noqa
                     if log.log_time else "N/A"
                 )
             except Exception:
@@ -259,15 +279,15 @@ def submissions():
                 rejected_count += 1
 
     # Sort by newest first using original log.date format
-    submission_data.sort(key=lambda x: datetime.strptime(x["date"], "%b %d, %Y"), reverse=True)
+    submission_data.sort(key=lambda x: datetime.strptime(x["date"], "%b %d, %Y"), reverse=True) # noqa
 
-    return render_template('staff/submissions.html', submissions=submission_data,
+    return render_template('staff/submissions.html', submissions=submission_data, # noqa
                            accepted_count=accepted_count,
                            pending_count=pending_count,
                            rejected_count=rejected_count)
 
 
-@app.route('/update-log-field', methods=['POST'])
+@staff_bp.route('/update-log-field', methods=['POST'])
 def update_log_field():
     data = request.get_json()
     log_id = data.get('log_id')
@@ -292,7 +312,7 @@ def update_log_field():
 
 
 # Route to accept a service log
-@app.route('/approve-log', methods=['POST'])
+@staff_bp.route('/approve-log', methods=['POST'])
 def approve_log():
     log_id = request.form.get('log_id')
     if log_id:
@@ -301,11 +321,11 @@ def approve_log():
             service_log.status = 1  # Set status to Approved
             db.session.commit()
 
-    # Redirect back to the referrer URL or staff page if referrer is not available
-    return redirect(request.referrer or url_for('staffpage'))
+# Redirect back to the referrer URL or staff page if referrer is not available
+    return redirect(request.referrer or url_for('staff.staffpage'))
 
 
-@app.route('/download/csv')
+@staff_bp.route('/download/csv')
 def download_csv():
     staff_id = session.get('username')
     staff = User.query.filter_by(school_id=staff_id).first()
@@ -315,7 +335,7 @@ def download_csv():
     writer = csv.writer(output)
     writer.writerow([f"Report for: {staff.first_name} {staff.last_name}"])
     writer.writerow([])
-    writer.writerow(['Student', 'Activity', 'Hours', 'Date', 'Date Submitted', 'Group'])
+    writer.writerow(['Student', 'Activity', 'Hours', 'Date', 'Date Submitted', 'Group']) # noqa
 
     for log in logs:
         user = User.query.get(log.user_id)
@@ -330,12 +350,12 @@ def download_csv():
         ])
 
     response = make_response(output.getvalue())
-    response.headers["Content-Disposition"] = "attachment; filename=service_hours_report.csv"
+    response.headers["Content-Disposition"] = "attachment; filename=service_hours_report.csv" # noqa
     response.headers["Content-Type"] = "text/csv"
     return response
 
 
-@app.route('/download/excel')
+@staff_bp.route('/download/excel')
 def download_excel():
     staff_id = session.get('username')
     staff = User.query.filter_by(school_id=staff_id).first()
@@ -346,7 +366,7 @@ def download_excel():
     ws.title = "Service Hours"
     ws.append([f"Report for: {staff.first_name} {staff.last_name}"])
     ws.append([])
-    ws.append(['Student', 'Activity', 'Hours', 'Date', 'Date Submitted', 'Group'])
+    ws.append(['Student', 'Activity', 'Hours', 'Date', 'Date Submitted', 'Group']) # noqa
 
     for log in logs:
         user = User.query.get(log.user_id)
@@ -365,12 +385,12 @@ def download_excel():
     output.seek(0)
 
     response = make_response(output.getvalue())
-    response.headers["Content-Disposition"] = "attachment; filename=service_hours_report.xlsx"
-    response.headers["Content-Type"] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    response.headers["Content-Disposition"] = "attachment; filename=service_hours_report.xlsx" # noqa
+    response.headers["Content-Type"] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" # noqa
     return response
 
 
-@app.route('/download/pdf')
+@staff_bp.route('/download/pdf')
 def download_pdf():
     staff_id = session.get('username')
     staff = User.query.filter_by(school_id=staff_id).first()
@@ -379,22 +399,22 @@ def download_pdf():
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", size=12)
-    pdf.cell(200, 10, txt=f"Report for: {staff.first_name} {staff.last_name}", ln=True, align='C')
+    pdf.cell(200, 10, txt=f"Report for: {staff.first_name} {staff.last_name}", ln=True, align='C') # noqa
     pdf.ln(10)
 
     pdf.set_font("Arial", size=10)
     for log in logs:
         user = User.query.get(log.user_id)
         group = Group.query.get(log.group_id)
-        pdf.multi_cell(0, 10, txt=f"Student: {user.first_name} {user.last_name if user else 'Unknown'}\n"
-                                   f"Activity: {log.description}\n"
+        pdf.multi_cell(0, 10, txt=f"Student: {user.first_name} {user.last_name if user else 'Unknown'}\n" # noqa
+                                   f"Activity: {log.description}\n"  # noqa
                                    f"Hours: {log.hours}\n"
                                    f"Date: {log.date}\n"
                                    f"Submitted: {log.log_time}\n"
-                                   f"Group: {group.name if group else 'N/A'}\n", border=0)
+                                   f"Group: {group.name if group else 'N/A'}\n", border=0) # noqa
         pdf.ln(2)
 
     response = make_response(pdf.output(dest='S').encode('latin-1'))
-    response.headers["Content-Disposition"] = "attachment; filename=service_hours_report.pdf"
+    response.headers["Content-Disposition"] = "attachment; filename=service_hours_report.pdf" # noqa
     response.headers["Content-Type"] = "application/pdf"
     return response

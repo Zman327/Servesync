@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, session, url_for, flash, jsonify, make_response 
+from flask import Flask, render_template, request, redirect, session, url_for, flash, jsonify, make_response
 import base64
 from flask_sqlalchemy import SQLAlchemy
 from fpdf import FPDF
@@ -19,6 +19,9 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from Servesync.student import student_bp
+from Servesync.staff import staff_bp
+from Servesync.admin import admin_bp
+from models import init_models, User, Award, ServiceHour, Group, UserRole, db
 
 
 app = Flask(__name__, template_folder='templates')
@@ -46,7 +49,6 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'ServeSync.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-from models import init_models, User, Award, ServiceHour, Group, UserRole, db
 
 init_models(app)
 
@@ -75,6 +77,8 @@ def homepage1():
 
 
 app.register_blueprint(student_bp)
+app.register_blueprint(staff_bp)
+app.register_blueprint(admin_bp)
 
 
 @app.route('/login', methods=['POST'])
@@ -105,9 +109,9 @@ def login():
             session['role'] = role_name
             print(f"Session set: {session}")
             if role_name.lower() == 'staff':
-                return redirect(url_for('staffpage'))
+                return redirect(url_for('staff.staffpage'))
             elif role_name.lower() == 'admin':
-                return redirect(url_for('adminpage'))
+                return redirect(url_for('admin.adminpage'))
             else:
                 return redirect(url_for('student.studentpage'))
         # If password is not hashed, compare directly
@@ -120,9 +124,9 @@ def login():
             session['role'] = role_name
             print(f"Session set: {session}")
             if role_name.lower() == 'staff':
-                return redirect(url_for('staffpage'))
+                return redirect(url_for('staff.staffpage'))
             elif role_name.lower() == 'admin':
-                return redirect(url_for('adminpage'))
+                return redirect(url_for('admin.adminpage'))
             else:
                 return redirect(url_for('student.studentpage'))
         else:
@@ -175,9 +179,9 @@ def google_login_callback():
         ).scalar()
         session['role'] = role_name
         if role_name.lower() == 'staff':
-            return redirect(url_for('staffpage'))
+            return redirect(url_for('staff.staffpage'))
         elif role_name.lower() == 'admin':
-            return redirect(url_for('adminpage'))
+            return redirect(url_for('admin.adminpage'))
         else:
             return redirect(url_for('student.studentpage'))
     else:
@@ -209,7 +213,3 @@ def page_not_found(e):
 @app.errorhandler(500) # noqa:
 def internal_server_error(e):
     return render_template('500.html'), 500
-
-
-if __name__ == "__main__":
-    app.run(debug=True)

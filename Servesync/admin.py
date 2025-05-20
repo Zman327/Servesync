@@ -1,4 +1,23 @@
-@app.route('/admin.dashboard')
+from flask import Blueprint
+from flask import render_template, request, redirect, url_for, flash, jsonify, make_response # noqa
+import base64
+from fpdf import FPDF
+from openpyxl import Workbook
+from sqlalchemy import func
+from datetime import datetime
+from collections import defaultdict
+import csv
+import io
+import pytz
+import json
+from werkzeug.security import generate_password_hash
+import pandas as pd
+import requests
+from models import User, Award, ServiceHour, Group, db
+admin_bp = Blueprint('admin', __name__)
+
+
+@admin_bp.route('/admin.dashboard')
 def adminpage():
     nz_timezone = pytz.timezone('Pacific/Auckland')
     now = datetime.now(nz_timezone)
@@ -39,11 +58,11 @@ def adminpage():
         .order_by(User.hours.desc())
         .first()
     )
-    top_student_name = f"{top_student.first_name} {top_student.last_name}" if top_student else "N/A"
+    top_student_name = f"{top_student.first_name} {top_student.last_name}" if top_student else "N/A" # noqa
     top_student_hours = top_student.hours if top_student else 0
 
     if top_student and top_student.picture:
-        top_student_picture = f"data:image/jpeg;base64,{base64.b64encode(top_student.picture).decode('utf-8')}"
+        top_student_picture = f"data:image/jpeg;base64,{base64.b64encode(top_student.picture).decode('utf-8')}" # noqa
     else:
         top_student_picture = url_for('static', filename='default-profile.png')
 
@@ -68,16 +87,16 @@ def adminpage():
             picture_url = f"data:image/jpeg;base64,{encoded_picture}"
         else:
             picture_url = url_for('static', filename='default-profile.png')
-        student_name = f"{user.first_name} {user.last_name}" if user else "Unknown"
+        student_name = f"{user.first_name} {user.last_name}" if user else "Unknown" # noqa
         group = Group.query.get(log.group_id)
         group_name = group.name if group else "N/A"
         try:
-            formatted_date = datetime.strptime(log.date, "%d-%m-%Y").strftime("%b %d, %Y")
+            formatted_date = datetime.strptime(log.date, "%d-%m-%Y").strftime("%b %d, %Y") # noqa
         except Exception:
             formatted_date = log.date
         try:
             formatted_log_time = (
-                datetime.strptime(log.log_time, "%d-%m-%Y %H:%M:%S").strftime("%b %d, %Y at %I:%M %p")
+                datetime.strptime(log.log_time, "%d-%m-%Y %H:%M:%S").strftime("%b %d, %Y at %I:%M %p") # noqa
                 if log.log_time else "N/A"
             )
         except Exception:
@@ -114,9 +133,9 @@ def adminpage():
             dt = datetime.strptime(log[0], "%d-%m-%Y %H:%M:%S")
             month_str = dt.strftime("%b %Y")
             monthly_counts[month_str] += 1
-        except:
+        except: # noqa
             continue
-    sorted_months = sorted(monthly_counts.items(), key=lambda x: datetime.strptime(x[0], "%b %Y"))
+    sorted_months = sorted(monthly_counts.items(), key=lambda x: datetime.strptime(x[0], "%b %Y")) # noqa
     chart_labels = [item[0] for item in sorted_months]
     chart_data = [item[1] for item in sorted_months]
 
@@ -149,7 +168,7 @@ def adminpage():
         full_name = f"{student.first_name} {student.last_name}"
         form_class = getattr(student, 'form', None) or 'N/A'
         matched_award = next(
-            ((award.name, award.colour) for award in awards if (student.hours or 0) >= award.threshold),
+            ((award.name, award.colour) for award in awards if (student.hours or 0) >= award.threshold), # noqa
             ('Not achieved', '#FF3131')
         )
         # Set student image like top student image
@@ -200,7 +219,7 @@ def adminpage():
     )
 
 
-@app.route('/promote-to-admin', methods=['POST'])
+@admin_bp.route('/promote-to-admin', methods=['POST'])
 def promote_to_admin():
     data = request.get_json()
     school_id = data.get('school_id')
@@ -209,12 +228,12 @@ def promote_to_admin():
     if user and user.role != 3:
         user.role = 3  # Promote to admin
         db.session.commit()
-        return jsonify(success=True, message=f"{user.first_name} {user.last_name} is now an admin.")
+        return jsonify(success=True, message=f"{user.first_name} {user.last_name} is now an admin.") # noqa
 
-    return jsonify(success=False, message="User not found or already an admin."), 400
+    return jsonify(success=False, message="User not found or already an admin."), 400 # noqa
 
 
-@app.route('/admin/remove', methods=['POST'])
+@admin_bp.route('/admin/remove', methods=['POST'])
 def remove_admin():
     data = request.get_json()
     school_id = data.get('school_id')
@@ -223,11 +242,11 @@ def remove_admin():
     if user and user.role == 3:
         user.role = 2
         db.session.commit()
-        return jsonify({'status': 'success', 'message': f"{user.first_name} {user.last_name} removed as admin."})
-    return jsonify({'status': 'error', 'message': 'User not found or not an admin.'}), 400
+        return jsonify({'status': 'success', 'message': f"{user.first_name} {user.last_name} removed as admin."}) # noqa
+    return jsonify({'status': 'error', 'message': 'User not found or not an admin.'}), 400 # noqa
 
 
-@app.route('/api/current_admins')
+@admin_bp.route('/api/current_admins')
 def api_current_admins():
     admins = User.query.filter_by(role=3).all()
     result = [{
@@ -237,7 +256,7 @@ def api_current_admins():
     return jsonify(result)
 
 
-@app.route('/add-student', methods=['POST'])
+@admin_bp.route('/add-student', methods=['POST'])
 def add_student():
     first_name = request.form['first_name']
     last_name = request.form['last_name']
@@ -276,15 +295,15 @@ def add_student():
         db.session.rollback()
         flash(f'Error adding student: {e}', 'danger')
 
-    return redirect(url_for('adminpage'))
+    return redirect(url_for('admin.adminpage'))
 
 
-@app.route('/bulk-upload-students', methods=['POST'])
+@admin_bp.route('/bulk-upload-students', methods=['POST'])
 def bulk_upload_students():
     file = request.files.get('bulk_file')
     if not file:
         flash('No file uploaded', 'danger')
-        return redirect(url_for('adminpage'))
+        return redirect(url_for('admin.adminpage'))
 
     filename = file.filename.lower()
     df = None
@@ -298,22 +317,22 @@ def bulk_upload_students():
         elif filename.endswith(('.xls', '.xlsx')):
             df = pd.read_excel(file, engine='openpyxl')
         else:
-            flash('Unsupported file format. Please upload a .csv or .xlsx file.', 'danger')
-            return redirect(url_for('adminpage'))
+            flash('Unsupported file format. Please upload a .csv or .xlsx file.', 'danger') # noqa
+            return redirect(url_for('admin.adminpage'))
     except Exception as e:
         flash(f'Error reading file: {e}', 'danger')
-        return redirect(url_for('adminpage'))
+        return redirect(url_for('admin.adminpage'))
 
     # Normalize and validate required columns (case-insensitive)
     # Step 1: lowercase and strip all column headers
     df.columns = [col.strip().lower() for col in df.columns]
 
     # Step 2: Check for all required columns
-    required_cols = ['first name', 'last name', 'student id', 'tutor', 'password']
+    required_cols = ['first name', 'last name', 'student id', 'tutor', 'password'] # noqa
     missing = [col for col in required_cols if col not in df.columns]
     if missing:
-        flash(f"Missing required columns: {[col.title() for col in missing]}", "danger")
-        return redirect(url_for('adminpage'))
+        flash(f"Missing required columns: {[col.title() for col in missing]}", "danger") # noqa
+        return redirect(url_for('admin.adminpage'))
 
     # Step 3: Rename the columns for consistent access later
     rename_map = {
@@ -338,7 +357,7 @@ def bulk_upload_students():
             image_val = row.get('Image', None)
 
             # Hash the password
-            hashed_password = generate_password_hash(raw_pass, method='pbkdf2:sha256')
+            hashed_password = generate_password_hash(raw_pass, method='pbkdf2:sha256') # noqa
 
             # Process image (URL or base64)
             picture_data = None
@@ -391,15 +410,15 @@ def bulk_upload_students():
         db.session.rollback()
         flash(f'Error committing to database: {e}', 'danger')
 
-    return redirect(url_for('adminpage'))
+    return redirect(url_for('admin.adminpage'))
 
 
-@app.route('/bulk-upload-staff', methods=['POST'])
+@admin_bp.route('/bulk-upload-staff', methods=['POST'])
 def bulk_upload_staff():
     file = request.files.get('bulk_file')
     if not file:
         flash('No file uploaded', 'danger')
-        return redirect(url_for('adminpage'))
+        return redirect(url_for('admin.adminpage'))
 
     filename = file.filename.lower()
     df = None
@@ -413,22 +432,22 @@ def bulk_upload_staff():
         elif filename.endswith(('.xls', '.xlsx')):
             df = pd.read_excel(file, engine='openpyxl')
         else:
-            flash('Unsupported file format. Please upload a .csv or .xlsx file.', 'danger')
-            return redirect(url_for('adminpage'))
+            flash('Unsupported file format. Please upload a .csv or .xlsx file.', 'danger') # noqa
+            return redirect(url_for('admin.adminpage'))
     except Exception as e:
         flash(f'Error reading file: {e}', 'danger')
-        return redirect(url_for('adminpage'))
+        return redirect(url_for('admin.adminpage'))
 
     # Normalize and validate required columns (case-insensitive)
     # Step 1: lowercase and strip all column headers
     df.columns = [col.strip().lower() for col in df.columns]
 
     # Step 2: Check for all required columns
-    required_cols = ['first name', 'last name', 'student id', 'tutor', 'password']
+    required_cols = ['first name', 'last name', 'student id', 'tutor', 'password'] # noqa
     missing = [col for col in required_cols if col not in df.columns]
     if missing:
-        flash(f"Missing required columns: {[col.title() for col in missing]}", "danger")
-        return redirect(url_for('adminpage'))
+        flash(f"Missing required columns: {[col.title() for col in missing]}", "danger") # noqa
+        return redirect(url_for('admin.adminpage'))
 
     # Step 3: Rename the columns for consistent access later
     rename_map = {
@@ -453,7 +472,7 @@ def bulk_upload_staff():
             image_val = row.get('Image', None)
 
             # Hash the password
-            hashed_password = generate_password_hash(raw_pass, method='pbkdf2:sha256')
+            hashed_password = generate_password_hash(raw_pass, method='pbkdf2:sha256') # noqa
 
             # Process image (URL or base64)
             picture_data = None
@@ -506,10 +525,10 @@ def bulk_upload_staff():
         db.session.rollback()
         flash(f'Error committing to database: {e}', 'danger')
 
-    return redirect(url_for('adminpage'))
+    return redirect(url_for('admin.adminpage'))
 
 
-@app.route('/remove-students', methods=['POST'])
+@admin_bp.route('/remove-students', methods=['POST'])
 def remove_student():
     student_id = request.form.get('student_id')
     print("🧪 Form student_id received:", student_id)
@@ -524,10 +543,10 @@ def remove_student():
     else:
         flash("Student not found.", "error")
 
-    return redirect(url_for('adminpage'))
+    return redirect(url_for('admin.adminpage'))
 
 
-@app.route('/add-staff', methods=['POST'])
+@admin_bp.route('/add-staff', methods=['POST'])
 def add_staff():
     first_name = request.form['first_name']
     last_name = request.form['last_name']
@@ -566,22 +585,22 @@ def add_staff():
         db.session.rollback()
         flash(f'Error adding Staff: {e}', 'danger')
 
-    return redirect(url_for('adminpage'))
+    return redirect(url_for('admin.adminpage'))
 
 
 # --- Review Student Route ---
-@app.route('/review-student/<user_id>')
+@admin_bp.route('/review-student/<user_id>')
 def review_student(user_id):
     student = User.query.filter_by(school_id=user_id).first()
     if not student:
         flash("Student not found.", "admin-error")
-        return redirect(url_for('adminpage'))
+        return redirect(url_for('admin.adminpage'))
     # You can add more details here as needed
     return render_template('review_student.html', student=student)
 
 
 # --- Admin Download All Students as CSV ---
-@app.route('/admin/download/students/csv')
+@admin_bp.route('/admin/download/students/csv')
 def admin_download_students_csv():
 
     students = User.query.filter_by(role=1).all()  # Assuming role=1 is student
@@ -591,7 +610,8 @@ def admin_download_students_csv():
     writer.writerow(["Admin Export - All Student Data"])
     writer.writerow([])
     writer.writerow([
-        'School ID', 'First Name', 'Last Name', 'Email', 'Form', 'Role', 'Award',
+        'School ID', 'First Name', 'Last Name',
+        'Email', 'Form', 'Role', 'Award',
         'Total Hours', 'Last Service Date'
     ])
 
@@ -603,12 +623,12 @@ def admin_download_students_csv():
                 award_name = award.name
                 break
 
-        logs = ServiceHour.query.filter_by(user_id=student.school_id, status=1).all()
+        logs = ServiceHour.query.filter_by(user_id=student.school_id, status=1).all() # noqa
         total_hours = sum(log.hours for log in logs)
         last_log_date = max((log.date for log in logs), default='N/A')
 
         role_name = db.session.execute(
-            db.text("SELECT name FROM user_role WHERE id = :id"), {"id": student.role}
+            db.text("SELECT name FROM user_role WHERE id = :id"), {"id": student.role} # noqa
         ).scalar()
 
         writer.writerow([
@@ -624,13 +644,13 @@ def admin_download_students_csv():
         ])
 
     response = make_response(output.getvalue())
-    response.headers["Content-Disposition"] = "attachment; filename=all_students_report.csv"
+    response.headers["Content-Disposition"] = "attachment; filename=all_students_report.csv" # noqa
     response.headers["Content-Type"] = "text/csv"
     return response
 
 
 # --- Admin Download All Students as Excel ---
-@app.route('/admin/download/students/excel')
+@admin_bp.route('/admin/download/students/excel')
 def admin_download_students_excel():
 
     students = User.query.filter_by(role=1).all()
@@ -642,7 +662,7 @@ def admin_download_students_excel():
     ws.append(["Admin Export - All Student Data"])
     ws.append([])
     ws.append([
-        'School ID', 'First Name', 'Last Name', 'Email', 'Form', 'Role', 'Award',
+        'School ID', 'First Name', 'Last Name', 'Email', 'Form', 'Role', 'Award', # noqa
         'Total Hours', 'Last Service Date'
     ])
 
@@ -653,12 +673,12 @@ def admin_download_students_excel():
                 award_name = award.name
                 break
 
-        logs = ServiceHour.query.filter_by(user_id=student.school_id, status=1).all()
+        logs = ServiceHour.query.filter_by(user_id=student.school_id, status=1).all() # noqa
         total_hours = sum(log.hours for log in logs)
         last_log_date = max((log.date for log in logs), default='N/A')
 
         role_name = db.session.execute(
-            db.text("SELECT name FROM user_role WHERE id = :id"), {"id": student.role}
+            db.text("SELECT name FROM user_role WHERE id = :id"), {"id": student.role} # noqa
         ).scalar()
 
         ws.append([
@@ -678,13 +698,13 @@ def admin_download_students_excel():
     output.seek(0)
 
     response = make_response(output.getvalue())
-    response.headers["Content-Disposition"] = "attachment; filename=all_students_report.xlsx"
-    response.headers["Content-Type"] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    response.headers["Content-Disposition"] = "attachment; filename=all_students_report.xlsx" # noqa
+    response.headers["Content-Type"] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" # noqa
     return response
 
 
 # --- Admin Download All Students as PDF ---
-@app.route('/admin/download/students/pdf')
+@admin_bp.route('/admin/download/students/pdf')
 def admin_download_students_pdf():
 
     students = User.query.filter_by(role=1).all()
@@ -693,7 +713,7 @@ def admin_download_students_pdf():
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", size=12)
-    pdf.cell(200, 10, txt="Admin Export - All Student Data", ln=True, align='C')
+    pdf.cell(200, 10, txt="Admin Export - All Student Data", ln=True, align='C') # noqa
     pdf.ln(10)
 
     for student in students:
@@ -703,20 +723,20 @@ def admin_download_students_pdf():
                 award_name = award.name
                 break
 
-        logs = ServiceHour.query.filter_by(user_id=student.school_id, status=1).all()
+        logs = ServiceHour.query.filter_by(user_id=student.school_id, status=1).all() # noqa
         total_hours = sum(log.hours for log in logs)
         last_log_date = max((log.date for log in logs), default='N/A')
 
         role_name = db.session.execute(
-            db.text("SELECT name FROM user_role WHERE id = :id"), {"id": student.role}
+            db.text("SELECT name FROM user_role WHERE id = :id"), {"id": student.role} # noqa
         ).scalar()
 
-        pdf.cell(200, 10, txt=f"{student.first_name} {student.last_name} ({student.school_id})", ln=True)
-        pdf.cell(200, 10, txt=f"Email: {student.email}, Form: {student.form}, Role: {role_name or 'N/A'}", ln=True)
-        pdf.cell(200, 10, txt=f"Award: {award_name}, Total Hours: {total_hours}, Last Submission: {last_log_date}", ln=True)
+        pdf.cell(200, 10, txt=f"{student.first_name} {student.last_name} ({student.school_id})", ln=True) # noqa
+        pdf.cell(200, 10, txt=f"Email: {student.email}, Form: {student.form}, Role: {role_name or 'N/A'}", ln=True) # noqa
+        pdf.cell(200, 10, txt=f"Award: {award_name}, Total Hours: {total_hours}, Last Submission: {last_log_date}", ln=True) # noqa
         pdf.ln(5)
 
     response = make_response(pdf.output(dest='S').encode('latin-1'))
-    response.headers["Content-Disposition"] = "attachment; filename=all_students_report.pdf"
+    response.headers["Content-Disposition"] = "attachment; filename=all_students_report.pdf" # noqa
     response.headers["Content-Type"] = "application/pdf"
     return response

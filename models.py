@@ -11,9 +11,10 @@ class User(db.Model):
     last_name = db.Column(db.String())
     email = db.Column(db.String(), unique=True)
     password = db.Column(db.String())
-    role = db.Column(db.Integer())
+    role = db.Column(db.String(), nullable=False)
     picture = db.Column(db.LargeBinary())
     hours = db.Column(db.Numeric())
+    form = db.Column(db.String(), nullable=False)
 
 
 class Award(db.Model):
@@ -37,7 +38,7 @@ class ServiceHour(db.Model):
     __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True, unique=True, nullable=False)
-    user_id = db.Column(db.String, db.ForeignKey('user.school_id'), nullable=False)
+    user_id = db.Column(db.String, db.ForeignKey('user.school_id'), nullable=False) # noqa
     group_id = db.Column(db.Integer, db.ForeignKey('group.id'))
     hours = db.Column(db.Integer)
     date = db.Column(db.Integer)
@@ -48,7 +49,7 @@ class ServiceHour(db.Model):
     staff = db.Column(db.String, db.ForeignKey('user.school_id'))
 
     # Relationships
-    user = db.relationship('User', backref='service_hours', foreign_keys=[user_id])
+    user = db.relationship('User', backref='service_hours', foreign_keys=[user_id]) # noqa
     staff_user = db.relationship('User', foreign_keys=[staff])
     group = db.relationship('Group', backref='service_hours')
 
