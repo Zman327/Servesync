@@ -13,7 +13,7 @@ class User(db.Model):
     password = db.Column(db.String())
     role = db.Column(db.String(), nullable=False)
     picture = db.Column(db.LargeBinary())
-    hours = db.Column(db.Numeric())
+    hours = db.Column(db.Float)
     form = db.Column(db.String(), nullable=False)
 
 

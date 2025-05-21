@@ -204,6 +204,16 @@ def aboutpage():
     return render_template('about.html')
 
 
+@app.route('/privacy_policy')
+def privacypage():
+    return render_template('privacy_policy.html')
+
+
+@app.route('/terms')
+def termspage():
+    return render_template('terms.html')
+
+
 # 404 page to display when a page is not found
 # helps re-direct users back to home page
 @app.errorhandler(404) # noqa:
