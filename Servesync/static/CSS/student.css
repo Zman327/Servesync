@@ -1,0 +1,403 @@
+/* Log in Dashboard */
+.dashboard {
+    display: flex;
+    gap: 40px;
+    padding: 40px 60px;
+    align-items: flex-start;
+    justify-content: flex-start;
+    max-width: 100%;
+    margin: 0;
+}
+
+/* Left Column */
+.left-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Right Column */
+.right-column {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-left: 20px;
+}
+
+/* Welcome header styling */
+.welcome-header {
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.welcome-header h1 {
+    font-size: 32px;
+    color: var(--tiber);
+    margin-bottom: 12px;
+}
+
+.welcome-header .log-link {
+    padding: 10px 18px;
+    background-color: var(--jungle-green);
+    color: var(--white);
+    text-decoration: none;
+    font-weight: 500;
+    border-radius: 6px;
+    transition: background-color 0.3s ease;
+}
+
+.welcome-header .log-link:hover {
+    background-color: var(--tiber);
+}
+
+/* Boxed sections */
+.section {
+    background-color: var(--white);
+    border-radius: 14px;
+    padding: 24px;
+    border: 1px solid #e6e6e6;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+    transition: box-shadow 0.3s ease;
+}
+
+.section:hover {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+.section h3 {
+    margin-bottom: 12px;
+    margin-top: -1%;
+    color: var(--tiber);
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.section p, .section ul {
+    font-size: 16px;
+    margin: 0;
+}
+
+.section ul {
+    padding-left: 20px;
+    margin-top: 5px;
+}
+
+.hours-completed, .hours-needed, .top-groups {
+    text-align: center;
+}
+
+.activity-table th {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.activity-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+    font-size: 15px;
+}
+
+.activity-table thead {
+    background-color: var(--light-gray);
+}
+
+.activity-table th,
+.activity-table td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.activity-table tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+.activity-table .approved {
+    color: green;
+    font-weight: 500;
+}
+
+.activity-table .pending {
+    color: #e69500;
+    font-weight: 500;
+}
+
+/* Progress Bar */
+.hours-completed .large-number {
+    font-size: 80px; /* Make the number much larger */
+    font-weight: bold; /* Make the number bold */
+}
+
+/* Circular Progress Bar for "Hours Till Achievement" */
+.progress-container {
+    width: 120px;
+    height: 120px;
+    background-color: #e0e0e0;
+    border-radius: 50%; /* Make the container circular */
+    position: relative;
+    margin: 0 auto;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: conic-gradient(var(--jungle-green) 0% 0%, #e0e0e0 0% 100%); /* Base color */
+    transition: background 1s ease; /* Smooth transition for filling effect */
+    transition: width 0.5s ease-in-out;
+}
+
+.progress-text {
+    font-size: 20px;
+    font-weight: bold;
+    color: var(--tiber);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Tooltip Style */
+.tooltiptext {
+    top: 110%;
+    left: 50%;
+    margin-left: -60px;
+}
+
+/* DataTables integration styling */
+.dataTables_wrapper {
+    margin-top: 16px;
+}
+
+table.dataTable thead {
+    background-color: var(--light-gray);
+}
+
+table.dataTable thead th {
+    color: var(--tiber);
+    font-weight: 600;
+}
+
+table.dataTable tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+h1, h3 {
+    font-weight: 500;
+}
+
+/* Tooltip */
+.tooltip {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.tooltiptext {
+    visibility: hidden;
+    background-color: black;
+    color: #fff;
+    text-align: center;
+    border-radius: 5px;
+    padding: 6px 10px;
+    position: absolute;
+    z-index: 1;
+    top: 50%;
+    left: 130%;
+    transform: translateY(-50%);
+    white-space: nowrap;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+}
+
+.top-groups {
+    height: 100%;
+    overflow-y: auto; /* Optional: adds scroll if content exceeds height */
+}
+
+/* Spinner inside submit button */
+.btn-loader {
+    display: inline-block;
+    margin-left: 10px;
+    font-size: 16px;
+}
+
+.filter-form {
+    margin-bottom: 0px;
+}
+
+.filter-form select {
+    padding: 5px;
+    border-radius: 4px;
+}
+
+.autocomplete-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    position: absolute;
+    background: white;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    border: none;
+    width: 100%;
+    z-index: 1000001;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.autocomplete-list li {
+    padding: 8px;
+    cursor: pointer;
+}
+
+.autocomplete-list li:hover {
+    background-color: #eee;
+}
+
+.autocomplete-list:empty {
+    border: none;
+}
+
+.flash-message {
+    margin-top: 1em;
+    padding: 1em;
+    border-radius: 6px;
+    font-weight: 500;
+    text-align: center;
+    transition: opacity 0.5s ease;
+}
+
+.flash-message.logpage-error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+@keyframes shake-horizontal {
+    0% { transform: translateX(0); }
+    20% { transform: translateX(-5px); }
+    40% { transform: translateX(5px); }
+    60% { transform: translateX(-5px); }
+    80% { transform: translateX(5px); }
+    100% { transform: translateX(0); }
+}
+
+@keyframes shake-label {
+    0%   { transform: translateY(-50%) translateX(0); }
+    20%  { transform: translateY(-50%) translateX(-5px); }
+    40%  { transform: translateY(-50%) translateX(5px); }
+    60%  { transform: translateY(-50%) translateX(-5px); }
+    80%  { transform: translateY(-50%) translateX(5px); }
+    100% { transform: translateY(-50%) translateX(0); }
+}
+
+.input-error {
+    border: 2px solid red!important;
+    animation: shake-horizontal 0.8s;
+}
+
+.form-group {
+    overflow: visible;
+    position: relative;
+}
+
+.input-error-icon {
+    color: red !important;
+    animation: shake-label 0.8s;
+    display: inline-block;
+}
+
+#group-error {
+    position: absolute;
+    bottom: -30px;
+    left: 0;
+    color: red;
+    font-size: 14px;
+    display: none;
+}
+
+/*.form-hint {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-top: 4px;
+    display: block;
+}*/
+
+.icon-wrapper {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-block;
+    z-index: 2;
+}
+
+.icon-wrapper.shake {
+    animation: shake 0.4s;
+}
+
+.icon-wrapper.error i {
+    color: red !important;
+}
+
+.floating-form input:focus + label,
+.floating-form input:not(:placeholder-shown) + label {
+    top: -8px;
+    left: 30px;
+    font-size: 12px;
+    background: #fff;
+    padding: 0 6px;
+    color: #1f9e86;
+}
+
+.label-error {
+    color: red !important;
+    animation: shake-label 0.8s;
+    display: inline-block;
+}
+
+.form-error-message {
+    color: red;
+    font-size: 0.9rem;
+    margin-bottom: 1em;
+    text-align: center;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}
+
+.form-error-message.fade-out {
+    opacity: 0;
+}
+
+.required-asterisk {
+    color: red;
+    font-size: 0.6rem;
+    position: relative;
+    top: -5px;
+    left: -3px;
+}
+
+#confirmation-message {
+    display: none;
+    margin-top: 1em;
+    color: green;
+    font-weight: bold;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+}
+  
+#confirmation-message.show {
+    display: block;
+    opacity: 1;
+    animation: fadeInConfirm 0.5s ease-out;
+}

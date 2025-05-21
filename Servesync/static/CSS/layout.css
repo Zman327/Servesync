@@ -1,0 +1,128 @@
+/* Navbar */
+.navbar-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+}
+
+.logo-section {
+    display: flex;
+    align-items: center;
+}
+
+.site-logo {
+    height: 40px;
+    margin-right: 12px;
+}
+
+.logo-text {
+    font-size: 26px;
+    font-weight: bold;
+    color: var(--tiber);
+}
+
+.nav-links {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    list-style: none;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: var(--tiber);
+    font-weight: 500;
+    padding: 8px 14px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.nav-links a:hover {
+    background-color: var(--tiber);
+    color: var(--white);
+}
+
+.dropdown {
+    position: relative;
+}
+
+.dropbtn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.avatar {
+    height: 42px;
+    width: 32px;
+    border-radius: 50%;
+    border: 2px solid #146830;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 45px;
+    background-color: var(--white);
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    min-width: 230px;
+    box-shadow: 0 8px 16px var(--soft-shadow);
+    z-index: 100;
+    overflow: hidden;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown-content a {
+    display: block;
+    padding: 12px 20px;
+    color: var(--tiber);
+    text-decoration: none;
+    transition: background 0.2s ease;
+}
+
+.dropdown-content a:hover {
+    background-color: #f0f0f0;
+}
+
+.dropdown-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid #e0e0e0;
+    background-color: #f9f9f9;
+}
+
+/* Footer Section */
+.landing-footer {
+    text-align: center;
+    padding: 30px 20px;
+    background-color: var(--white);
+    border-top: 2px solid var(--tiber);
+}
+
+.footer-links {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-bottom: 20px;
+}
+
+.footer-links a {
+    color: var(--tiber);
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.footer-links a:hover {
+    color: var(--jungle-green);
+}
+
+.landing-footer p {
+    font-size: 14px;
+    color: var(--tiber);
+}

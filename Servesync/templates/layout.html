@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{% block title %}ServeSYNC{% endblock %}</title>
   <link rel="stylesheet" href="/static/CSS/styles.css">
+  <link rel="stylesheet" href="/static/CSS/student.css">
+  <link rel="stylesheet" href="/static/CSS/staff.css">
+  <link rel="stylesheet" href="/static/CSS/admin.css">
+  <link rel="stylesheet" href="/static/CSS/layout.css">
   <link rel="icon" type="image/png" href="static/Images/Logo/favicon.png">
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -185,14 +189,22 @@
     function togglePasswordVisibility() {
       const pwField = document.getElementById("password");
       const toggle = document.getElementById("togglePassword");
+      const lockIcon = document.getElementById("lockIcon");
+
       if (pwField.type === "password") {
         pwField.type = "text";
         toggle.classList.remove("bxs-eye");
         toggle.classList.add("bxs-hide");
+
+        lockIcon.classList.remove("bxs-lock-alt");
+        lockIcon.classList.add("bxs-lock-open-alt");
       } else {
         pwField.type = "password";
         toggle.classList.remove("bxs-hide");
         toggle.classList.add("bxs-eye");
+
+        lockIcon.classList.remove("bxs-lock-open-alt");
+        lockIcon.classList.add("bxs-lock-alt");
       }
     }
   </script>
