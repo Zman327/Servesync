@@ -1,10 +1,30 @@
 document.addEventListener("DOMContentLoaded", () => {
+  function showGroupError(show) {
+    const errorBox = document.getElementById("group-error");
+    const helperText = document.getElementById("group-helper-text");
+    if (show) {
+      const groupInput = document.getElementById("group");
+      const container = groupInput.closest(".form-group");
+      if (container && errorBox.parentNode !== container.parentNode) {
+        container.parentNode.insertBefore(errorBox, container.nextSibling);
+      }
+      errorBox.style.display = "block";
+      helperText.style.display = "none";
+    } else {
+      errorBox.style.display = "none";
+      helperText.style.display = "block";
+    }
+  }
+
   const dateInput = document.getElementById("date");
   if (dateInput) {
     const today = new Date();
     const localDate = today.toLocaleDateString('en-CA'); // formats as YYYY-MM-DD
     dateInput.setAttribute("max", localDate);
     dateInput.value = localDate;
+    const currentYear = today.getFullYear();
+    const minDate = `${currentYear}-01-01`;
+    dateInput.setAttribute("min", minDate);
   }
 
   // Confirmation message animation with auto-dismiss
@@ -107,6 +127,7 @@ document.addEventListener("DOMContentLoaded", () => {
             li.textContent = group;
             li.addEventListener("click", () => {
               groupInput.value = group;
+              showGroupError(false);
 
               // Clear error state if selecting from dropdown
               const errorBox = document.getElementById("group-error");
@@ -146,7 +167,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const icon = groupInput.parentElement.querySelector("i");
 
     if (!query) {
-      errorBox.style.display = "none";
+      showGroupError(false);
       groupInput.classList.remove("input-error");
       if (icon) icon.classList.remove("input-error-icon");
       return;
@@ -157,7 +178,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .then(groups => {
         const match = groups.some(group => group.toLowerCase() === query.toLowerCase());
         if (!match) {
-          errorBox.style.display = "block";
+          showGroupError(true);
           groupInput.classList.add("input-error");
           if (icon) icon.classList.add("input-error-icon");
 
@@ -172,7 +193,7 @@ document.addEventListener("DOMContentLoaded", () => {
             icon.classList.add("input-error-icon");
           }
         } else {
-          errorBox.style.display = "none";
+          showGroupError(false);
           groupInput.classList.remove("input-error");
           if (icon) icon.classList.remove("input-error-icon");
         }

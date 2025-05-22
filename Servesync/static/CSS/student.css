@@ -318,11 +318,12 @@ h1, h3 {
 }
 
 #group-error {
-    position: absolute;
-    bottom: -30px;
-    left: 0;
     color: red;
-    font-size: 14px;
+    font-size: 0.85rem;
+    margin-top: -15px;
+    margin-left: 15px;
+    margin-bottom: -2px;
+    text-align: left;
     display: none;
 }
 

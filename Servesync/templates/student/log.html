@@ -25,11 +25,11 @@
           <input type="text" id="group" name="group" required placeholder=" ">
           <label for="group">Group <span class="required-asterisk">*</span></label>
           <ul id="group-suggestions" class="autocomplete-list"></ul>
-          <div id="group-error" class="form-error-message" style="display: none;">
-            *Please select a valid group from the list.
-          </div>
         </div>
-        <small class="form-hint">Start typing a group name – suggestions will appear.</small>
+        <div id="group-error" class="form-error-message" style="display: none;">
+          Please select a valid group from the list, suggestions will appear.
+        </div>
+        <small id="group-helper-text" class="form-hint">Start typing a group name - suggestions will appear.</small>
         <div class="form-group autocomplete-group" style="position: relative;">
           <i class="fas fa-user-tie"></i>
           <input type="text" name="person_in_charge" id="person_in_charge" required placeholder=" ">
