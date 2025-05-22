@@ -25,12 +25,12 @@
       <br>
       <a id="manageGroupBtn" class="btn btn-secondary" onclick="openManageGroupModal()">Manage Groups</a>
 
-      <div id="manageGroupModal" class="modal simple-modal">
-        <div class="modal-content">
+      <div id="manageGroupModal" class="group-modal">
+        <div class="group-modal-content">
           <span class="close-btn" onclick="closeManageGroupModal()">&times;</span>
           <h2>Manage Groups</h2>
           <form id="manageGroupForm">
-            <div class="mb-3">
+            <div class="group-form-group">
               <label for="groupSelect" class="form-label">Select Group</label>
               <select id="groupSelect" class="form-select">
                 {% for group in attached_groups %}
@@ -38,18 +38,30 @@
                 {% endfor %}
               </select>
             </div>
-            <div class="mb-3">
+            <div class="group-form-group">
               <label for="groupName" class="form-label">Group Name</label>
               <input type="text" class="form-control" id="groupName" value="">
             </div>
             <button type="submit" class="btn btn-success full-width">Save Changes</button>
           </form>
-          <hr>
-          <h3>Create New Group</h3>
+          <div style="margin-top: 20px; text-align: center;">
+            <a href="javascript:void(0);" class="btn btn-secondary" onclick="openCreateGroupModal()">+ Create New Group</a>
+          </div>
+        </div>
+      </div>
+
+      <div id="createGroupModal" class="group-modal">
+        <div class="group-modal-content">
+          <span class="close-btn" onclick="closeCreateGroupModal()">&times;</span>
+          <h2>Create New Group</h2>
           <form id="createWithinManageForm" method="POST" action="/create-group">
-            <div class="mb-3">
+            <div class="group-form-group">
               <label for="newGroupName" class="form-label">Group Name</label>
               <input type="text" class="form-control" id="newGroupName" name="group_name" required>
+            </div>
+            <div class="group-form-group">
+              <label for="staffInCharge" class="form-label">Staff In Charge</label>
+              <input type="text" class="form-control" id="staffInCharge" name="staff_in_charge" placeholder="Enter staff name or ID" required>
             </div>
             <button type="submit" class="btn btn-success full-width">Create Group</button>
           </form>

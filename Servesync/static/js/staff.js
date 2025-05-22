@@ -1,3 +1,4 @@
+
 let modalEdited = false;
 function openReviewModal(log) {
   modalEdited = false;
@@ -44,6 +45,7 @@ window.onclick = function(event) {
   const reportModal = document.getElementById('reportModal');
   const approveTipsModal = document.getElementById('approveTipsModal');
   const manageGroupModal = document.getElementById('manageGroupModal');
+  const createGroupModal = document.getElementById('createGroupModal');
   if (event.target === reviewModal) {
     reviewModal.style.display = "none";
   } else if (event.target === reportModal) {
@@ -52,6 +54,8 @@ window.onclick = function(event) {
     approveTipsModal.style.display = "none";
   } else if (event.target === manageGroupModal) {
     manageGroupModal.style.display = "none";
+  } else if (event.target === createGroupModal) {
+    createGroupModal.style.display = "none";
   }
 }
 
@@ -116,6 +120,16 @@ function openManageGroupModal() {
 function closeManageGroupModal() {
   document.getElementById('manageGroupModal').style.display = 'none';
 }
+
+function openCreateGroupModal() {
+    closeManageGroupModal();
+    document.getElementById('createGroupModal').style.display = 'block';
+  }
+  
+  function closeCreateGroupModal() {
+    openManageGroupModal();
+    document.getElementById('createGroupModal').style.display = 'none';
+  }
 
 document.addEventListener('DOMContentLoaded', function () {
   // --- Existing group form logic ---

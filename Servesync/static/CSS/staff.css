@@ -442,3 +442,304 @@
     height: 124px;
     overflow-y: auto; 
 }
+
+/* Manage Group Modal Improvements */
+#manageGroupModal.simple-modal .modal-content {
+  max-width: 550px;
+  padding: 30px 35px;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+/* Section wrappers inside modal */
+#manageGroupModal .modal-content form {
+  background: #f9f9f9;
+  padding: 20px 25px;
+  border-radius: 8px;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+}
+
+/* Labels */
+#manageGroupModal label.form-label {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 6px;
+  display: block;
+  color: #2f4f4f;
+}
+
+/* Inputs */
+#manageGroupModal input.form-control,
+#manageGroupModal select.form-select {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 1rem;
+  border: 1.8px solid #ccc;
+  border-radius: 6px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+#manageGroupModal input.form-control:focus,
+#manageGroupModal select.form-select:focus {
+  border-color: #146830;
+  box-shadow: 0 0 6px rgba(20, 104, 48, 0.5);
+  outline: none;
+}
+
+/* Buttons */
+#manageGroupModal button.btn {
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding: 12px 0;
+  border-radius: 8px;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+#manageGroupModal button.btn-success {
+  background-color: #146830;
+  border: none;
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(20, 104, 48, 0.4);
+}
+
+#manageGroupModal button.btn-success:hover {
+  background-color: #0f4c24;
+  box-shadow: 0 6px 14px rgba(15, 76, 36, 0.6);
+}
+
+/* Headings in modal */
+#manageGroupModal h2, 
+#manageGroupModal h3 {
+  color: #146830;
+  font-weight: 800;
+  margin-bottom: 20px;
+}
+
+/* Horizontal line between sections */
+#manageGroupModal hr {
+  border-color: #ddd;
+  margin: 35px 0;
+}
+
+/* Close button */
+#manageGroupModal .close-btn {
+  font-size: 28px;
+  top: 15px;
+  right: 25px;
+  color: #146830;
+  transition: color 0.3s ease;
+}
+
+#manageGroupModal .close-btn:hover {
+  color: #0f4c24;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  #manageGroupModal.simple-modal .modal-content {
+    max-width: 90%;
+    padding: 20px;
+  }
+}
+/* Create Group Modal Styling - matching Manage Group modal */
+#createGroupModal.simple-modal .modal-content {
+  max-width: 550px;
+  padding: 30px 35px;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+#createGroupModal .modal-content form {
+  background: #f9f9f9;
+  padding: 20px 25px;
+  border-radius: 8px;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+#createGroupModal label.form-label {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 6px;
+  display: block;
+  color: #2f4f4f;
+}
+
+#createGroupModal input.form-control,
+#createGroupModal select.form-select {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 1rem;
+  border: 1.8px solid #ccc;
+  border-radius: 6px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+#createGroupModal input.form-control:focus,
+#createGroupModal select.form-select:focus {
+  border-color: #146830;
+  box-shadow: 0 0 6px rgba(20, 104, 48, 0.5);
+  outline: none;
+}
+
+#createGroupModal button.btn {
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding: 12px 0;
+  border-radius: 8px;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+#createGroupModal button.btn-success {
+  background-color: #146830;
+  border: none;
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(20, 104, 48, 0.4);
+}
+
+#createGroupModal button.btn-success:hover {
+  background-color: #0f4c24;
+  box-shadow: 0 6px 14px rgba(15, 76, 36, 0.6);
+}
+
+#createGroupModal h2, 
+#createGroupModal h3 {
+  color: #146830;
+  font-weight: 800;
+  margin-bottom: 20px;
+}
+
+#createGroupModal .close-btn {
+  font-size: 28px;
+  top: 15px;
+  right: 25px;
+  color: #146830;
+  transition: color 0.3s ease;
+  position: absolute;
+  cursor: pointer;
+}
+
+#createGroupModal .close-btn:hover {
+  color: #0f4c24;
+}
+
+@media (max-width: 600px) {
+  #createGroupModal.simple-modal .modal-content {
+    max-width: 90%;
+    padding: 20px;
+  }
+}
+
+/* Group Modal Overlay */
+.group-modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.4);
+  backdrop-filter: blur(2px);
+}
+
+/* Group Modal Content Box */
+.group-modal-content {
+  background-color: #fff;
+  margin: 8% auto;
+  padding: 40px 30px;
+  border-radius: 12px;
+  width: 95%;
+  max-width: 550px;
+  position: relative;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* Modal Heading */
+.group-modal-content h2 {
+  text-align: center;
+  font-size: 26px;
+  margin-bottom: 30px;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 10px;
+  color: #0b5e3e;
+}
+
+/* Close Button */
+.group-modal-content .close-btn {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  font-size: 28px;
+  font-weight: bold;
+  color: #888;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.group-modal-content .close-btn:hover {
+  color: #0b5e3e;
+}
+
+/* Form Grouping */
+.group-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+/* Inputs and Selects */
+.group-modal-content input.form-control,
+.group-modal-content select.form-select {
+  padding: 10px 12px;
+  font-size: 15px;
+  border: 1px solid #bbb;
+  border-radius: 6px;
+  background-color: #f9f9f9;
+  transition: border 0.3s, box-shadow 0.3s;
+}
+
+.group-modal-content input.form-control:focus,
+.group-modal-content select.form-select:focus {
+  border-color: #0b5e3e;
+  box-shadow: 0 0 0 3px rgba(11, 94, 62, 0.15);
+  outline: none;
+}
+
+/* Buttons */
+.group-modal-content button.btn-success {
+  align-self: center;
+  padding: 14px 32px;
+  font-size: 16px;
+  font-weight: 600;
+  background: linear-gradient(to right, #2e7d32, #0b5e3e);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+
+.group-modal-content button.btn-success:hover {
+  background: linear-gradient(to right, #3da654, #138a57);
+  transform: translateY(-1px);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .group-modal-content {
+    max-width: 90%;
+    padding: 20px;
+  }
+}

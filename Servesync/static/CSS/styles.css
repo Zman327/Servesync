@@ -438,12 +438,11 @@ body.page-404 {
 
 .floating-form input:focus + label,
 .floating-form input:not(:placeholder-shown) + label {
-  top: -8px;
-  left: 30px;
-  font-size: 12px;
-  background: #fff;
-  padding: 0 6px;
-  color: #1f9e86;
+    top: -8px;
+    left: 30px;
+    font-size: 12px;
+    background: transparent;
+    color: #1f9e86;
 }
 
 /* Icons */
@@ -659,8 +658,3 @@ button[type="submit"]:hover {
   background-color: #4CAF50;
   color: white;
 }
-
-
-
-
-

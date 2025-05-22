@@ -326,12 +326,14 @@ h1, h3 {
     display: none;
 }
 
-/*.form-hint {
+.form-hint {
     font-size: 0.85rem;
     color: #6c757d;
-    margin-top: 4px;
+    margin-top: -15px;
+    margin-left: 15px;
+    text-align: left;
     display: block;
-}*/
+}
 
 .icon-wrapper {
     position: absolute;
@@ -348,16 +350,6 @@ h1, h3 {
 
 .icon-wrapper.error i {
     color: red !important;
-}
-
-.floating-form input:focus + label,
-.floating-form input:not(:placeholder-shown) + label {
-    top: -8px;
-    left: 30px;
-    font-size: 12px;
-    background: #fff;
-    padding: 0 6px;
-    color: #1f9e86;
 }
 
 .label-error {
