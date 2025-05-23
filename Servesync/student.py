@@ -1,8 +1,20 @@
 from flask import Blueprint
 from flask import render_template, request, redirect, session, url_for, flash, jsonify  # noqa
+from functools import wraps
+from flask import g
 from models import db, User, Group, ServiceHour, Award
 from datetime import datetime
 import pytz
+
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'username' not in session:
+            flash('Please log in to access this page.', 'warning')
+            return redirect(url_for('auth.login'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 
 student_bp = Blueprint('student', __name__)
@@ -138,6 +150,7 @@ def activity_history_user(user_id):
 
 
 @student_bp.route('/log')
+@login_required
 def logpage():
     # Get all users who have the 'staff' role (role = 2)
     staff_members = User.query.filter_by(role=2).all()
@@ -179,6 +192,7 @@ def get_all_staff():
 
 
 @student_bp.route('/submit-hours', methods=['POST'])
+@login_required
 def submit_hours():
     user = User.query.filter_by(school_id=session.get('username')).first()
     if not user:
@@ -194,7 +208,11 @@ def submit_hours():
     if not activity or len(activity) > 30:
         flash("Activity name must not be empty or over 30 characters.", "logpage-error")  # noqa
         return redirect(url_for('student.logpage'))
-    hours = float(request.form['hours'])
+    try:
+        hours = float(request.form['hours'])
+    except ValueError:
+        flash("Hours must be a number.", "logpage-error")
+        return redirect(url_for('student.logpage'))
     if hours <= 0 or hours > 24:
         flash("Hours must be greater than 0 and no more than 24.", "logpage-error") # noqa
         return redirect(url_for('student.logpage'))
@@ -207,6 +225,17 @@ def submit_hours():
 
     if not group or not staff:
         flash("Invalid group or staff member.", "logpage-error")
+        return redirect(url_for('student.logpage'))
+
+    # Prevent duplicate entries for same date, group, and activity
+    existing = ServiceHour.query.filter_by(
+        user_id=user.school_id,
+        group_id=group.id,
+        date=datetime.strptime(date, "%Y-%m-%d").strftime("%d-%m-%Y"),
+        description=activity
+    ).first()
+    if existing:
+        flash("You’ve already logged this activity for that date.", "logpage-error")
         return redirect(url_for('student.logpage'))
 
     # Create a new service hour record
@@ -223,6 +252,10 @@ def submit_hours():
     )
 
     db.session.add(new_log)
-    db.session.commit()
-    flash("Your hours have been submitted for review!", "logpage-success")
+    try:
+        db.session.commit()
+        flash("Your hours have been submitted for review!", "logpage-success")
+    except Exception as e:
+        db.session.rollback()
+        flash("An error occurred saving your log. Please try again.", "logpage-error")
     return redirect(url_for('student.logpage'))

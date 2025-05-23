@@ -10,8 +10,24 @@
         <h1>Welcome to ServeSYNC</h1>
         <p>Track your volunteer hours, manage activities, and reach your goals effortlessly.</p>
         <div class="cta-buttons">
-          <a href="/student.dashboard" class="cta-btn">Check your hours</a>
-          <a href="/log" class="cta-btn secondary">Log hours</a>
+          {% if session.role == 'Student' %}
+            <a href="/student.dashboard" class="cta-btn">Check your hours</a>
+          {% elif session.role == 'Staff' %}
+            <a href="/staff.dashboard" class="cta-btn">Approve hours</a>
+          {% elif session.role == 'Admin' %}
+            <a href="/staff.dashboard" class="cta-btn">Manage hours</a>
+          {% else %}
+            <a onclick="openLoginModal()" class="cta-btn">Check your hours</a>
+          {% endif %}
+
+          {% if session.role == 'Student' %}
+            <a href="/log" class="cta-btn secondary">Log hours</a>
+          {% elif session.role == 'Admin' %}
+            <a href="/admin.dashboard" class="cta-btn secondary">Admin controls</a>
+          {% elif session.role == 'Staff' %}
+          {% else %}
+            <a onclick="openLoginModal()" class="cta-btn secondary">Log hours</a>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -58,5 +74,6 @@
     </div>
   </section>
 </body>
+<script src="{{ url_for('static', filename='js/layout.js') }}"></script>
 </html>
 {% endblock %}
