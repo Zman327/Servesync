@@ -24,9 +24,9 @@ def login():
             session['role'] = user.user_role.name
             return redirect(url_for(f"{user.user_role.name.lower()}.{user.user_role.name.lower()}page")) # noqa
         else:
-            flash('Incorrect password!')
+            flash('Incorrect password!', 'login')
     else:
-        flash('No user found with that username!')
+        flash('No user found with that username!', 'login')
 
     return redirect(url_for('homepage'))
 
@@ -44,7 +44,7 @@ def google_login_callback():
 
     resp = google.get("/oauth2/v2/userinfo")
     if not resp.ok:
-        flash("Failed to fetch user info from Google.")
+        flash("Failed to fetch user info from Google.", 'login')
         return redirect(url_for("homepage"))
 
     user_info = resp.json()
@@ -57,5 +57,5 @@ def google_login_callback():
         session['role'] = user.user_role.name
         return redirect(url_for(f"{user.user_role.name.lower()}.{user.user_role.name.lower()}page")) # noqa
     else:
-        flash("No account found for this Google email.")
+        flash("No account found for this Google account.", 'login')
         return redirect(url_for("homepage"))

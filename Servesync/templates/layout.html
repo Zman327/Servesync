@@ -104,21 +104,21 @@
       <h2 class="center-text">Log In</h2>
       <form action="/login" method="POST" class="floating-form">
         <div class="form-group">
-          <i class='bx bxs-user'></i>
-          <input type="text" id="username" name="username" placeholder=" " required
+          <i class='bx bxs-user' id="username-icon"></i>
+          <input type="text" id="username" name="username" autocomplete="off" placeholder=" "
             class="{% if messages %}error{% endif %}">
           <label for="username">Username</label>
         </div>
 
         <div class="form-group">
           <i class='bx bxs-lock-alt' id="lockIcon" onclick="togglePasswordVisibility()"></i>
-          <input type="password" id="password" name="password" placeholder=" " required
+          <input type="password" id="password" name="password" placeholder=" "
             class="{% if messages %}error{% endif %}">
           <label for="password">Password</label>
           <i class="bx bxs-eye" id="togglePassword" onclick="togglePasswordVisibility()"></i>
         </div>
 
-        {% with messages = get_flashed_messages() %}
+        {% with messages = get_flashed_messages(category_filter=['login']) %}
         {% if messages %}
           <div class="flash-messages">
             {% for message in messages %}
@@ -127,6 +127,10 @@
           </div>
         {% endif %}
         {% endwith %}
+
+        <div id="login-error-message" class="form-error-message" style="display: none;">
+          *Please fill out all required fields.
+        </div>
 
         <button type="submit">Log In</button>
         <div class="or-separator">or</div>

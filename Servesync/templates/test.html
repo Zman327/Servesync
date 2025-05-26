@@ -2,68 +2,91 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ServeSYNC - Student Dashboard</title>
-  <link rel="stylesheet" href="/static/CSS/styles.css">
-  <link rel="icon" type="image/png" href="static/Images/Logo/favicon.png">
+  <title>Pie Chart Test</title>
+  <style>
+    :root {
+      --jungle-green: #2bbf8a;
+      --tiber: #0b5e3e;
+      --white: #ffffff;
+      --light-gray: #f8f9fa;
+      --soft-shadow: rgba(0, 0, 0, 0.06);
+      --font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      font-family: var(--font);
+      padding: 30px;
+    }
+
+    .progress-container {
+      position: relative;
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      margin: 40px auto;
+    }
+
+    .progress-container::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background-color: #e0e0e0;
+      z-index: 0;
+    }
+
+    .progress-bar {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1;
+      background: conic-gradient(var(--jungle-green) 0%, #e0e0e0 0%);
+      transition: background 0.6s ease;
+    }
+
+    .progress-text {
+      font-size: 18px;
+      font-weight: bold;
+      color: var(--tiber);
+      position: relative;
+      z-index: 2;
+    }
+  </style>
 </head>
 <body>
-  <header class="main-header">
-    <div class="navbar-container">
-      <div class="logo-section">
-        <img src="static/Images/Logo/favicon.png" alt="Logo" class="site-logo">
-        <span class="logo-text">ServeSYNC</span>
-      </div>
-      <nav class="navbar">
-        <ul class="nav-links">
-          <li><a href="#">Home</a></li>
-          <li><a href="#">Log</a></li>
-          <li><a href="#">Dashboard</a></li>
-          <li class="dropdown">
-            <a href="#" class="dropbtn">
-              <img src="static/Images/avatar-placeholder.png" alt="Avatar" class="avatar">
-              My Account
-            </a>
-            <div class="dropdown-content">
-              <div class="dropdown-header">
-                <strong>Zeyad Elmallah</strong><br>
-                <small>21524 | Student Account</small>
-              </div>
-              <a href="#">Dashboard</a>
-              <a href="#">Change Password</a>
-              <a href="#">Data Sharing</a>
-              <a href="#">Logout</a>
-            </div>
-          </li>
-        </ul>
-      </nav>
-    </div>
-  </header>
 
-  <main class="dashboard">
-    <div class="card">
-      <div class="navbar">Student Dashboard</div>
-      <div class="section">
-        <h3>Recent Activity</h3>
-        <p>Log hours</p>
-      </div>
-      <div class="section">
-        <h3>Hours Completed</h3>
-        <p>30</p>
-      </div>
-      <div class="section">
-        <h3>Hours Till Achievement</h3>
-        <p>20</p>
-      </div>
-      <div class="section">
-        <h3>Top Groups</h3>
-        <ul>
-          <li>Group A</li>
-          <li>Group B</li>
-          <li>Group C</li>
-        </ul>
-      </div>
+  <div class="progress-container">
+    <div
+      class="progress-bar"
+      id="progress-bar"
+      data-hours="45"
+      data-goal="30"
+      data-max-award-threshold="40"
+    >
+      <span class="progress-text" id="progress-text">45 / 40</span>
     </div>
-  </main>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const progressBar = document.getElementById("progress-bar");
+      const progressText = document.getElementById("progress-text");
+
+      if (progressBar && progressText) {
+        const userHours = parseFloat(progressBar.dataset.hours) || 0;
+        const nextAwardThreshold = parseFloat(progressBar.dataset.goal) || 20;
+        const maxAwardThreshold = parseFloat(progressBar.dataset.maxAwardThreshold) || nextAwardThreshold;
+
+        const goal = userHours >= maxAwardThreshold ? maxAwardThreshold : nextAwardThreshold;
+        const percentage = Math.min((userHours / goal) * 100, 100);
+
+        progressBar.style.background = `conic-gradient(var(--jungle-green) ${percentage}%, #e0e0e0 ${percentage}%)`;
+        progressText.textContent = `${userHours} / ${goal}`;
+      }
+    });
+  </script>
 </body>
 </html>

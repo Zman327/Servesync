@@ -20,7 +20,10 @@
         </h3>
         <div class="tooltip">
           <div class="progress-container">
-            <div class="progress-bar" id="progress-bar" data-hours="{{ user_hours or 0 }}" data-goal="{{ next_award_threshold or 20 }}">
+            <div class="progress-bar" id="progress-bar"
+                 data-hours="{{ user_hours or 0 }}"
+                 data-goal="{{ next_award_threshold or 20 }}"
+                 data-max-award-threshold="{{ max_award_threshold or 20 }}">
               <span class="progress-text" id="progress-text">{{ user_hours or 0 }} / {{ next_award_threshold or 20 }}</span>
             </div>
           </div>
@@ -85,19 +88,7 @@
       </section>
     </div>
   </main>
-  <script>
-    window.onload = function () {
-      const progressBar = document.getElementById("progress-bar");
-      const progressText = document.getElementById("progress-text");
-
-      const userHours = parseFloat(progressBar.getAttribute("data-hours")) || 0;
-      const goal = userHours >= {{ max_award_threshold }} ? {{ max_award_threshold }} : parseFloat(progressBar.getAttribute("data-goal")) || 20;
-      const percentage = (userHours / goal) * 100;
-
-      progressBar.style.background = `conic-gradient(var(--jungle-green) ${percentage}%, #e0e0e0 ${percentage}%)`;
-      progressText.innerText = `${userHours} / ${goal}`;
-    };
-  </script>
 </body>
+<script src="{{ url_for('static', filename='js/student.js') }}"></script>
 </html>
 {% endblock %}

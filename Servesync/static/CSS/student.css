@@ -129,8 +129,8 @@
 
 /* Progress Bar */
 .hours-completed .large-number {
-    font-size: 80px; /* Make the number much larger */
-    font-weight: bold; /* Make the number bold */
+    font-size: 80px; 
+    font-weight: bold; 
 }
 
 /* Circular Progress Bar for "Hours Till Achievement" */
@@ -153,8 +153,9 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background: conic-gradient(var(--jungle-green) 0% 0%, #e0e0e0 0% 100%); /* Base color */
-    transition: background 1s ease; /* Smooth transition for filling effect */
+    /* Background will be set dynamically by JS */
+    background: transparent;
+    transition: background 1s ease; 
     transition: width 0.5s ease-in-out;
 }
 
@@ -222,7 +223,7 @@ h1, h3 {
 
 .top-groups {
     height: 100%;
-    overflow-y: auto; /* Optional: adds scroll if content exceeds height */
+    overflow-y: auto; 
 }
 
 /* Spinner inside submit button */
@@ -443,7 +444,7 @@ h1, h3 {
 }
 
 .group-staff-table th {
-  background-color: #207561; /* softer jungle green */
+  background-color: #207561; 
   color: #ffffff;
   font-size: 14px;
   font-weight: 600;
@@ -457,8 +458,8 @@ h1, h3 {
   position: sticky;
   top: 0;
   z-index: 2;
-  background-color: #207561; /* Match existing header background */
-  border-bottom: 2px solid #ffffff33; /* Optional visual separation */
+  background-color: #207561; 
+  border-bottom: 2px solid #ffffff33; 
 }
 
 .group-staff-table tbody tr {
