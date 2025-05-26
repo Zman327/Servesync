@@ -1,8 +1,8 @@
 from flask import Blueprint
 from flask import render_template, request, redirect, session, url_for, flash, jsonify  # noqa
 from functools import wraps
-from flask import g
 from models import db, User, Group, ServiceHour, Award
+from sqlalchemy import case
 from datetime import datetime
 import pytz
 
@@ -155,8 +155,14 @@ def logpage():
     # Get all users who have the 'staff' role (role = 2)
     staff_members = User.query.filter_by(role=2).all()
 
-    # Get all groups from the group table
-    groups = Group.query.all()
+    # Get all groups from the group table, with "Other" at the end
+    groups = Group.query.order_by(
+        case(
+            (Group.name == "Other", 1),
+            else_=0
+        ),
+        Group.name
+    ).all()
 
     return render_template('student/log.html', staff_members=staff_members, groups=groups) # noqa
 
@@ -185,9 +191,9 @@ def get_staff_for_group():
 
 @student_bp.route('/api/all-staff')
 def get_all_staff():
-    staff_members = User.query.filter_by(role='2').all()
+    staff_members = User.query.filter(User.role.in_([2, 3])).all()
     staff_list = [{'value': f"{staff.first_name} {staff.last_name} ({staff.school_id})", # noqa
-                   'label': f"{staff.first_name} {staff.last_name} ({staff.school_id})"} for staff in staff_members]  # noqa
+                   'label': f"{staff.first_name} {staff.last_name} ({staff.school_id})"} for staff in staff_members] # noqa
     return jsonify(staff_list)
 
 
@@ -235,7 +241,7 @@ def submit_hours():
         description=activity
     ).first()
     if existing:
-        flash("You’ve already logged this activity for that date.", "logpage-error")
+        flash("You’ve already logged this activity for that date.", "logpage-error") # noqa
         return redirect(url_for('student.logpage'))
 
     # Create a new service hour record
@@ -255,7 +261,7 @@ def submit_hours():
     try:
         db.session.commit()
         flash("Your hours have been submitted for review!", "logpage-success")
-    except Exception as e:
+    except Exception as e: # noqa
         db.session.rollback()
-        flash("An error occurred saving your log. Please try again.", "logpage-error")
+        flash("An error occurred saving your log. Please try again.", "logpage-error") # noqa
     return redirect(url_for('student.logpage'))

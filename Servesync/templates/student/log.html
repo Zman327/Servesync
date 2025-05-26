@@ -36,7 +36,10 @@
           <label for="person_in_charge">Person in Charge <span class="required-asterisk">*</span></label>
           <ul id="staff-suggestions" class="autocomplete-list"></ul>
         </div>
-        <small class="form-hint">Enter the name of the supervising teacher or staff member.</small>
+        <div id="staff-error" class="form-error-message" style="display: none;">
+          Please select a valid staff from the list, suggestions will appear.
+        </div>
+        <small id="staff-helper-text" class="form-hint">Enter the name of the supervising teacher or staff member.</small>
         <div class="form-group">
           <i class="fas fa-clock"></i>
           <input type="number" name="hours" id="hours" required step="0.5" min="0" max="24" placeholder=" ">
@@ -68,8 +71,35 @@
   </div>
   <div class="right-column">
     <div class="info-box">
-      <h3>Need Help?</h3>
+      <h1>Need Help?</h1>
       <p>Make sure you enter your hours truthfully. Contact your teacher if you're unsure.</p>
+      <h2>List of Groups</h2>
+      <div class="group-table-container">
+        <table class="group-staff-table">
+          <thead>
+            <tr>
+              <th>Group</th>
+              <th>Staff in Charge</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for group in groups %}
+              <tr>
+                <td class="group-clickable" data-group="{{ group.name }}" title="Click to autofill group and staff">
+                  {{ group.name }}
+                </td>
+                <td>
+                  {% if group.staff_user %}
+                    {{ group.staff_user.first_name }} {{ group.staff_user.last_name }}
+                  {% else %}
+                    <em>Not assigned</em>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </main>

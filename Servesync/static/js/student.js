@@ -16,6 +16,23 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function showStaffError(show) {
+    const errorBox = document.getElementById("staff-error");
+    const helperText = document.getElementById("staff-helper-text");
+    if (show) {
+      const staffInput = document.getElementById("person_in_charge");
+      const container = staffInput.closest(".form-group");
+      if (container && errorBox.parentNode !== container.parentNode) {
+        container.parentNode.insertBefore(errorBox, container.nextSibling);
+      }
+      errorBox.style.display = "block";
+      helperText.style.display = "none";
+    } else {
+      errorBox.style.display = "none";
+      helperText.style.display = "block";
+    }
+  }
+
   const dateInput = document.getElementById("date");
   if (dateInput) {
     const today = new Date();
@@ -143,11 +160,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 .then(res => res.json())
                 .then(staff => {
                   const personSelect = document.getElementById("person_in_charge");
-                  personSelect.value = "";
-                  personSelect.setAttribute("data-linked-staff-value", "");
-                  personSelect.setAttribute("data-linked-staff-label", "");
-
-                  // Add the default auto-selected staff linked to the group
                   if (staff && staff.label) {
                     personSelect.value = staff.label;
                     personSelect.setAttribute("data-linked-staff-value", staff.value);
@@ -162,42 +174,58 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   groupInput.addEventListener("blur", () => {
-    const query = groupInput.value.trim();
-    const errorBox = document.getElementById("group-error");
-    const icon = groupInput.parentElement.querySelector("i");
+    setTimeout(() => {
+      const query = groupInput.value.trim();
+      const errorBox = document.getElementById("group-error");
+      const icon = groupInput.parentElement.querySelector("i");
 
-    if (!query) {
-      showGroupError(false);
-      groupInput.classList.remove("input-error");
-      if (icon) icon.classList.remove("input-error-icon");
-      return;
-    }
+      if (!query) {
+        groupInput.value = "Other";
+        showGroupError(false);
+        groupInput.classList.remove("input-error");
+        if (icon) icon.classList.remove("input-error-icon");
 
-    fetch(`/api/groups?q=${encodeURIComponent(query)}`)
-      .then(res => res.json())
-      .then(groups => {
-        const match = groups.some(group => group.toLowerCase() === query.toLowerCase());
-        if (!match) {
-          showGroupError(true);
-          groupInput.classList.add("input-error");
-          if (icon) icon.classList.add("input-error-icon");
+        // Fetch and auto-fill staff linked to "Other"
+        fetch(`/api/staff-for-group?group=Other`)
+          .then(res => res.json())
+          .then(staff => {
+            const personSelect = document.getElementById("person_in_charge");
+            if (staff && staff.label) {
+              personSelect.value = staff.label;
+              personSelect.setAttribute("data-linked-staff-value", staff.value);
+              personSelect.setAttribute("data-linked-staff-label", staff.label);
+            }
+          });
 
-          // Re-trigger animation
-          groupInput.classList.remove("input-error");
-          void groupInput.offsetWidth;
-          groupInput.classList.add("input-error");
+        return;
+      }
 
-          if (icon) {
-            icon.classList.remove("input-error-icon");
-            void icon.offsetWidth;
-            icon.classList.add("input-error-icon");
+      fetch(`/api/groups?q=${encodeURIComponent(query)}`)
+        .then(res => res.json())
+        .then(groups => {
+          const match = groups.some(group => group.toLowerCase() === query.toLowerCase());
+          if (!match) {
+            showGroupError(true);
+            groupInput.classList.add("input-error");
+            if (icon) icon.classList.add("input-error-icon");
+
+            // Re-trigger animation
+            groupInput.classList.remove("input-error");
+            void groupInput.offsetWidth;
+            groupInput.classList.add("input-error");
+
+            if (icon) {
+              icon.classList.remove("input-error-icon");
+              void icon.offsetWidth;
+              icon.classList.add("input-error-icon");
+            }
+          } else {
+            showGroupError(false);
+            groupInput.classList.remove("input-error");
+            if (icon) icon.classList.remove("input-error-icon");
           }
-        } else {
-          showGroupError(false);
-          groupInput.classList.remove("input-error");
-          if (icon) icon.classList.remove("input-error-icon");
-        }
-      });
+        });
+    }, 200); // Delay by 200ms
   });
 
   document.addEventListener("click", (e) => {
@@ -207,6 +235,32 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   const staffInput = document.getElementById("person_in_charge");
+
+  // Autofill group input when clicking on a group in the table
+  const groupCells = document.querySelectorAll(".group-clickable");
+  groupCells.forEach(cell => {
+    cell.addEventListener("click", () => {
+      const groupName = cell.getAttribute("data-group");
+      groupInput.value = groupName;
+
+      // Optional: trigger input event to refresh suggestions
+      groupInput.dispatchEvent(new Event("input"));
+
+      // Optionally hide any error message
+      showGroupError(false);
+
+      // Fetch and populate the staff member linked to this group
+      fetch(`/api/staff-for-group?group=${encodeURIComponent(groupName)}`)
+        .then(res => res.json())
+        .then(staff => {
+          if (staff && staff.label) {
+            staffInput.value = staff.label;
+            staffInput.setAttribute("data-linked-staff-value", staff.value);
+            staffInput.setAttribute("data-linked-staff-label", staff.label);
+          }
+        });
+    });
+  });
   const staffBox = document.getElementById("staff-suggestions");
 
   let staffTimeout;
@@ -241,5 +295,46 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!e.target.closest("#person_in_charge")) {
       staffBox.innerHTML = "";
     }
+  });
+
+  staffInput.addEventListener("blur", () => {
+    setTimeout(() => {
+      const query = staffInput.value.trim().toLowerCase();
+      const icon = staffInput.parentElement.querySelector("i");
+
+      if (!query) {
+        showStaffError(false);
+        staffInput.classList.remove("input-error");
+        if (icon) icon.classList.remove("input-error-icon");
+        return;
+      }
+
+      fetch(`/api/all-staff`)
+        .then(res => res.json())
+        .then(staffList => {
+          const match = staffList.some(staff =>
+            staff.label.toLowerCase() === query
+          );
+          if (!match) {
+            showStaffError(true);
+            staffInput.classList.add("input-error");
+            if (icon) icon.classList.add("input-error-icon");
+
+            staffInput.classList.remove("input-error");
+            void staffInput.offsetWidth;
+            staffInput.classList.add("input-error");
+
+            if (icon) {
+              icon.classList.remove("input-error-icon");
+              void icon.offsetWidth;
+              icon.classList.add("input-error-icon");
+            }
+          } else {
+            showStaffError(false);
+            staffInput.classList.remove("input-error");
+            if (icon) icon.classList.remove("input-error-icon");
+          }
+        });
+    }, 200);
   });
 });

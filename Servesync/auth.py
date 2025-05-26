@@ -1,7 +1,7 @@
 from flask import Blueprint, request, session, redirect, url_for, flash, render_template # noqa
 from werkzeug.security import check_password_hash
 from flask_dance.contrib.google import google
-from models import User, db
+from models import User
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -16,19 +16,13 @@ def login():
         if user.password.startswith('pbkdf2') and check_password_hash(user.password, password): # noqa
             session['username'] = user.school_id
             session['name'] = f"{user.first_name} {user.last_name}"
-            role_name = db.session.execute(
-                db.text("SELECT name FROM user_role WHERE id = :id"), {"id": user.role} # noqa
-            ).scalar()
-            session['role'] = role_name
-            return redirect(url_for(f"{role_name.lower()}.{role_name.lower()}page")) # noqa
+            session['role'] = user.user_role.name
+            return redirect(url_for(f"{user.user_role.name.lower()}.{user.user_role.name.lower()}page")) # noqa
         elif user.password == password:
             session['username'] = user.school_id
             session['name'] = f"{user.first_name} {user.last_name}"
-            role_name = db.session.execute(
-                db.text("SELECT name FROM user_role WHERE id = :id"), {"id": user.role} # noqa
-            ).scalar()
-            session['role'] = role_name
-            return redirect(url_for(f"{role_name.lower()}.{role_name.lower()}page")) # noqa
+            session['role'] = user.user_role.name
+            return redirect(url_for(f"{user.user_role.name.lower()}.{user.user_role.name.lower()}page")) # noqa
         else:
             flash('Incorrect password!')
     else:
@@ -60,11 +54,8 @@ def google_login_callback():
     if user:
         session['username'] = user.school_id
         session['name'] = f"{user.first_name} {user.last_name}"
-        role_name = db.session.execute(
-            db.text("SELECT name FROM user_role WHERE id = :id"), {"id": user.role} # noqa
-        ).scalar()
-        session['role'] = role_name
-        return redirect(url_for(f"{role_name.lower()}.{role_name.lower()}page")) # noqa
+        session['role'] = user.user_role.name
+        return redirect(url_for(f"{user.user_role.name.lower()}.{user.user_role.name.lower()}page")) # noqa
     else:
         flash("No account found for this Google email.")
         return redirect(url_for("homepage"))

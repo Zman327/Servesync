@@ -11,10 +11,12 @@ class User(db.Model):
     last_name = db.Column(db.String())
     email = db.Column(db.String(), unique=True)
     password = db.Column(db.String())
-    role = db.Column(db.String(), nullable=False)
+    role = db.Column(db.String(), db.ForeignKey('user_role.id'), nullable=False) # noqa
     picture = db.Column(db.LargeBinary())
     hours = db.Column(db.Float)
     form = db.Column(db.String(), nullable=False)
+
+    user_role = db.relationship("UserRole", backref="users")
 
 
 class Award(db.Model):
@@ -60,12 +62,14 @@ class Group(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, unique=True, nullable=False)
     staff = db.Column(db.String, db.ForeignKey('user.school_id'))
+    staff_user = db.relationship('User', foreign_keys=[staff])
 
 
 class UserRole(db.Model):
     __tablename__ = 'user_role'
     __table_args__ = {'extend_existing': True}
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.String(), primary_key=True)
+    name = db.Column(db.String(), nullable=False)
 
 
 def init_models(app):

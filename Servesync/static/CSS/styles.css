@@ -116,6 +116,12 @@ main {
   border: 2px solid var(--tiber);
 }
 
+.cta-btn.secondary:hover {
+  background-color: var(--tiber);
+  color: var(--white);
+  border: 2px solid var(--tiber);
+}
+
 .cta-btn:hover {
   background-color: var(--tiber);
   transform: translateY(-2px);
