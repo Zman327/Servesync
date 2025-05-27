@@ -776,9 +776,26 @@ function removeAdmin(schoolId) {
     })
     .then(response => response.json())
     .then(data => {
-      alert(data.message);
+      const messageBox = document.getElementById("adminActionMessage");
+  
+      if (messageBox) {
+        messageBox.textContent = data.message;
+        messageBox.className = ""; // clear previous classes
+        messageBox.classList.add(data.status === 'success' ? 'success' : 'error');
+        messageBox.style.display = 'block';
+      }
+  
       if (data.status === 'success') {
         refreshCurrentAdmins();
       }
+    })
+    .catch(error => {
+      const messageBox = document.getElementById("adminActionMessage");
+      if (messageBox) {
+        messageBox.textContent = "An unexpected error occurred.";
+        messageBox.className = "error";
+        messageBox.style.display = 'block';
+      }
+      console.error("Error removing admin:", error);
     });
   }

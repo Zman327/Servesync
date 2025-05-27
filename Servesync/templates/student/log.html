@@ -42,10 +42,13 @@
         <small id="staff-helper-text" class="form-hint">Enter the name of the supervising teacher or staff member.</small>
         <div class="form-group">
           <i class="fas fa-clock"></i>
-          <input type="number" name="hours" id="hours" required step="0.5" min="0" max="24" placeholder=" ">
+          <input type="number" name="hours" id="hours" step="0.5" min="0.5" max="24" placeholder=" ">
           <label for="hours">Hours Completed <span class="required-asterisk">*</span></label>
         </div>
-        <small class="form-hint">Enter the total time spent, rounded to the nearest 0.5 hours (Where 0.5 = 30 min).</small>
+        <div id="hours-error" class="form-error-message" style="display: none;">
+          Please enter a valid number of hours between 0.5 and 24 & in increments of 0.5 (30 minutes).
+        </div>
+        <small id="hours-helper-text" class="form-hint">Enter the total time spent, rounded to the nearest 0.5 hours (Where 0.5 = 30 min).</small>
         <div id="form-error-message" class="form-error-message" style="display: none;">
           *Please fill out all required fields.
         </div>
@@ -73,7 +76,7 @@
     <div class="info-box">
       <h1>Need Help?</h1>
       <p>Make sure you enter your hours truthfully. Contact your teacher if you're unsure.</p>
-      <h2>List of Groups</h2>
+      <h2>List of Groups (A-Z)</h2>
       <div class="group-table-container">
         <table class="group-staff-table">
           <thead>

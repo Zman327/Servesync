@@ -1,4 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
+  let suppressSuggestions = false;
+
   function showGroupError(show) {
     const errorBox = document.getElementById("group-error");
     const helperText = document.getElementById("group-helper-text");
@@ -30,6 +32,29 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       errorBox.style.display = "none";
       helperText.style.display = "block";
+    }
+  }
+
+  function showHoursError(show) {
+    const errorBox = document.getElementById("hours-error");
+    const helperText = document.getElementById("hours-helper-text");
+    const hoursInput = document.getElementById("hours");
+    const icon = hoursInput?.parentElement?.querySelector("i");
+
+    if (show) {
+      const container = hoursInput.closest(".form-group");
+      if (container && errorBox && errorBox.parentNode !== container.parentNode) {
+        container.parentNode.insertBefore(errorBox, container.nextSibling);
+      }
+      if (errorBox) errorBox.style.display = "block";
+      if (helperText) helperText.style.display = "none";
+      hoursInput.classList.add("input-error");
+      if (icon) icon.classList.add("input-error-icon");
+    } else {
+      if (errorBox) errorBox.style.display = "none";
+      if (helperText) helperText.style.display = "block";
+      hoursInput.classList.remove("input-error");
+      if (icon) icon.classList.remove("input-error-icon");
     }
   }
 
@@ -85,21 +110,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const hoursInput = document.getElementById("hours");
       if (hoursInput) {
         const hours = parseFloat(hoursInput.value);
-        if (hours <= 0) {
-          hoursInput.classList.add("input-error");
-          const hoursIcon = hoursInput.parentElement.querySelector('i');
-          const hoursLabel = hoursInput.parentElement.querySelector('label');
-          if (hoursIcon) {
-            hoursIcon.classList.add("input-error-icon");
-            setTimeout(() => hoursIcon.classList.remove("input-error-icon"), 600);
-          }
-          if (hoursLabel) {
-            hoursLabel.classList.add("label-error");
-            setTimeout(() => hoursLabel.classList.remove("label-error"), 600);
-          }
-          alert("Hours must be greater than 0.");
+        const valid = !isNaN(hours) && hours >= 0.5 && hours <= 25 && hours * 2 === Math.round(hours * 2);
+        if (!valid) {
+          showHoursError(true);
           e.preventDefault();
           return;
+        } else {
+          showHoursError(false);
         }
       }
 
@@ -130,12 +147,26 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Optionally, add a blur event to dynamically validate `hours` as user leaves the field
+  const hoursInput = document.getElementById("hours");
+  if (hoursInput) {
+    hoursInput.addEventListener("blur", () => {
+      const hours = parseFloat(hoursInput.value);
+      const valid = !isNaN(hours) && hours >= 0.5 && hours <= 24 && hours * 2 === Math.round(hours * 2);
+      showHoursError(!valid);
+    });
+  }
+
   const groupInput = document.getElementById("group");
   const suggestionBox = document.getElementById("group-suggestions");
 
   if (groupInput) {
     let timeout;
     groupInput.addEventListener("input", () => {
+      if (suppressSuggestions) {
+        suppressSuggestions = false; // reset for future use
+        return;
+      }
       clearTimeout(timeout);
       const query = groupInput.value.trim();
       if (!query) {
@@ -259,12 +290,16 @@ document.addEventListener("DOMContentLoaded", () => {
         const groupName = cell.getAttribute("data-group");
         if (groupInput) {
           groupInput.value = groupName;
+          suppressSuggestions = true;
 
           // Optional: trigger input event to refresh suggestions
           groupInput.dispatchEvent(new Event("input"));
 
-          // Optionally hide any error message
+          // Hide any error message and clear error styling
           showGroupError(false);
+          groupInput.classList.remove("input-error");
+          const groupIcon = groupInput.parentElement.querySelector("i");
+          if (groupIcon) groupIcon.classList.remove("input-error-icon");
         }
 
         // Fetch and populate the staff member linked to this group
@@ -275,6 +310,11 @@ document.addEventListener("DOMContentLoaded", () => {
               staffInput.value = staff.label;
               staffInput.setAttribute("data-linked-staff-value", staff.value);
               staffInput.setAttribute("data-linked-staff-label", staff.label);
+              // Clear staff error
+              showStaffError(false);
+              staffInput.classList.remove("input-error");
+              const staffIcon = staffInput.parentElement.querySelector("i");
+              if (staffIcon) staffIcon.classList.remove("input-error-icon");
             }
           });
       });

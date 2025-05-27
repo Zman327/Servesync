@@ -235,15 +235,25 @@ def promote_to_admin():
 
 @admin_bp.route('/admin/remove', methods=['POST'])
 def remove_admin():
+    if not request.is_json:
+        return jsonify({'status': 'error', 'message': 'Invalid content type. Expected application/json'}), 400 # noqa
+
     data = request.get_json()
     school_id = data.get('school_id')
-    user = User.query.filter_by(school_id=school_id).first()
 
-    if user and user.role == 3:
-        user.role = 2
-        db.session.commit()
-        return jsonify({'status': 'success', 'message': f"{user.first_name} {user.last_name} removed as admin."}) # noqa
-    return jsonify({'status': 'error', 'message': 'User not found or not an admin.'}), 400 # noqa
+    if not school_id:
+        return jsonify({'status': 'error', 'message': 'school_id is required'}), 400 # noqa
+
+    user = User.query.filter_by(school_id=school_id).first()
+    if not user:
+        return jsonify({'status': 'error', 'message': 'User not found'}), 400
+
+    if int(user.role) != 3:
+        return jsonify({'status': 'error', 'message': 'User is not an admin'}), 400  # noqa
+
+    user.role = 2
+    db.session.commit()
+    return jsonify({'status': 'success', 'message': f"{user.first_name} {user.last_name} removed as admin."}) # noqa
 
 
 @admin_bp.route('/api/current_admins')

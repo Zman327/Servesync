@@ -338,6 +338,16 @@ h1, h3 {
     display: none;
 }
 
+#hours-error {
+    color: red;
+    font-size: 0.85rem;
+    margin-top: -15px;
+    margin-left: 15px;
+    margin-bottom: -2px;
+    text-align: left;
+    display: none;
+}
+
 .form-hint {
     font-size: 0.85rem;
     color: #6c757d;

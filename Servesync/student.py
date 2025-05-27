@@ -219,8 +219,8 @@ def submit_hours():
     except ValueError:
         flash("Hours must be a number.", "logpage-error")
         return redirect(url_for('student.logpage'))
-    if hours <= 0 or hours > 24:
-        flash("Hours must be greater than 0 and no more than 24.", "logpage-error") # noqa
+    if hours < 0.5 or hours > 24 or (hours * 2) % 1 != 0:
+        flash("Hours must be between 0.5 and 24, in 0.5 increments.", "logpage-error") # noqa
         return redirect(url_for('student.logpage'))
     details = request.form.get('details', '')
 

@@ -1,57 +1,104 @@
 {% extends "layout.html" %}
 
-{% block title %}My Activities - ServeSYNC{% endblock %}
+{% block title %}All Submissions - ServeSYNC{% endblock %}
 
 {% block content %}
-<h1>My Service Activities</h1>
+<main class="dashboard">
+    <a href="/staff.dashboard" class="back-button">
+        <i class="fas fa-arrow-left"></i>
+    </a>
+  <div class="right-column full-width">
+    <div class="section">
+      <h2><i class="fas fa-file-alt"></i> Your Service Hour Submissions</h2>
+      <!-- Search bar and Approve All Pending button -->
+      <div class="search-approve-container">
+        <div class="search-container" style="flex: 1;">
+          <input type="text" id="searchInput" placeholder="Search by student, date, or group..." />
+        </div>
+        <div class="filter-form">
+            <form method="get" action="{{ request.path }}">
+              <label for="status">Filter by Status:</label>
+              <select name="status" id="status" onchange="this.form.submit()">
+                <option value="">All</option>
+                <option value="Approved" {% if request.args.get('status') == 'Approved' %}selected{% endif %}>Approved</option>
+                <option value="Pending" {% if request.args.get('status') == 'Pending' %}selected{% endif %}>Pending</option>
+                <option value="Rejected" {% if request.args.get('status') == 'Rejected' %}selected{% endif %}>Rejected</option>
+              </select>
+            </form>
+          </div>
+      </div>
+      <table class="activity-table datatable" id="submissionsTable">
+        <thead>
+          <tr>
+            <th data-column="0" class="sortable">Student Name <span class="sort-icon">⇅</span></th>
+            <th data-column="1" class="sortable">Description <span class="sort-icon">⇅</span></th>
+            <th data-column="2" class="sortable">Hours <span class="sort-icon">⇅</span></th>
+            <th data-column="3" class="sortable">Date <span class="sort-icon">⇅</span></th>
+            <th data-column="4">Status</th>
+            <th data-column="5" class="sortable">Group <span class="sort-icon">⇅</span></th>
+          </tr>
+        </thead>
+        <tbody>
+            {% for submission in submissions %}
+            <tr class="submission-row" data-student-name="{{ submission.student_name }}" data-picture-url="{{ submission.picture_url|default('/static/default-profile.png') }}" data-user-id="{{ submission.user_id }}" data-description="{{ submission.description }}" data-hours="{{ submission.hours }}" data-date="{{ submission.date }}" data-formatted-date="{{ submission.formatted_date }}" data-status-label="{{ submission.status_label }}" data-group="{{ submission.group }}" data-formatted-log-time="{{ submission.formatted_log_time }}" data-id="{{ submission.id }}">
+              <td>{{ submission.student_name }}</td>
+              <td>{{ submission.description }}</td>
+              <td>{{ submission.hours }}</td>
+              <td>{{ submission.date }}</td>
+              <td class="{{ submission.status_label|lower }}">
+                {% if submission.status_label == 'Approved' %}
+                  <i class="fas fa-check-circle"></i>
+                {% elif submission.status_label == 'Pending' %}
+                  <i class="fas fa-clock"></i>
+                {% elif submission.status_label == 'Rejected' %}
+                  <i class="fas fa-times-circle"></i>
+                {% else %}
+                  <i class="fas fa-question-circle"></i>
+                {% endif %}
+                {{ submission.status_label }}
+              </td>
+              <td>{{ submission.group }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+      </table>
+      <div class="pagination">
+        <button id="prevPage">Previous</button>
+        <span id="pageIndicator">Page 1</span>
+        <button id="nextPage">Next</button>
+      </div>
+      <div style="margin-top: -27px; font-weight: bold;">
+        <span style="color: green;">Approved: {{ accepted_count }}</span>
+        &nbsp;&nbsp;&nbsp;
+        <span style="color: orange;">Pending: {{ pending_count }}</span>
+        &nbsp;&nbsp;&nbsp;
+        <span style="color: red;">Rejected: {{ rejected_count }}</span>
+      </div>
 
-<input type="text" id="searchInput" placeholder="Search activities..." onkeyup="filterTable()">
+      <!-- Review Modal -->
+      <div id="reviewModal" class="modal review-modal">
+        <div class="modal-content">
+          <span class="close-btn" onclick="closeModal()">&times;</span>
+          <div class="modal-image">
+            <img id="modal-student-img" src="{{ url_for('static', filename='Images/Profile/default.jpg') }}" alt="Student Picture" />
+          </div>
+          <div class="modal-details">
+            <h2>Submission Details</h2>
+            <p><strong>Student:</strong> <span id="modal-student"></span></p>
+            <p><strong>Group:</strong> <span id="modal-group"></span></p>
+            <p><strong>Activity:</strong> <span id="modal-activity"></span></p>
+            <p><strong>Hours:</strong> <span id="modal-hours"></span></p>
+            <p><strong>Date:</strong> <span id="modal-date"></span></p>
+            <p><strong>Status:</strong> <span id="modal-status"></span></p>
+            <p><strong>Date Submitted:</strong> <span id="modal-log-time"></span></p>
+            
+            <input type="hidden" id="edit-log-id">
+          </div>
+        </div>
+      </div>
 
-<table id="activitiesTable" border="1" cellpadding="5" cellspacing="0">
-    <thead>
-        <tr>
-            <th>Activity</th>
-            <th>Description</th>
-            <th>Hours</th>
-            <th>Date</th>
-            <th>Status</th>
-            <th>Group</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for activity in activities %}
-        <tr>
-            <td>{{ activity.name }}</td>
-            <td>{{ activity.description }}</td>
-            <td>{{ activity.hours }}</td>
-            <td>{{ activity.date.strftime('%Y-%m-%d') }}</td>
-            <td>{{ activity.status }}</td>
-            <td>{{ activity.group }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-
-<script>
-function filterTable() {
-    var input = document.getElementById("searchInput");
-    var filter = input.value.toLowerCase();
-    var table = document.getElementById("activitiesTable");
-    var trs = table.getElementsByTagName("tr");
-
-    for (var i = 1; i < trs.length; i++) {
-        var tds = trs[i].getElementsByTagName("td");
-        var rowText = "";
-        for (var j = 0; j < tds.length; j++) {
-            rowText += tds[j].textContent.toLowerCase() + " ";
-        }
-        if (rowText.indexOf(filter) > -1) {
-            trs[i].style.display = "";
-        } else {
-            trs[i].style.display = "none";
-        }
-    }
-}
-</script>
+    </div>
+  </div>
+</main>
 
 {% endblock %}
