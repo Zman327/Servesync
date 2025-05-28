@@ -1,5 +1,6 @@
 from flask import Blueprint
 from flask import render_template, request, redirect, url_for, flash, jsonify, make_response # noqa
+from flask import session, abort
 import base64
 from fpdf import FPDF
 from openpyxl import Workbook
@@ -19,6 +20,8 @@ admin_bp = Blueprint('admin', __name__)
 
 @admin_bp.route('/admin.dashboard')
 def adminpage():
+    if session.get('role') != 'Admin':
+        abort(403)
     nz_timezone = pytz.timezone('Pacific/Auckland')
     now = datetime.now(nz_timezone)
     if now.hour < 12:

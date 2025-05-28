@@ -91,25 +91,31 @@ def testpage():
 
 @app.route('/about')
 def aboutpage():
-    return render_template('about.html')
+    return render_template('layout/about.html')
 
 
 @app.route('/privacy_policy')
 def privacypage():
-    return render_template('privacy_policy.html')
+    return render_template('layout/privacy_policy.html')
 
 
 @app.route('/terms')
 def termspage():
-    return render_template('terms.html')
+    return render_template('layout/terms.html')
 
 
 # 404 page to display when a page is not found
 # helps re-direct users back to home page
-@app.errorhandler(404) # noqa:
+@app.errorhandler(404)
 def page_not_found(e):
-    return render_template('404.html'), 404
+    return render_template('errors/404.html'), 404
 
-@app.errorhandler(500) # noqa:
+
+@app.errorhandler(500)
 def internal_server_error(e):
-    return render_template('500.html'), 500
+    return render_template('errors/500.html'), 500
+
+
+@app.errorhandler(403) # noqa:
+def forbidden(e):
+    return render_template('errors/403.html'), 403

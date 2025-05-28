@@ -1,4 +1,4 @@
-from flask import Blueprint, request, session, redirect, url_for, flash, render_template # noqa
+from flask import Blueprint, request, session, redirect, url_for, flash # noqa
 from werkzeug.security import check_password_hash
 from flask_dance.contrib.google import google
 from models import User

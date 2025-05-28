@@ -1,5 +1,5 @@
 from flask import Blueprint
-from flask import render_template, request, redirect, session, url_for, flash, jsonify, make_response # noqa
+from flask import render_template, request, redirect, session, url_for, jsonify, make_response, abort # noqa
 import base64
 from fpdf import FPDF
 from openpyxl import Workbook
@@ -110,9 +110,8 @@ def check_and_notify_pending_submissions(staff_id, staff_email):
 
 @staff_bp.route('/staff.dashboard')
 def staffpage():
-    if 'username' not in session:
-        flash("Please log in to access the staff dashboard.", "error")
-        return redirect('/')  # or wherever your login modal is available
+    if session.get('role') not in ['Admin', 'Staff']:
+        abort(403)
     # Get the New Zealand timezone
     nz_timezone = pytz.timezone('Pacific/Auckland')
     # Get the current time in New Zealand
@@ -210,6 +209,8 @@ def staffpage():
 
 @staff_bp.route('/submissions')
 def submissions():
+    if session.get('role') not in ['Admin', 'Staff']:
+        abort(403)
     staff_id = session.get('username')
     selected_status = request.args.get('status')
 

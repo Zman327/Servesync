@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}ServeSYNC{% endblock %}</title>
+  <link rel="stylesheet" href="/static/CSS/styles.css">
+  <link rel="stylesheet" href="/static/CSS/student.css">
+  <link rel="stylesheet" href="/static/CSS/staff.css">
+  <link rel="stylesheet" href="/static/CSS/admin.css">
+  <link rel="stylesheet" href="/static/CSS/layout.css">
+  <link rel="icon" type="image/png" href="static/Images/Logo/favicon.png">
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+</head>
+<body>
+  <!-- Header Section -->
+  <header class="landing-header">
+    <div class="logo-container">
+      <img src="static/Images/Logo/favicon.png" alt="Logo" class="site-logo">
+      <span class="logo-text">ServeSYNC</span>
+    </div>
+    <nav class="landing-nav">
+      <ul class="nav-links">
+        <li><a href="/home">Home</a></li>
+        {% if session.role == 'Student' %}
+          <li><a href="/log">Log</a></li>
+        {% endif %}
+        {% if session.role == 'Staff' %}
+          <li><a href="/staff.dashboard">Dashboard</a></li>
+        {% elif session.role == 'Admin' %}
+          <li><a href="/staff.dashboard">Dashboard</a></li>
+        {% elif session.role == 'Student' %}
+          <li><a href="/student.dashboard">Dashboard</a></li>
+        {% else %}
+          <li> <a onclick="openLoginModal()"></i> Dashboard</button></a></li>
+        {% endif %}
+        {% if session.role == 'Admin'%}
+        <li><a href="/admin.dashboard">Admin</a></li>
+        {% endif %}
+      </ul>
+
+      <!-- Auth or Account Dropdown (Dynamic Based on Login Status) -->
+      <div class="auth-or-account">
+        {% if session.username %}
+        <div class="dropdown">
+          <a href="#" class="dropbtn">
+            <img src="{{ profile_image or url_for('static', filename='Images/Profile/deafult.jpg') }}" alt="Avatar" class="avatar">
+            <span>My Account ▼</span>
+          </a>
+          <div class="dropdown-content">
+            <div class="dropdown-header">
+              <strong>{{ session.name }}</strong><br>
+              <small>{{ session.username }} | {{ session.role }} Account</small>
+            </div>
+            {% if session.role == 'Student' %}
+            <a href="/log">Log Hours</a>
+            {% elif session.role == 'Admin' %}
+            <a href="/admin.dashboard">Admin Controls</a>
+            {% endif %}
+            {% if session.role == 'Staff' %}
+            <a href="/staff.dashboard">Dashboard</a>
+            {% elif session.role == 'Admin' %}
+            <a href="/staff.dashboard">Dashboard</a>
+            {% else %}
+            <a href="/student.dashboard">Dashboard</a>
+            {% endif %}
+            <a href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</i></a>
+          </div>
+        </div>
+        {% else %}
+        <div class="auth-buttons">
+          <button class="login-btn" onclick="openLoginModal()"><i class='bx bxs-user'></i> Log In</button>
+        </div>
+        {% endif %}
+      </div>
+    </nav>
+  </header>
+
+  <!-- Main Content Section -->
+  <main>
+    {% block content %}
+    <!-- This is where the specific page content will go -->
+    {% endblock %}
+  </main>
+
+  <!-- Footer Section (Optional) -->
+  <footer class="landing-footer">
+    <div class="footer-links">
+      <a href="/about">About</a>
+      <a href="/privacy_policy">Privacy Policy</a>
+      <a href="/terms">Terms of Service</a>
+    </div>
+    <p>&copy; 2025 ServeSYNC. All rights reserved.</p>
+  </footer>
+
+  <!-- Login Modal -->
+  <div id="loginModal" class="modal">
+    <div class="modal-content login-modal">
+      <span class="close" onclick="closeLoginModal()">&times;</span>
+      <h2 class="center-text">Log In</h2>
+      <form action="/login" method="POST" class="floating-form">
+        <div class="form-group">
+          <i class='bx bxs-user' id="username-icon"></i>
+          <input type="text" id="username" name="username" autocomplete="off" placeholder=" "
+            class="{% if messages %}error{% endif %}">
+          <label for="username">Username</label>
+        </div>
+
+        <div class="form-group">
+          <i class='bx bxs-lock-alt' id="lockIcon" onclick="togglePasswordVisibility()"></i>
+          <input type="password" id="password" name="password" placeholder=" "
+            class="{% if messages %}error{% endif %}">
+          <label for="password">Password</label>
+          <i class="bx bxs-eye" id="togglePassword" onclick="togglePasswordVisibility()"></i>
+        </div>
+
+        {% with messages = get_flashed_messages(category_filter=['login']) %}
+        {% if messages %}
+          <div class="flash-messages">
+            {% for message in messages %}
+              <div class="flash-message">{{ message }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+        {% endwith %}
+
+        <div id="login-error-message" class="form-error-message" style="display: none;">
+          *Please fill out all required fields.
+        </div>
+
+        <button type="submit">Log In</button>
+        <div class="or-separator">or</div>
+        <a href="{{ url_for('google.login') }}" class="google-signin-btn">
+          <img src="static/Images/Logo/google.jpg" alt="Google icon" class="google-icon">
+          Sign in with Google
+        </a>
+      </form>
+    </div>
+  </div>
+  <script src="{{ url_for('static', filename='js/layout.js') }}"></script>
+</body>
+</html>

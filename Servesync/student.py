@@ -1,5 +1,5 @@
 from flask import Blueprint
-from flask import render_template, request, redirect, session, url_for, flash, jsonify  # noqa
+from flask import render_template, request, redirect, session, url_for, flash, jsonify, abort  # noqa
 from functools import wraps
 from models import db, User, Group, ServiceHour, Award
 from sqlalchemy import case
@@ -22,6 +22,8 @@ student_bp = Blueprint('student', __name__)
 
 @student_bp.route('/student.dashboard')
 def studentpage():
+    if session.get('role') != 'Student':
+        abort(403)
     # Get the New Zealand timezone
     nz_timezone = pytz.timezone('Pacific/Auckland')
     # Get the current time in New Zealand
@@ -152,6 +154,8 @@ def activity_history_user(user_id):
 @student_bp.route('/log')
 @login_required
 def logpage():
+    if session.get('role') != 'Student':
+        abort(403)
     # Get all users who have the 'staff' role (role = 2)
     staff_members = User.query.filter_by(role=2).all()
 

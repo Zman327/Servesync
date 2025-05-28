@@ -735,18 +735,36 @@ function promoteToAdmin(schoolId) {
     })
     .then(response => response.json())
     .then(data => {
-      alert(data.message);
+      const messageBox = document.getElementById("adminActionMessage");
+  
       if (data.success || data.status === 'success') {
+        messageBox.textContent = data.message;
+        messageBox.style.display = "block";
+        messageBox.style.backgroundColor = "#d4edda";
+        messageBox.style.color = "#155724";
+        messageBox.style.border = "1px solid #c3e6cb";
+  
         document.getElementById("adminSearchInput").value = "";
-        searchStaffForAdmin(); // Refresh search results
-        refreshCurrentAdmins(); // Update admin list without reload
+        searchStaffForAdmin();
+        refreshCurrentAdmins();
+      } else {
+        messageBox.textContent = data.message || "Failed to promote to admin.";
+        messageBox.style.display = "block";
+        messageBox.style.backgroundColor = "#f8d7da";
+        messageBox.style.color = "#721c24";
+        messageBox.style.border = "1px solid #f5c6cb";
       }
     })
     .catch(error => {
       console.error("Error promoting to admin:", error);
-      alert("An error occurred while promoting to admin.");
+      const messageBox = document.getElementById("adminActionMessage");
+      messageBox.textContent = "An error occurred while promoting to admin.";
+      messageBox.style.display = "block";
+      messageBox.style.backgroundColor = "#f8d7da";
+      messageBox.style.color = "#721c24";
+      messageBox.style.border = "1px solid #f5c6cb";
     });
-}
+  }
 
 function refreshCurrentAdmins() {
 fetch('/api/current_admins')
