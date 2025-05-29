@@ -116,6 +116,11 @@ def internal_server_error(e):
     return render_template('errors/500.html'), 500
 
 
-@app.errorhandler(403) # noqa:
+@app.errorhandler(403)
 def forbidden(e):
     return render_template('errors/403.html'), 403
+
+
+@app.errorhandler(405)
+def method_not_allowed(e):
+    return render_template('errors/405.html'), 405

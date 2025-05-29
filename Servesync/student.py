@@ -152,7 +152,6 @@ def activity_history_user(user_id):
 
 
 @student_bp.route('/log')
-@login_required
 def logpage():
     if session.get('role') != 'Student':
         abort(403)

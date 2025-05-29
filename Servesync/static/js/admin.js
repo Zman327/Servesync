@@ -69,7 +69,7 @@ new Chart(document.getElementById('chart-hours-by-group'), {
       labels: ['Approved', 'Pending', 'Rejected'],
       datasets: [{
         label: 'Number of Submissions',
-        data: [120, 30, 10], // Replace these with real counts from Flask
+        data: [120, 30, 10], 
         backgroundColor: [
           '#4CAF50',  // Approved - green
           '#FFC107',  // Pending - amber
