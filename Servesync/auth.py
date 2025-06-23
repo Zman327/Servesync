@@ -1,3 +1,4 @@
+from .staff import check_and_notify_pending_submissions
 from flask import Blueprint, request, session, redirect, url_for, flash # noqa
 from werkzeug.security import check_password_hash
 from flask_dance.contrib.google import google
@@ -17,11 +18,15 @@ def login():
             session['username'] = user.school_id
             session['name'] = f"{user.first_name} {user.last_name}"
             session['role'] = user.user_role.name
+            if user.user_role.name in ['Staff', 'Admin']:
+                check_and_notify_pending_submissions()
             return redirect(url_for(f"{user.user_role.name.lower()}.{user.user_role.name.lower()}page")) # noqa
         elif user.password == password:
             session['username'] = user.school_id
             session['name'] = f"{user.first_name} {user.last_name}"
             session['role'] = user.user_role.name
+            if user.user_role.name in ['Staff', 'Admin']:
+                check_and_notify_pending_submissions()
             return redirect(url_for(f"{user.user_role.name.lower()}.{user.user_role.name.lower()}page")) # noqa
         else:
             flash('Incorrect password!', 'login')
@@ -55,6 +60,8 @@ def google_login_callback():
         session['username'] = user.school_id
         session['name'] = f"{user.first_name} {user.last_name}"
         session['role'] = user.user_role.name
+        if user.user_role.name in ['Staff', 'Admin']:
+            check_and_notify_pending_submissions()
         return redirect(url_for(f"{user.user_role.name.lower()}.{user.user_role.name.lower()}page")) # noqa
     else:
         flash("No account found for this Google account.", 'login')

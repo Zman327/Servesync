@@ -77,35 +77,39 @@ def send_email(to_email, subject, message_body):
         return False
 
 
-# Function to check and notify staff about pending submissions
-def check_and_notify_pending_submissions(staff_id, staff_email):
+# Function to check and notify all staff about pending submissions
+def check_and_notify_pending_submissions():
     now = datetime.now()
-    logs = ServiceHour.query.filter_by(staff=staff_id).all()
-    pending_count = sum(1 for log in logs if log.status == 2)
 
-    last_time = last_notified.get(staff_id)
-    if pending_count >= 10 and (not last_time or now - last_time > timedelta(hours=24)):  # noqa
-        # Fetch staff name from the database
-        staff_user = User.query.filter_by(school_id=staff_id).first()
-        full_name = f"{staff_user.first_name} {staff_user.last_name}" if staff_user else "Staff Member"  # noqa
+    staff_users = User.query.filter(User.user_role.has(name='Staff')).all()
 
-        subject = "Action Required: 10+ Pending Submissions on ServeSYNC"
-        message = (
-            f"Kia ora {full_name} ({staff_id}),\n\n"
-            f"This is a friendly reminder that you currently have *{pending_count}* pending student submissions "  # noqa
-            f"awaiting your review in ServeSYNC.\n\n"
-            "We encourage you to log in and process these as soon as you're able:\n"  # noqa
-            "👉 https://zeyad327.pythonanywhere.com/staff.dashboard\n\n"
-            "If you have any questions or need support, please feel free to reach out.\n\n"  # noqa
-            "Ngā mihi nui,\n"
-            "— The ServeSYNC Team"
-        )
+    for staff_user in staff_users:
+        staff_id = staff_user.school_id
+        staff_email = staff_user.email
+        full_name = f"{staff_user.first_name} {staff_user.last_name}"
 
-        try:
-            send_email(staff_email, subject, message)
-            last_notified[staff_id] = now
-        except Exception as e:
-            print(f"Failed to send email notification: {e}")
+        logs = ServiceHour.query.filter_by(staff=staff_id).all()
+        pending_count = sum(1 for log in logs if log.status == 2)
+
+        last_time = last_notified.get(staff_id)
+        if pending_count >= 10 and (not last_time or now - last_time > timedelta(hours=24)):
+            subject = "Action Required: 10+ Pending Submissions on ServeSYNC"
+            message = (
+                f"Kia ora {full_name} ({staff_id}),\n\n"
+                f"This is a friendly reminder that you currently have {pending_count} pending student submissions "
+                f"awaiting your review in ServeSYNC.\n\n"
+                "We encourage you to log in and process these as soon as you're able:\n"
+                "👉 https://zeyad327.pythonanywhere.com/staff.dashboard\n\n"
+                "If you have any questions or need support, please feel free to reach out.\n\n"
+                "Ngā mihi nui,\n"
+                "— The ServeSYNC Team"
+            )
+
+            try:
+                send_email(staff_email, subject, message)
+                last_notified[staff_id] = now
+            except Exception as e:
+                print(f"Failed to send email notification to {staff_email}: {e}")
 
 
 @staff_bp.route('/staff.dashboard')
@@ -125,12 +129,8 @@ def staffpage():
         greeting = "Good Evening"
 
     staff_id = session.get('username')
-    staff_email = None
-    staff_user = User.query.filter_by(school_id=staff_id).first()
-    if staff_user:
-        staff_email = staff_user.email
-    if staff_email:
-        check_and_notify_pending_submissions(staff_id, staff_email)
+    # Notify all staff about pending submissions
+    check_and_notify_pending_submissions()
     selected_status = request.args.get('status')
 
     # Fetch all service logs for the current staff
