@@ -341,7 +341,7 @@ def bulk_upload_students():
     df.columns = [col.strip().lower() for col in df.columns]
 
     # Step 2: Check for all required columns
-    required_cols = ['first name', 'last name', 'student id', 'tutor', 'password'] # noqa
+    required_cols = ['first name', 'last name', 'student id', 'tutor', 'internet - password display - student'] # noqa
     missing = [col for col in required_cols if col not in df.columns]
     if missing:
         flash(f"Missing required columns: {[col.title() for col in missing]}", "danger") # noqa
@@ -353,10 +353,12 @@ def bulk_upload_students():
         'last name': 'Last Name',
         'student id': 'Student ID',
         'tutor': 'Tutor',
-        'password': 'Password',
+        'internet - password display - student': 'Password',
         'image': 'Image'  # Optional, handled if present
     }
-    df.rename(columns=rename_map, inplace=True)
+
+    # Create a case-insensitive column renaming
+    df.rename(columns={col: rename_map[col.strip().lower()] for col in df.columns if col.strip().lower() in rename_map}, inplace=True) # noqa
 
     added_count = 0
 

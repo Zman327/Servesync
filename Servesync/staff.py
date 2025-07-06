@@ -92,15 +92,15 @@ def check_and_notify_pending_submissions():
         pending_count = sum(1 for log in logs if log.status == 2)
 
         last_time = last_notified.get(staff_id)
-        if pending_count >= 10 and (not last_time or now - last_time > timedelta(hours=24)):
+        if pending_count >= 10 and (not last_time or now - last_time > timedelta(hours=24)): # noqa
             subject = "Action Required: 10+ Pending Submissions on ServeSYNC"
             message = (
                 f"Kia ora {full_name} ({staff_id}),\n\n"
-                f"This is a friendly reminder that you currently have {pending_count} pending student submissions "
+                f"This is a friendly reminder that you currently have {pending_count} pending student submissions " # noqa
                 f"awaiting your review in ServeSYNC.\n\n"
-                "We encourage you to log in and process these as soon as you're able:\n"
+                "We encourage you to log in and process these as soon as you're able:\n" # noqa
                 "👉 https://zeyad327.pythonanywhere.com/staff.dashboard\n\n"
-                "If you have any questions or need support, please feel free to reach out.\n\n"
+                "If you have any questions or need support, please feel free to reach out.\n\n" # noqa
                 "Ngā mihi nui,\n"
                 "— The ServeSYNC Team"
             )
@@ -109,7 +109,7 @@ def check_and_notify_pending_submissions():
                 send_email(staff_email, subject, message)
                 last_notified[staff_id] = now
             except Exception as e:
-                print(f"Failed to send email notification to {staff_email}: {e}")
+                print(f"Failed to send email notification to {staff_email}: {e}") # noqa
 
 
 @staff_bp.route('/staff.dashboard')

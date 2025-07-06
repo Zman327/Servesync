@@ -532,14 +532,26 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
-// Update "Choose File" label when bulk upload file is selected
+// Update "Choose File" label when bulk student upload file is selected
 document.addEventListener("DOMContentLoaded", function () {
-  const bulkFileInput = document.getElementById("bulkFile");
-  const bulkFileChosen = document.getElementById("file-chosen-bulk");
+  const bulkFileInputStudent = document.getElementById("bulkFileStudent");
+  const bulkFileChosenStudent = document.getElementById("file-chosen-student");
 
-  if (bulkFileInput && bulkFileChosen) {
-    bulkFileInput.addEventListener("change", function () {
-      bulkFileChosen.textContent = this.files.length > 0 ? this.files[0].name : "No file chosen";
+  if (bulkFileInputStudent && bulkFileChosenStudent) {
+    bulkFileInputStudent.addEventListener("change", function () {
+      bulkFileChosenStudent.textContent = this.files.length > 0 ? this.files[0].name : "No file chosen";
+    });
+  }
+});
+
+// Update "Choose File" label when bulk staff upload file is selected
+document.addEventListener("DOMContentLoaded", function () {
+  const bulkFileInputStaff = document.getElementById("bulkFileStaff");
+  const bulkFileChosenStaff = document.getElementById("file-chosen-staff");
+
+  if (bulkFileInputStaff && bulkFileChosenStaff) {
+    bulkFileInputStaff.addEventListener("change", function () {
+      bulkFileChosenStaff.textContent = this.files.length > 0 ? this.files[0].name : "No file chosen";
     });
   }
 });
