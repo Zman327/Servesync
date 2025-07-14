@@ -48,6 +48,40 @@ def approve_all_pending():
     return redirect(redirect_to)
 
 
+# Route to update an existing group's name
+@staff_bp.route('/update-group', methods=['POST'])
+def update_group():
+    if session.get('role') not in ['Admin', 'Staff']:
+        abort(403)
+
+    group_id = request.form.get('group_id')
+    new_name = request.form.get('new_group_name')
+
+    group = Group.query.get(group_id)
+    if group and group.staff == session.get('username'):
+        group.name = new_name
+        db.session.commit()
+
+    return redirect(url_for('staff.staffpage'))
+
+
+# Route to create a new group
+@staff_bp.route('/create-group', methods=['POST'])
+def create_group():
+    if session.get('role') not in ['Admin', 'Staff']:
+        abort(403)
+
+    group_name = request.form.get('group_name')
+    staff_id = request.form.get('staff_in_charge')
+
+    if group_name and staff_id:
+        new_group = Group(name=group_name, staff=staff_id)
+        db.session.add(new_group)
+        db.session.commit()
+
+    return redirect(url_for('staff.staffpage'))
+
+
 # Email sending function
 def send_email(to_email, subject, message_body):
     # Email configuration
@@ -137,6 +171,10 @@ def staffpage():
     logs = ServiceHour.query.filter_by(staff=staff_id).all()
     # Fetch the groups attached to this staff member
     attached_groups = Group.query.filter_by(staff=staff_id).all()
+    for group in attached_groups:
+        group.total_hours = sum(
+            log.hours for log in ServiceHour.query.filter_by(group_id=group.id, status=1).all() # noqa
+        )
 
     pending_count = sum(1 for log in logs if log.status == 2)
 
@@ -218,8 +256,10 @@ def submissions():
     attached_groups = Group.query.filter_by(staff=staff_id).all()
     group_ids = [group.id for group in attached_groups]
 
-    # Get all logs from those groups only
-    logs = ServiceHour.query.filter(ServiceHour.group_id.in_(group_ids)).all()
+    logs = ServiceHour.query.filter(
+        ServiceHour.group_id.in_(group_ids),
+        ServiceHour.staff == staff_id
+    ).all()
 
     STATUS_MAP = {
         1: 'Approved',

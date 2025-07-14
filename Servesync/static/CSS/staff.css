@@ -455,6 +455,46 @@
   gap: 30px;
 }
 
+/* Tab Buttons for Group Modal */
+.group-modal-content .tab-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 25px;
+  gap: 10px;
+}
+
+.group-modal-content .tab-btn {
+  flex: 1;
+  padding: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  background-color: #f1f1f1;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.group-modal-content .tab-btn:hover {
+  background-color: #e6e6e6;
+}
+
+.group-modal-content .tab-btn.active {
+  background-color: #0b5e3e;
+  color: #fff;
+  border-color: #0b5e3e;
+}
+
+/* Tab Content Visibility */
+.group-modal-content .tab-content {
+  display: none;
+}
+
+.group-modal-content .tab-content.active {
+  display: block;
+}
+
 /* Section wrappers inside modal */
 #manageGroupModal .modal-content form {
   background: #f9f9f9;

@@ -23,29 +23,57 @@
         {% endfor %}
       </ul>
       <br>
-      <a id="manageGroupBtn" class="btn btn-secondary" onclick="openManageGroupModal()">Manage Groups</a>
+      <a id="manageGroupBtn" class="btn btn-secondary" onclick="openManageGroupModal(); populateGroupInfo(document.getElementById('groupSelect'))">Manage Groups</a>
 
       <div id="manageGroupModal" class="group-modal">
         <div class="group-modal-content">
           <span class="close-btn" onclick="closeManageGroupModal()">&times;</span>
-          <h2>Manage Groups</h2>
-          <form id="manageGroupForm">
-            <div class="group-form-group">
-              <label for="groupSelect" class="form-label">Select Group</label>
-              <select id="groupSelect" class="form-select">
-                {% for group in attached_groups %}
-                  <option value="{{ group.id }}">{{ group.name }}</option>
-                {% endfor %}
-              </select>
-            </div>
-            <div class="group-form-group">
-              <label for="groupName" class="form-label">Group Name</label>
-              <input type="text" class="form-control" id="groupName" value="">
-            </div>
-            <button type="submit" class="btn btn-success full-width">Save Changes</button>
-          </form>
-          <div style="margin-top: 20px; text-align: center;">
-            <a href="javascript:void(0);" class="btn btn-secondary" onclick="openCreateGroupModal()">+ Create New Group</a>
+          <h2>Group Management</h2>
+
+          <div class="tab-buttons">
+            <button class="tab-btn active" onclick="openTab('manage')">Manage Existing</button>
+            <button class="tab-btn" onclick="openTab('create')">Create New</button>
+          </div>
+
+          <div id="manage" class="tab-content active">
+            <form id="manageGroupForm" method="POST" action="/update-group">
+              <div class="group-form-group">
+                <label for="groupSelect">Select Group</label>
+                <select id="groupSelect" name="group_id" onchange="populateGroupInfo(this)">
+                  {% for group in attached_groups %}
+                    <option value="{{ group.id }}" data-hours="{{ group.total_hours }}">{{ group.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="group-form-group">
+                <label>Total Hours:</label>
+                <input type="text" id="groupHours" disabled class="form-control" value="0">
+              </div>
+
+              <div class="group-form-group">
+                <label>Rename Group:</label>
+                <input type="text" name="new_group_name" id="groupName" class="form-control" required>
+              </div>
+
+              <button type="submit" class="btn btn-success full-width">Save Changes</button>
+            </form>
+          </div>
+
+          <div id="create" class="tab-content">
+            <form method="POST" action="/create-group" id="createGroupForm">
+              <div class="group-form-group">
+                <label>Group Name</label>
+                <input type="text" name="group_name" class="form-control" required>
+              </div>
+
+              <div class="group-form-group">
+                <label>Staff In Charge</label>
+                <input type="text" name="staff_in_charge" class="form-control" placeholder="Enter staff name or ID" required>
+              </div>
+
+              <button type="submit" class="btn btn-success full-width">Create Group</button>
+            </form>
           </div>
         </div>
       </div>
@@ -240,7 +268,7 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% with messages = get_flashed_messages(with_categories=true) %} 
       {% for category, message in messages %}
         {% if category == 'error' and 'log in' in message.lower() %}
           if (typeof openLoginModal === 'function') {

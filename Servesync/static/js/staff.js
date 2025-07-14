@@ -303,3 +303,25 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 });
+
+function openTab(tabName) {
+  document.querySelectorAll('.tab-content').forEach(e => e.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(e => e.classList.remove('active'));
+  document.getElementById(tabName).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+function populateGroupInfo(select) {
+  const selectedOption = select.options[select.selectedIndex];
+  const hours = selectedOption.getAttribute('data-hours');
+  const name = selectedOption.textContent;
+
+  document.getElementById('groupHours').value = hours;
+  document.getElementById('groupName').value = name;
+}
+document.addEventListener('DOMContentLoaded', function() {
+  var selectEl = document.getElementById('groupSelect');
+  if (selectEl) {
+    populateGroupInfo(selectEl);
+  }
+});
