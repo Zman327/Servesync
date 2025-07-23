@@ -17,14 +17,16 @@ sudo apt install -y python3 python3-venv python3-pip git nginx certbot python3-c
 echo "[+] Cloning Git repo..."
 sudo rm -rf $APP_DIR  # Remove if re-running
 sudo git clone $GIT_REPO $APP_DIR
+# Ensure the project directory is owned by the current user
+sudo chown -R $USER:$USER $APP_DIR
 
 # ------------------- 3. SETUP VENV & DEPENDENCIES -------------------
 echo "[+] Setting up Python virtual environment..."
 cd $APP_DIR
 python3 -m venv venv
-source venv/bin/activate
+. venv/bin/activate
 pip install --upgrade pip
-pip install -r requirements.txt
+pip install -r Servesync/requirements.txt
 
 # ------------------- 4. SETUP GUNICORN SERVICE -------------------
 echo "[+] Creating Gunicorn systemd service..."
@@ -47,29 +49,3 @@ EOF
 sudo systemctl daemon-reload
 sudo systemctl start $APP_NAME
 sudo systemctl enable $APP_NAME
-
-# ------------------- 5. CONFIGURE NGINX -------------------
-echo "[+] Configuring NGINX..."
-sudo tee /etc/nginx/sites-available/$APP_NAME > /dev/null <<EOF
-server {
-    listen 80;
-    server_name $DOMAIN;
-
-    location / {
-        proxy_pass http://localhost:8000;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-    }
-}
-EOF
-
-sudo ln -sf /etc/nginx/sites-available/$APP_NAME /etc/nginx/sites-enabled/
-sudo nginx -t
-sudo systemctl reload nginx
-
-# ------------------- 6. SETUP SSL -------------------
-echo "[+] Requesting SSL certificate from Let's Encrypt..."
-sudo certbot --nginx -d $DOMAIN --non-interactive --agree-tos -m $EMAIL
-
-echo "[✓] Deployment successful!"
-echo "Your Flask app is now live at: https://$DOMAIN"
