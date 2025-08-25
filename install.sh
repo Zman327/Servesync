@@ -25,6 +25,7 @@ echo "[+] Setting up Python virtual environment..."
 cd $APP_DIR
 python3 -m venv venv
 . venv/bin/activate
+pip install --upgrade numpy pandas
 pip install --upgrade pip
 pip install -r Servesync/requirements.txt
 

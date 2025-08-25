@@ -56,23 +56,31 @@ def update_group():
 
     group_id = request.form.get('group_id')
     new_name = request.form.get('new_group_name')
+    new_staff = request.form.get('staff_in_charge')
+    staff_id = None
+    if new_staff and "(" in new_staff and ")" in new_staff:
+        staff_id = new_staff.split("(")[-1].strip(")")
 
     group = Group.query.get(group_id)
     if group and group.staff == session.get('username'):
         group.name = new_name
+        if staff_id:
+            group.staff = staff_id
         db.session.commit()
 
     return redirect(url_for('staff.staffpage'))
 
 
-# Route to create a new group
 @staff_bp.route('/create-group', methods=['POST'])
 def create_group():
     if session.get('role') not in ['Admin', 'Staff']:
         abort(403)
 
     group_name = request.form.get('group_name')
-    staff_id = request.form.get('staff_in_charge')
+    staff_label = request.form.get('staff_in_charge')
+    staff_id = None
+    if staff_label and "(" in staff_label and ")" in staff_label:
+        staff_id = staff_label.split("(")[-1].strip(")")
 
     if group_name and staff_id:
         new_group = Group(name=group_name, staff=staff_id)
@@ -80,6 +88,36 @@ def create_group():
         db.session.commit()
 
     return redirect(url_for('staff.staffpage'))
+
+
+# Autocomplete search for staff
+@staff_bp.route('/search-staff')
+def search_staff():
+    if session.get('role') not in ['Admin', 'Staff']:
+        abort(403)
+
+    query = request.args.get('q', '').strip()
+    if not query:
+        return jsonify([])
+
+    # Search staff by school_id or full name
+    staff_matches = User.query.filter(
+        (User.user_role.has(name='Staff')) &
+        (
+            User.school_id.ilike(f"%{query}%") |
+            (User.first_name + " " + User.last_name).ilike(f"%{query}%")
+        )
+    ).limit(10).all()
+
+    results = [
+        {
+            "id": staff.school_id,
+            "name": f"{staff.first_name} {staff.last_name}",
+            "email": staff.email
+        }
+        for staff in staff_matches
+    ]
+    return jsonify(results)
 
 
 # Email sending function
@@ -241,7 +279,8 @@ def staffpage():
         recent_submissions=recent_logs,
         pending_count=pending_count,
         attached_groups=attached_groups,
-        approved_hours_this_year=approved_hours_this_year
+        approved_hours_this_year=approved_hours_this_year,
+        logged_in_staff=User.query.filter_by(school_id=staff_id).first()
     )
 
 

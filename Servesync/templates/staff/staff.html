@@ -69,7 +69,10 @@
 
               <div class="group-form-group">
                 <label>Staff In Charge</label>
-                <input type="text" name="staff_in_charge" class="form-control" placeholder="Enter staff name or ID" required>
+                <div class="staff-input-wrapper">
+                  <input type="text" name="staff_in_charge" class="form-control staff-in-charge" placeholder="Enter staff name or ID" required autocomplete="off" value="{{ logged_in_staff.first_name }} {{ logged_in_staff.last_name }} ({{ logged_in_staff.school_id }})">
+                  <ul class="staff-suggestions autocomplete-suggestions"></ul>
+                </div>
               </div>
 
               <button type="submit" class="btn btn-success full-width">Create Group</button>
@@ -89,7 +92,10 @@
             </div>
             <div class="group-form-group">
               <label for="staffInCharge" class="form-label">Staff In Charge</label>
-              <input type="text" class="form-control" id="staffInCharge" name="staff_in_charge" placeholder="Enter staff name or ID" required>
+              <div class="staff-input-wrapper">
+                <input type="text" class="form-control staff-in-charge" name="staff_in_charge" placeholder="Enter staff name or ID" required autocomplete="off" value="{{ logged_in_staff.first_name }} {{ logged_in_staff.last_name }} ({{ logged_in_staff.school_id }})">
+                <ul class="staff-suggestions autocomplete-suggestions"></ul>
+              </div>
             </div>
             <button type="submit" class="btn btn-success full-width">Create Group</button>
           </form>

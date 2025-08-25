@@ -1,5 +1,5 @@
-
 let modalEdited = false;
+
 function openReviewModal(log) {
   modalEdited = false;
   document.getElementById('modal-student').innerText = `${log.student_name} (${log.user_id})`;
@@ -324,4 +324,61 @@ document.addEventListener('DOMContentLoaded', function() {
   if (selectEl) {
     populateGroupInfo(selectEl);
   }
+
+  // --- Staff autocomplete logic (multi-field) ---
+  const staffInputs = document.querySelectorAll('.staff-in-charge');
+
+  function attachStaffAutocomplete(inputEl) {
+    const box = inputEl.parentElement.querySelector('.staff-suggestions');
+    let debounce;
+
+    inputEl.addEventListener('input', () => {
+      clearTimeout(debounce);
+      const q = inputEl.value.trim().toLowerCase();
+      if (!q) {
+        if (box) box.innerHTML = '';
+        return;
+      }
+      debounce = setTimeout(() => {
+        fetch('/api/all-staff')
+          .then(res => res.json())
+          .then(list => {
+            if (!box) return;
+            box.innerHTML = '';
+            list.forEach(staff => {
+              const label = (staff.label || '').toLowerCase();
+              if (label.includes(q)) {
+                const li = document.createElement('li');
+                li.textContent = staff.label;
+                li.addEventListener('click', () => {
+                  inputEl.value = staff.label;
+                  inputEl.setAttribute('data-linked-staff-value', staff.value || staff.label);
+                  inputEl.setAttribute('data-linked-staff-label', staff.label);
+                  box.innerHTML = '';
+                });
+                box.appendChild(li);
+              }
+            });
+          });
+      }, 200);
+    });
+
+    inputEl.addEventListener('blur', () => {
+      setTimeout(() => { if (box) box.innerHTML = ''; }, 150);
+    });
+  }
+
+  staffInputs.forEach(attachStaffAutocomplete);
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.staff-in-charge') && !e.target.closest('.staff-suggestions')) {
+      document.querySelectorAll('.staff-suggestions').forEach(ul => ul.innerHTML = '');
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.staff-suggestions').forEach(ul => ul.innerHTML = '');
+    }
+  });
 });
