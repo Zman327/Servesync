@@ -40,10 +40,19 @@ function closeApproveTipsModal() {
   document.getElementById('approveTipsModal').style.display = 'none';
 }
 
+function openGroupTipsModal() {
+  document.getElementById('groupTipsModal').style.display = 'block';
+}
+
+function closeGroupTipsModal() {
+  document.getElementById('groupTipsModal').style.display = 'none';
+}
+
 window.onclick = function(event) {
   const reviewModal = document.getElementById('reviewModal');
   const reportModal = document.getElementById('reportModal');
   const approveTipsModal = document.getElementById('approveTipsModal');
+  const groupTipsModal = document.getElementById('groupTipsModal');
   const manageGroupModal = document.getElementById('manageGroupModal');
   const createGroupModal = document.getElementById('createGroupModal');
   const deleteGroupModal = document.getElementById('deleteGroupModal');
@@ -53,6 +62,8 @@ window.onclick = function(event) {
     reportModal.style.display = "none";
   } else if (event.target === approveTipsModal) {
     approveTipsModal.style.display = "none";
+  } else if (event.target === groupTipsModal) {
+    groupTipsModal.style.display = "none";
   } else if (event.target === manageGroupModal) {
     manageGroupModal.style.display = "none";
   } else if (event.target === createGroupModal) {
@@ -135,8 +146,12 @@ function openCreateGroupModal() {
   }
 
 function openDeleteGroupModal() {
-  const groupId = document.getElementById('groupSelect').value;
+  const groupSelect = document.getElementById('groupSelect');
+  const selectedOption = groupSelect.options[groupSelect.selectedIndex];
+  const groupId = selectedOption.value;
+  const groupName = selectedOption.textContent;
   document.getElementById('deleteGroupId').value = groupId;
+  document.getElementById('deleteGroupConfirmText').textContent = groupName;
   document.getElementById('deleteGroupModal').style.display = 'block';
 }
 
@@ -145,34 +160,6 @@ function closeDeleteGroupModal() {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-  // --- Existing group form logic ---
-  const form = document.getElementById('manageGroupForm');
-  if (form) {
-    form.addEventListener('submit', function(event) {
-      event.preventDefault();
-      var groupId = document.getElementById('groupSelect').value;
-      var groupName = document.getElementById('groupName').value;
-
-      fetch('/update-group', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          groupId: groupId,
-          groupName: groupName
-        })
-      }).then(response => response.json())
-        .then(data => {
-          if (data.success) {
-            alert('Group updated successfully');
-          } else {
-            alert('Error updating group');
-          }
-          closeManageGroupModal();
-        });
-    });
-  }
 
   // --- Appended logic from /submissions.html ---
   const rows = Array.from(document.querySelectorAll("#submissionsTable tbody tr"));
@@ -331,6 +318,10 @@ function populateGroupInfo(select) {
 
   document.getElementById('groupHours').value = hours;
   document.getElementById('groupName').value = name;
+  const staff = selectedOption.getAttribute('data-staff');
+  if (document.getElementById('manageStaffInCharge')) {
+    document.getElementById('manageStaffInCharge').value = staff || "";
+  }
 }
 document.addEventListener('DOMContentLoaded', function() {
   var selectEl = document.getElementById('groupSelect');

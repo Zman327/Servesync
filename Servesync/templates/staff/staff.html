@@ -42,7 +42,9 @@
                   <label for="groupSelect">Select Group</label>
                   <select id="groupSelect" name="group_id" class="form-select" onchange="populateGroupInfo(this)">
                     {% for group in attached_groups %}
-                      <option value="{{ group.id }}" data-hours="{{ group.total_hours }}">{{ group.name }}</option>
+                      <option value="{{ group.id }}"
+                              data-hours="{{ group.total_hours }}"
+                              data-staff="{{ group.staff_user.first_name }} {{ group.staff_user.last_name }} ({{ group.staff_user.school_id }})">{{ group.name }}</option>
                     {% endfor %}
                   </select>
                 </div>
@@ -50,6 +52,22 @@
                 <div class="group-form-group">
                   <label>Rename Group:</label>
                   <input type="text" name="new_group_name" id="groupName" class="form-control" required>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="group-form-group">
+                  <label>Staff In Charge:</label>
+                  <div class="staff-input-wrapper">
+                    <input type="text" 
+                           name="staff_in_charge" 
+                           id="manageStaffInCharge" 
+                           class="form-control staff-in-charge" 
+                           placeholder="Enter staff name or ID" 
+                           required 
+                           autocomplete="off">
+                    <ul class="staff-suggestions autocomplete-suggestions"></ul>
+                  </div>
                 </div>
               </div>
 
@@ -73,7 +91,7 @@
             <div class="group-modal-content">
               <span class="close-btn" onclick="closeDeleteGroupModal()">&times;</span>
               <h2><i class="fas fa-exclamation-triangle" style="color:#f44336;"></i> Confirm Delete</h2>
-              <p>Are you sure you want to delete this group? This action cannot be undone.</p>
+              <p>Are you sure you want to delete <strong><span id="deleteGroupConfirmText"></span></strong>? This action cannot be undone.</p>
               <form method="POST" action="/delete-group">
                 <input type="hidden" name="group_id" id="deleteGroupId">
                 <button type="submit" class="btn btn-danger">Yes, Delete</button>
@@ -175,7 +193,7 @@
       <h3><i class="fas fa-link"></i> Quick Tips/Actions</h3>
       <ul>
         <li><a href="javascript:void(0);" onclick="openApproveTipsModal()">Approve Hours</a></li>
-        <li><a href="/groups">Add/Delete groups</a></li>
+        <li><a href="javascript:void(0);" onclick="openGroupTipsModal()">Add/Delete groups</a></li>
         <li><a href="javascript:void(0);" onclick="openReportModal()">Download Reports</a></li>
       </ul>
     </section>
@@ -219,6 +237,21 @@
           <li>Use the <strong>Approve All Pending</strong> button to bulk approve if all entries are valid.</li>
         </ul>
         <button class="btn btn-secondary full-width" onclick="closeApproveTipsModal()">Close</button>
+      </div>
+    </div>
+
+    <!-- Group Tips Modal -->
+    <div id="groupTipsModal" class="modal simple-modal">
+      <div class="modal-content">
+        <span class="close-btn" onclick="closeGroupTipsModal()">&times;</span>
+        <h2>How to Add/Delete Groups</h2>
+        <p>To manage groups:</p>
+        <ul>
+          <li>Click <strong>Manage Groups</strong> in your dashboard.</li>
+          <li>To add a group, switch to the <strong>Create New</strong> tab.</li>
+          <li>To delete a group, open <strong>Manage Existing</strong>, select the group, then click <strong>Delete Group</strong>.</li>
+        </ul>
+        <button class="btn btn-secondary full-width" onclick="closeGroupTipsModal()">Close</button>
       </div>
     </div>
 

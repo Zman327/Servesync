@@ -48,29 +48,6 @@ def approve_all_pending():
     return redirect(redirect_to)
 
 
-# Route to update an existing group's name
-@staff_bp.route('/update-group', methods=['POST'])
-def update_group():
-    if session.get('role') not in ['Admin', 'Staff']:
-        abort(403)
-
-    group_id = request.form.get('group_id')
-    new_name = request.form.get('new_group_name')
-    new_staff = request.form.get('staff_in_charge')
-    staff_id = None
-    if new_staff and "(" in new_staff and ")" in new_staff:
-        staff_id = new_staff.split("(")[-1].strip(")")
-
-    group = Group.query.get(group_id)
-    if group and group.staff == session.get('username'):
-        group.name = new_name
-        if staff_id:
-            group.staff = staff_id
-        db.session.commit()
-
-    return redirect(url_for('staff.staffpage'))
-
-
 @staff_bp.route('/create-group', methods=['POST'])
 def create_group():
     if session.get('role') not in ['Admin', 'Staff']:
@@ -87,6 +64,50 @@ def create_group():
         db.session.add(new_group)
         db.session.commit()
 
+    return redirect(url_for('staff.staffpage'))
+
+
+# Route to update a group
+@staff_bp.route('/update-group', methods=['POST'])
+def update_group():
+    if session.get('role') not in ['Admin', 'Staff']:
+        abort(403)
+
+    group_id = request.form.get('group_id')
+    new_group_name = request.form.get('new_group_name')
+    staff_in_charge = request.form.get('staff_in_charge')
+
+    if not group_id:
+        return redirect(url_for('staff.staffpage'))
+
+    group = Group.query.get(group_id)
+    if not group:
+        return redirect(url_for('staff.staffpage'))
+
+    if new_group_name:
+        group.name = new_group_name
+    if staff_in_charge and "(" in staff_in_charge and ")" in staff_in_charge:
+        # Extract the staff_id from parentheses
+        staff_id = staff_in_charge.split("(")[-1].strip(")")
+        group.staff = staff_id
+
+    db.session.commit()
+    return redirect(url_for('staff.staffpage'))
+
+
+# Route to delete a group
+@staff_bp.route('/delete-group', methods=['POST'])
+def delete_group():
+    if session.get('role') not in ['Admin', 'Staff']:
+        abort(403)
+    group_id = request.form.get('group_id')
+    if not group_id:
+        return redirect(url_for('staff.staffpage'))
+    group = Group.query.get(group_id)
+    if not group:
+        return redirect(url_for('staff.staffpage'))
+    db.session.delete(group)
+    db.session.commit()
     return redirect(url_for('staff.staffpage'))
 
 
@@ -213,6 +234,7 @@ def staffpage():
         group.total_hours = sum(
             log.hours for log in ServiceHour.query.filter_by(group_id=group.id, status=1).all() # noqa
         )
+        group.staff_user = User.query.filter_by(school_id=group.staff).first()
 
     pending_count = sum(1 for log in logs if log.status == 2)
 
