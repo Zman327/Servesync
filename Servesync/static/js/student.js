@@ -423,4 +423,61 @@ document.addEventListener("DOMContentLoaded", () => {
     progressBar.style.background = `conic-gradient(var(--jungle-green) ${percentage}%, #e0e0e0 ${percentage}%)`;
     progressText.innerText = `${userHours} / ${goal}`;
   }
+
+  // Live search filter for submissions table
+  const searchInput = document.getElementById("searchInput");
+  const submissionsTable = document.getElementById("submissionsTable");
+  if (searchInput && submissionsTable) {
+    searchInput.addEventListener("keyup", () => {
+      const filter = searchInput.value.toLowerCase();
+      const rows = submissionsTable.getElementsByTagName("tr");
+      for (let i = 1; i < rows.length; i++) { // skip header
+        const row = rows[i];
+        const text = row.innerText.toLowerCase();
+        if (text.includes(filter)) {
+          row.style.display = "";
+        } else {
+          row.style.display = "none";
+        }
+      }
+    });
+  }
+
+  // Pagination for submissions table
+  const paginationTable = document.getElementById("submissionsTable");
+  if (paginationTable) {
+    const rows = paginationTable.querySelectorAll("tbody tr");
+    const rowsPerPage = 10;
+    let currentPage = 1;
+    const totalPages = Math.ceil(rows.length / rowsPerPage);
+
+    const prevBtn = document.getElementById("prevPage");
+    const nextBtn = document.getElementById("nextPage");
+    const pageIndicator = document.getElementById("pageIndicator");
+
+    function showPage(page) {
+      if (page < 1) page = 1;
+      if (page > totalPages) page = totalPages;
+
+      rows.forEach((row, index) => {
+        row.style.display = "none";
+        if (index >= (page - 1) * rowsPerPage && index < page * rowsPerPage) {
+          row.style.display = "";
+        }
+      });
+
+      if (pageIndicator) {
+        pageIndicator.textContent = `Page ${page} of ${totalPages}`;
+      }
+      if (prevBtn) prevBtn.disabled = page === 1;
+      if (nextBtn) nextBtn.disabled = page === totalPages;
+
+      currentPage = page;
+    }
+
+    if (prevBtn) prevBtn.addEventListener("click", () => showPage(currentPage - 1));
+    if (nextBtn) nextBtn.addEventListener("click", () => showPage(currentPage + 1));
+
+    showPage(1);
+  }
 });

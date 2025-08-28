@@ -3,6 +3,7 @@ from flask import Blueprint, request, session, redirect, url_for, flash # noqa
 from werkzeug.security import check_password_hash
 from flask_dance.contrib.google import google
 from models import User
+from sqlalchemy import func
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -11,7 +12,7 @@ auth_bp = Blueprint('auth', __name__)
 def login():
     username = request.form['username']
     password = request.form['password']
-    user = User.query.filter_by(school_id=username).first()
+    user = User.query.filter(func.lower(User.school_id) == username.lower()).first() # noqa
 
     if user:
         if user.password.startswith('pbkdf2') and check_password_hash(user.password, password): # noqa

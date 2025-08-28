@@ -118,8 +118,65 @@ def studentpage():
 
 
 @student_bp.route('/activity-history')
+@login_required
 def activity_history():
-    return render_template('student/activity.html')
+    if session.get('role') != 'Student':
+        abort(403)
+
+    # Get current user
+    user = User.query.filter_by(school_id=session.get('username')).first()
+    if not user:
+        flash("User not found.")
+        return redirect(url_for('auth.login'))
+
+    status_filter = request.args.get("status")
+
+    query = ServiceHour.query.filter_by(user_id=user.school_id)
+    if status_filter:
+        status_map = {
+            "Approved": 1,
+            "Pending": 2,
+            "Rejected": 3
+        }
+        mapped_status = status_map.get(status_filter)
+        if mapped_status:
+            query = query.filter(ServiceHour.status == mapped_status)
+
+    logs = query.order_by(ServiceHour.date.desc()).all()
+
+    # Fetch all logs for this user without status filter for counts
+    all_logs = ServiceHour.query.filter_by(user_id=user.school_id).all()
+
+    for log in logs:
+        log.group_name = Group.query.get(log.group_id).name if log.group_id else "N/A"
+        staff = User.query.filter_by(school_id=log.staff).first()
+        log.teacher_name = f"{staff.first_name} {staff.last_name}" if staff else "N/A"
+        try:
+            log.formatted_date = datetime.strptime(log.date, "%d-%m-%Y").strftime("%b %d, %Y")
+        except Exception:
+            log.formatted_date = log.date
+        try:
+            log.formatted_log_time = datetime.strptime(log.log_time, "%d-%m-%Y %H:%M:%S").strftime("%b %d, %Y at %I:%M %p")
+        except Exception:
+            log.formatted_log_time = log.log_time
+        log.status_label = {
+            1: 'Approved',
+            2: 'Pending',
+            3: 'Rejected'
+        }.get(log.status, 'Unknown')
+
+    # Count totals from all_logs
+    accepted_count = sum(1 for l in all_logs if l.status == 1)
+    pending_count = sum(1 for l in all_logs if l.status == 2)
+    rejected_count = sum(1 for l in all_logs if l.status == 3)
+
+    return render_template(
+        'student/activity.html',
+        submissions=logs,
+        accepted_count=accepted_count,
+        pending_count=pending_count,
+        rejected_count=rejected_count
+    )
 
 
 # Route: /activity-history/<int:user_id>
@@ -134,6 +191,8 @@ def activity_history_user(user_id):
 
     for log in logs:
         log.group_name = Group.query.get(log.group_id).name if log.group_id else "N/A" # noqa
+        staff = User.query.filter_by(school_id=log.staff).first()
+        log.teacher_name = f"{staff.first_name} {staff.last_name}" if staff else "N/A"
         try:
             log.formatted_date = datetime.strptime(log.date, "%d-%m-%Y").strftime("%b %d, %Y") # noqa
         except Exception:

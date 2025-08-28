@@ -53,7 +53,7 @@ function sortTableByColumn(tableId, columnIndex, ascending = true) {
       plugins: {
         title: {
           display: true,
-          text: 'Students Over Time',
+          text: 'Submissions Over Time',
           font: {
             size: 18
           }
