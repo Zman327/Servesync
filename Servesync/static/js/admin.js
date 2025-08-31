@@ -377,25 +377,36 @@ new Chart(document.getElementById('chart-hours-by-group'), {
     document.getElementById('addStudentModal').style.display = 'none';
   }
   
-  function openBulkUploadModal() {
+function openBulkUploadModal() {
     closeAddStudentModal();
     document.getElementById('bulkUploadModal').style.display = 'block';
-  }
-  
-  function closeBulkUploadModal() {
+}
+
+function closeBulkUploadModal() {
     document.getElementById('bulkUploadModal').style.display = 'none';
-  }
+}
+
+// Bulk Upload Photos Modal Functions
+function openBulkUploadPhotosModal() {
+  document.getElementById('bulkUploadPhotosModal').style.display = 'block';
+}
+
+function closeBulkUploadPhotosModal() {
+  document.getElementById('bulkUploadPhotosModal').style.display = 'none';
+}
   
-  window.onclick = function(event) {
+window.onclick = function(event) {
     const modal = document.getElementById('reviewModal');
     const addModal = document.getElementById('addStudentModal');
     const bulkModal = document.getElementById('bulkUploadModal');
+    const bulkPhotosModal = document.getElementById('bulkUploadPhotosModal');
     if (event.target === modal) {
       modal.style.display = "none";
     }
     if (event.target === addModal) closeAddStudentModal();
     if (event.target === bulkModal) closeBulkUploadModal();
-  }
+    if (event.target === bulkPhotosModal) closeBulkUploadPhotosModal();
+}
   
   let modalEdited = false;
   
@@ -552,6 +563,20 @@ document.addEventListener("DOMContentLoaded", function () {
   if (bulkFileInputStaff && bulkFileChosenStaff) {
     bulkFileInputStaff.addEventListener("change", function () {
       bulkFileChosenStaff.textContent = this.files.length > 0 ? this.files[0].name : "No file chosen";
+    });
+  }
+});
+
+// Update "Choose Folder" label when bulk student photos folder is selected
+document.addEventListener("DOMContentLoaded", function () {
+  const bulkPhotosInput = document.getElementById("bulkPhotosFolder");
+  const bulkPhotosChosen = document.getElementById("file-chosen-photos");
+
+  if (bulkPhotosInput && bulkPhotosChosen) {
+    bulkPhotosInput.addEventListener("change", function () {
+      bulkPhotosChosen.textContent = this.files.length > 0
+        ? this.files.length + " files selected"
+        : "No folder chosen";
     });
   }
 });

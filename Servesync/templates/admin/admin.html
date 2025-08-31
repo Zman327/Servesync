@@ -426,7 +426,30 @@
             <br>
             <button type="submit" class="btn btn-primary">Upload</button>
           </form>
-          <href>Add Profile Pictures</href>
+          <div style="text-align: center; margin-top: 15px;">
+            <a href="javascript:void(0);" onclick="openBulkUploadPhotosModal()" style="font-size: 14px; color: #0b5e3e; text-decoration: underline;">Upload Student Photos</a>
+          </div>
+        </div>
+      </div>
+      <!-- Bulk Upload Student Photos Modal -->
+      <div id="bulkUploadPhotosModal" class="student-modal">
+        <div class="student-modal-content">
+          <span class="close-btn" onclick="closeBulkUploadPhotosModal()">&times;</span>
+          <h2>Bulk Upload Student Photos</h2>
+          <form id="bulkUploadPhotosForm" action="/bulk-upload-student-photos" method="post" enctype="multipart/form-data">
+            <div class="form-row">
+              <div class="form-group-add-student">
+                <label for="bulkPhotosFolder">Select Folder with Student Photos</label>
+                <div class="custom-file-upload">
+                  <label for="bulkPhotosFolder" class="upload-btn">Choose Folder</label>
+                  <span id="file-chosen-photos">No folder chosen</span>
+                  <input type="file" id="bulkPhotosFolder" name="photos[]" webkitdirectory directory multiple accept="image/*" required>
+                </div>
+              </div>
+            </div>
+            <br>
+            <button type="submit" class="btn btn-primary">Upload Photos</button>
+          </form>
         </div>
       </div>
       <!-- Bulk Remove Modal -->

@@ -428,6 +428,51 @@ def bulk_upload_students():
     return redirect(url_for('admin.adminpage'))
 
 
+# --- Bulk Upload Student Photos ---
+@admin_bp.route('/bulk-upload-student-photos', methods=['POST'])
+def bulk_upload_student_photos():
+    import os
+    if 'photos[]' not in request.files:
+        flash("No files uploaded", "danger")
+        return redirect(url_for('admin.adminpage'))
+
+    files = request.files.getlist('photos[]')
+    updated = 0
+    skipped = 0
+    allowed_extensions = {'.jpg', '.jpeg', '.png'}
+
+    for file in files:
+        # Ignore empty uploads (Chrome sometimes sends folder as "file")
+        if not file.filename:
+            continue
+
+        # Only keep the base filename (strip "photos/" etc.)
+        filename = os.path.basename(file.filename)
+        student_id, ext = os.path.splitext(filename)
+
+        # Skip if wrong extension
+        if ext.lower() not in allowed_extensions:
+            skipped += 1
+            continue
+
+        student = User.query.filter_by(school_id=student_id).first()
+        if student:
+            student.picture = file.read()  # Save as blob
+            db.session.add(student)
+            updated += 1
+        else:
+            skipped += 1
+
+    try:
+        db.session.commit()
+        flash(f"Uploaded {updated} photos. Skipped {skipped} (no matching student).", "success") # noqa
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error uploading photos: {e}", "danger")
+
+    return redirect(url_for('admin.adminpage'))
+
+
 @admin_bp.route('/bulk-upload-staff', methods=['POST'])
 def bulk_upload_staff():
     file = request.files.get('bulk_file')
