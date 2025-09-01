@@ -314,7 +314,7 @@ def submit_hours():
         date=datetime.strptime(date, "%Y-%m-%d").strftime("%d-%m-%Y"),
         description=details or activity,
         time=hours,
-        status=2,  # 2 = Pending
+        status=2,
         log_time=datetime.now().strftime("%d-%m-%Y %H:%M:%S"),
         staff=staff.school_id
     )
