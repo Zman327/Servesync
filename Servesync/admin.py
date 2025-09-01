@@ -466,94 +466,127 @@ def bulk_upload_students():
 @admin_bp.route('/bulk-upload-staff', methods=['POST'])
 def bulk_upload_staff():
     file = request.files.get('bulk_file')
-    if not file:
-        flash('No file uploaded', 'danger')
+    photos = request.files.getlist('photos[]')
+
+    if not file and not photos:
+        flash('No file or photos uploaded', 'danger')
         return redirect(url_for('admin.adminpage'))
-
-    filename = file.filename.lower()
-    df = None
-
-    try:
-        if filename.endswith('.csv'):
-            try:
-                df = pd.read_csv(file, encoding='utf-8')
-            except UnicodeDecodeError:
-                df = pd.read_csv(file, encoding='latin1')
-        elif filename.endswith(('.xls', '.xlsx')):
-            df = pd.read_excel(file, engine='openpyxl')
-        else:
-            flash('Unsupported file format. Please upload a .csv or .xlsx file.', 'danger') # noqa
-            return redirect(url_for('admin.adminpage'))
-    except Exception as e:
-        flash(f'Error reading file: {e}', 'danger')
-        return redirect(url_for('admin.adminpage'))
-
-    # Normalize and validate required columns (case-insensitive)
-    df.columns = [col.strip().lower() for col in df.columns]
-
-    # Required columns for staff spreadsheet
-    required_cols = [
-        'code',
-        'last name',
-        'first name',
-        'email (school)',
-        'internet - password display - staff'
-    ]
-    missing = [col for col in required_cols if col not in df.columns]
-    if missing:
-        flash(f"Missing required columns: {[col.title() for col in missing]}", "danger") # noqa
-        return redirect(url_for('admin.adminpage'))
-
-    # Rename columns for consistent access
-    rename_map = {
-        'code': 'School ID',
-        'last name': 'Last Name',
-        'first name': 'First Name',
-        'email (school)': 'Email',
-        'internet - password display - staff': 'Password'
-    }
-    df.rename(columns={col: rename_map[col] for col in rename_map if col in df.columns}, inplace=True) # noqa
 
     added_count = 0
 
-    for _, row in df.iterrows():
+    # Spreadsheet logic only runs if file is provided
+    if file:
+        filename = file.filename.lower()
+        df = None
+
         try:
-            first_name = row['First Name']
-            last_name = row['Last Name']
-            school_id = row['School ID'].lower()
-            raw_pass = row['Password']
-            email = row['Email']
+            if filename.endswith('.csv'):
+                try:
+                    df = pd.read_csv(file, encoding='utf-8')
+                except UnicodeDecodeError:
+                    df = pd.read_csv(file, encoding='latin1')
+            elif filename.endswith(('.xls', '.xlsx')):
+                df = pd.read_excel(file, engine='openpyxl')
+            else:
+                flash('Unsupported file format. Please upload a .csv or .xlsx file.', 'danger') # noqa
+                return redirect(url_for('admin.adminpage'))
+        except Exception as e:
+            flash(f'Error reading file: {e}', 'danger')
+            return redirect(url_for('admin.adminpage'))
 
-            hashed_password = generate_password_hash(raw_pass, method='pbkdf2:sha256') # noqa
+        # Normalize and validate required columns (case-insensitive)
+        df.columns = [col.strip().lower() for col in df.columns]
 
-            if User.query.filter_by(email=email).first():
+        # Required columns for staff spreadsheet
+        required_cols = [
+            'code',
+            'last name',
+            'first name',
+            'email (school)',
+            'internet - password display - staff'
+        ]
+        missing = [col for col in required_cols if col not in df.columns]
+        if missing:
+            flash(f"Missing required columns: {[col.title() for col in missing]}", "danger") # noqa
+            return redirect(url_for('admin.adminpage'))
+
+        # Rename columns for consistent access
+        rename_map = {
+            'code': 'School ID',
+            'last name': 'Last Name',
+            'first name': 'First Name',
+            'email (school)': 'Email',
+            'internet - password display - staff': 'Password'
+        }
+        df.rename(columns={col: rename_map[col] for col in rename_map if col in df.columns}, inplace=True) # noqa
+
+        for _, row in df.iterrows():
+            try:
+                first_name = row['First Name']
+                last_name = row['Last Name']
+                school_id = row['School ID'].lower()
+                raw_pass = row['Password']
+                email = row['Email']
+
+                hashed_password = generate_password_hash(raw_pass, method='pbkdf2:sha256') # noqa
+
+                if User.query.filter_by(email=email).first():
+                    continue
+
+                new_staff = User(
+                    first_name=first_name,
+                    last_name=last_name,
+                    school_id=school_id,
+                    form=None,
+                    password=hashed_password,
+                    role=2,
+                    picture=None,
+                    hours=None,
+                    email=email
+                )
+                db.session.add(new_staff)
+                added_count += 1
+
+            except KeyError as ke:
+                flash(f"Missing column in row: {ke}", "warning")
+            except Exception as err:
+                flash(f"Error processing a row: {err}", "warning")
+        # Commit all new staff
+        try:
+            db.session.commit()
+            flash(f'{added_count} Staff members added successfully!', 'success') # noqa
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error committing to database: {e}', 'danger')
+
+    # --- Handle bulk staff photo uploads if provided ---
+    if photos:
+        updated = 0
+        skipped = 0
+        allowed_extensions = {'.jpg', '.jpeg', '.png'}
+
+        for photo in photos:
+            if not photo.filename:
                 continue
+            filename = os.path.basename(photo.filename)
+            staff_id, ext = os.path.splitext(filename)
+            if ext.lower() not in allowed_extensions:
+                skipped += 1
+                continue
+            staff = User.query.filter_by(school_id=staff_id).first()
+            if staff:
+                staff.picture = photo.read()
+                db.session.add(staff)
+                updated += 1
+            else:
+                skipped += 1
 
-            new_staff = User(
-                first_name=first_name,
-                last_name=last_name,
-                school_id=school_id,
-                form=None,
-                password=hashed_password,
-                role=2,
-                picture=None,
-                hours=None,
-                email=email
-            )
-            db.session.add(new_staff)
-            added_count += 1
-
-        except KeyError as ke:
-            flash(f"Missing column in row: {ke}", "warning")
-        except Exception as err:
-            flash(f"Error processing a row: {err}", "warning")
-    # Commit all new staff
-    try:
-        db.session.commit()
-        flash(f'{added_count} Staff members added successfully!', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error committing to database: {e}', 'danger')
+        try:
+            db.session.commit()
+            flash(f"Uploaded {updated} staff photos. Skipped {skipped} (no matching staff).", "success") # noqa
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Error uploading staff photos: {e}", "danger")
 
     return redirect(url_for('admin.adminpage'))
 

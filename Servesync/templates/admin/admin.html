@@ -74,19 +74,27 @@
         <div class="student-modal-content">
           <span class="close-btn" onclick="closeBulkUploadModalstaff()">&times;</span>
           <h2>Bulk Upload Staff Members</h2>
-          <form id="bulkUploadForm" action="/bulk-upload-staff" method="post" enctype="multipart/form-data">
-            <div class="form-row">
+          <form id="bulkUploadStaffForm" action="/bulk-upload-staff" method="post" enctype="multipart/form-data">
+            <div class="bulk-upload-actions">
               <div class="form-group-add-student">
                 <label for="bulkFileStaff">Upload XLSX or CSV File</label>
                 <div class="custom-file-upload">
                   <label for="bulkFileStaff" class="upload-btn">Choose File</label>
                   <span id="file-chosen-staff">No file chosen</span>
-                  <input type="file" id="bulkFileStaff" name="bulk_file" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" required>
+                  <input type="file" id="bulkFileStaff" name="bulk_file" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel">
+                </div>
+              </div>
+              <div class="form-group-add-student">
+                <label for="bulkStaffPhotos">Select Folder with Staff Photos</label>
+                <div class="custom-file-upload">
+                  <label for="bulkStaffPhotos" class="upload-btn">Choose Folder</label>
+                  <span id="file-chosen-staff-photos">No folder chosen</span>
+                  <input type="file" id="bulkStaffPhotos" name="photos[]" webkitdirectory directory multiple accept="image/*">
                 </div>
               </div>
             </div>
             <br>
-            <button type="submit" class="btn btn-primary">Upload</button>
+            <button type="submit" class="btn btn-primary full-width">Upload</button>
           </form>
         </div>
       </div>

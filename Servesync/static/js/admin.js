@@ -580,6 +580,20 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 });
+
+// Update "Choose Folder" label when bulk staff photos folder is selected
+document.addEventListener("DOMContentLoaded", function () {
+  const bulkStaffPhotosInput = document.getElementById("bulkStaffPhotos");
+  const bulkStaffPhotosChosen = document.getElementById("file-chosen-staff-photos");
+
+  if (bulkStaffPhotosInput && bulkStaffPhotosChosen) {
+    bulkStaffPhotosInput.addEventListener("change", function () {
+      bulkStaffPhotosChosen.textContent = this.files.length > 0
+        ? this.files.length + " files selected"
+        : "No folder chosen";
+    });
+  }
+});
   // Open Download Reports Modal
   function openReportModal() {
     document.getElementById('reportModal').style.display = 'block';
