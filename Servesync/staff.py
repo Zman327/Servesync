@@ -145,8 +145,8 @@ def search_staff():
 def send_email(to_email, subject, message_body):
     # Email configuration
     sender_name = "ServeSYNC"
-    sender_email = "servesync.bhs@gmail.com"
-    sender_password = "gfun ewwp qbfn rqyq"  # Gmail App Password NOT Hardcode
+    sender_email = "servesync@burnside.school.nz"
+    sender_password = "ptjm tdom eoge yzbe"  # Gmail App Password NOT Hardcode
 
     # Create the email
     msg = MIMEMultipart()
@@ -157,7 +157,7 @@ def send_email(to_email, subject, message_body):
 
     try:
         # Connect to the server and send the email
-        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server = smtplib.SMTP("smtp.gmail.com", 587)
         server.starttls()  # Secure the connection
         server.login(sender_email, sender_password)
         server.sendmail(sender_email, to_email, msg.as_string())

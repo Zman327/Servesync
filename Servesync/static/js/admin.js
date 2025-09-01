@@ -569,7 +569,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 // Update "Choose Folder" label when bulk student photos folder is selected
 document.addEventListener("DOMContentLoaded", function () {
-  const bulkPhotosInput = document.getElementById("bulkPhotosFolder");
+  const bulkPhotosInput = document.getElementById("bulkPhotosFolderBulk");
   const bulkPhotosChosen = document.getElementById("file-chosen-photos");
 
   if (bulkPhotosInput && bulkPhotosChosen) {

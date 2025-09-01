@@ -148,15 +148,15 @@ def activity_history():
     all_logs = ServiceHour.query.filter_by(user_id=user.school_id).all()
 
     for log in logs:
-        log.group_name = Group.query.get(log.group_id).name if log.group_id else "N/A"
+        log.group_name = Group.query.get(log.group_id).name if log.group_id else "N/A" # noqa
         staff = User.query.filter_by(school_id=log.staff).first()
-        log.teacher_name = f"{staff.first_name} {staff.last_name}" if staff else "N/A"
+        log.teacher_name = f"{staff.first_name} {staff.last_name}" if staff else "N/A" # noqa
         try:
-            log.formatted_date = datetime.strptime(log.date, "%d-%m-%Y").strftime("%b %d, %Y")
+            log.formatted_date = datetime.strptime(log.date, "%d-%m-%Y").strftime("%b %d, %Y") # noqa
         except Exception:
             log.formatted_date = log.date
         try:
-            log.formatted_log_time = datetime.strptime(log.log_time, "%d-%m-%Y %H:%M:%S").strftime("%b %d, %Y at %I:%M %p")
+            log.formatted_log_time = datetime.strptime(log.log_time, "%d-%m-%Y %H:%M:%S").strftime("%b %d, %Y at %I:%M %p") # noqa
         except Exception:
             log.formatted_log_time = log.log_time
         log.status_label = {
@@ -166,9 +166,9 @@ def activity_history():
         }.get(log.status, 'Unknown')
 
     # Count totals from all_logs
-    accepted_count = sum(1 for l in all_logs if l.status == 1)
-    pending_count = sum(1 for l in all_logs if l.status == 2)
-    rejected_count = sum(1 for l in all_logs if l.status == 3)
+    accepted_count = sum(1 for l in all_logs if l.status == 1) # noqa
+    pending_count = sum(1 for l in all_logs if l.status == 2) # noqa
+    rejected_count = sum(1 for l in all_logs if l.status == 3) # noqa
 
     return render_template(
         'student/activity.html',
@@ -192,7 +192,7 @@ def activity_history_user(user_id):
     for log in logs:
         log.group_name = Group.query.get(log.group_id).name if log.group_id else "N/A" # noqa
         staff = User.query.filter_by(school_id=log.staff).first()
-        log.teacher_name = f"{staff.first_name} {staff.last_name}" if staff else "N/A"
+        log.teacher_name = f"{staff.first_name} {staff.last_name}" if staff else "N/A" # noqa
         try:
             log.formatted_date = datetime.strptime(log.date, "%d-%m-%Y").strftime("%b %d, %Y") # noqa
         except Exception:
