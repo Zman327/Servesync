@@ -135,10 +135,52 @@
             {% for admin in current_admins %}
               <li id="admin-{{ admin.school_id }}">
                 <span>{{ admin.name }} ({{ admin.school_id }})</span>
-                <button class="remove-admin-btn" onclick="removeAdmin('{{ admin.school_id }}')">Remove</button>
+                <button class="remove-admin-btn" onclick="openConfirmRemoveModal('{{ admin.school_id }}', '{{ admin.name }}', '/admin/remove')">Remove</button>
               </li>
             {% endfor %}
           </ul>
+        </div>
+      </div>
+
+      <!-- Confirm Remove Modal -->
+      <div id="confirmRemoveModal" class="student-modal">
+        <div class="student-modal-content">
+          <span class="close-btn" onclick="closeConfirmRemoveModal()">&times;</span>
+          <h2><i class="fas fa-exclamation-triangle" style="color:#f44336;"></i> Confirm Removal</h2>
+          <p>Are you sure you want to remove <strong><span id="removeTargetName"></span></strong>? This action cannot be undone.</p>
+          <form id="confirmRemoveForm" method="post">
+            <input type="hidden" name="school_id" id="removeTargetId">
+            <button type="submit" class="btn btn-danger">Yes, Remove</button>
+            <button type="button" class="btn btn-secondary" onclick="closeConfirmRemoveModal()">Cancel</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Confirm Remove Student Modal -->
+      <div id="confirmRemoveStudentModal" class="student-modal">
+        <div class="student-modal-content">
+          <span class="close-btn" onclick="closeConfirmRemoveStudentModal()">&times;</span>
+          <h2><i class="fas fa-exclamation-triangle" style="color:#f44336;"></i> Confirm Removal</h2>
+          <p>Are you sure you want to remove <strong><span id="removeStudentTargetName"></span></strong>? This action cannot be undone.</p>
+          <form id="confirmRemoveStudentForm" method="post" action="/remove-students">
+            <input type="hidden" name="student_id" id="removeStudentTargetId">
+            <button type="submit" class="btn btn-danger">Yes, Remove</button>
+            <button type="button" class="btn btn-secondary" onclick="closeConfirmRemoveStudentModal()">Cancel</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Confirm Bulk Remove Students Modal -->
+      <div id="confirmBulkRemoveModal" class="student-modal">
+        <div class="student-modal-content">
+          <span class="close-btn" onclick="closeConfirmBulkRemoveModal()">&times;</span>
+          <h2><i class="fas fa-exclamation-triangle" style="color:#f44336;"></i> Confirm Bulk Removal</h2>
+          <p>Are you sure you want to remove multiple students from this file upload? This action cannot be undone.</p>
+          <form id="confirmBulkRemoveForm" method="post" action="/bulk-remove-students" enctype="multipart/form-data">
+            <input type="hidden" name="bulk_remove_file" id="bulkRemoveFileHidden">
+            <button type="submit" class="btn btn-danger">Yes, Remove</button>
+            <button type="button" class="btn btn-secondary" onclick="closeConfirmBulkRemoveModal()">Cancel</button>
+          </form>
         </div>
       </div>
       
@@ -407,7 +449,7 @@
                   <input type="text" id="removeStudentHours" disabled>
                 </div>
               </div>
-              <button type="submit" class="btn btn-danger">Remove Student</button>
+              <button type="button" class="btn btn-danger" onclick="openConfirmRemoveStudentModal()">Remove Student</button>
             </form>
           </div>
           <div style="text-align: center; margin-top: 15px;">
@@ -460,7 +502,7 @@
                 </div>
               </div>
             </div>
-            <button type="submit" class="btn btn-danger">Remove Students</button>
+            <button type="button" class="btn btn-danger" onclick="openConfirmBulkRemoveModal()">Remove Students</button>
           </form>
         </div>
       </div>

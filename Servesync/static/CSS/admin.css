@@ -302,6 +302,49 @@ h1 {
     max-width: 600px;
 }
 
+/* Confirm Remove Modal Enhancements */
+#confirmRemoveModal .student-modal-content {
+    border-top: 6px solid #e74c3c;
+    text-align: center;
+}
+
+#confirmRemoveModal h2 {
+    color: #e74c3c;
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+#confirmRemoveModal p {
+    font-size: 16px;
+    margin-bottom: 25px;
+    color: #444;
+}
+
+#confirmRemoveModal .btn-danger {
+    background: #e74c3c;
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-weight: 600;
+    transition: background 0.3s;
+}
+
+#confirmRemoveModal .btn-danger:hover {
+    background: #c0392b;
+}
+
+#confirmRemoveModal .btn-secondary {
+    background: #bdc3c7;
+    color: #2c3e50;
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-weight: 600;
+    transition: background 0.3s;
+}
+
+#confirmRemoveModal .btn-secondary:hover {
+    background: #95a5a6;
+}
+
 .student-modal-content h2 {
     margin-bottom: 30px;
     font-size: 26px;
@@ -521,4 +564,56 @@ h1 {
 .btn.btn-primary.full-width:hover {
     background: linear-gradient(to right, #3da654, #138a57);
     transform: translateY(-1px);
+}
+
+/* Confirm Remove Student Modal Enhancements */
+#confirmRemoveStudentModal .student-modal-content,
+#confirmBulkRemoveModal .student-modal-content {
+    border-top: 6px solid #e74c3c;
+    text-align: center;
+    padding: 40px 30px;
+    max-width: 600px;
+}
+
+#confirmRemoveStudentModal h2,
+#confirmBulkRemoveModal h2 {
+    color: #e74c3c;
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+#confirmRemoveStudentModal p,
+#confirmBulkRemoveModal p {
+    font-size: 16px;
+    margin-bottom: 25px;
+    color: #444;
+}
+
+#confirmRemoveStudentModal .btn-danger,
+#confirmBulkRemoveModal .btn-danger {
+    background: #e74c3c;
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-weight: 600;
+    transition: background 0.3s;
+}
+
+#confirmRemoveStudentModal .btn-danger:hover,
+#confirmBulkRemoveModal .btn-danger:hover {
+    background: #c0392b;
+}
+
+#confirmRemoveStudentModal .btn-secondary,
+#confirmBulkRemoveModal .btn-secondary {
+    background: #bdc3c7;
+    color: #2c3e50;
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-weight: 600;
+    transition: background 0.3s;
+}
+
+#confirmRemoveStudentModal .btn-secondary:hover,
+#confirmBulkRemoveModal .btn-secondary:hover {
+    background: #95a5a6;
 }

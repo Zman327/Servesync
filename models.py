@@ -46,7 +46,6 @@ class ServiceHour(db.Model):
     date = db.Column(db.Integer)
     description = db.Column(db.Text)
     status = db.Column(db.Integer, db.ForeignKey('status.id'))
-    time = db.Column(db.Integer)
     log_time = db.Column(db.Integer)
     staff = db.Column(db.String, db.ForeignKey('user.school_id'))
 

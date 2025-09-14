@@ -1,5 +1,9 @@
 let modalEdited = false;
 
+/**
+ * Open the review modal and populate it with log data.
+ * @param {Object} log - The log data to display.
+ */
 function openReviewModal(log) {
   modalEdited = false;
   document.getElementById('modal-student').innerText = `${log.student_name} (${log.user_id})`;
@@ -17,6 +21,9 @@ function openReviewModal(log) {
   document.getElementById('reviewModal').style.display = 'block';
 }
 
+/**
+ * Close the review modal and reload if edited.
+ */
 function closeModal() {
   document.getElementById('reviewModal').style.display = 'none';
   if (modalEdited) {
@@ -24,55 +31,102 @@ function closeModal() {
   }
 }
 
+/**
+ * Open the report modal.
+ */
 function openReportModal() {
   document.getElementById('reportModal').style.display = 'block';
 }
 
+/**
+ * Close the report modal.
+ */
 function closeReportModal() {
   document.getElementById('reportModal').style.display = 'none';
 }
 
+/**
+ * Open the approve tips modal.
+ */
 function openApproveTipsModal() {
   document.getElementById('approveTipsModal').style.display = 'block';
 }
 
+/**
+ * Close the approve tips modal.
+ */
 function closeApproveTipsModal() {
   document.getElementById('approveTipsModal').style.display = 'none';
 }
 
+/**
+ * Open the group tips modal.
+ */
 function openGroupTipsModal() {
   document.getElementById('groupTipsModal').style.display = 'block';
 }
 
+/**
+ * Close the group tips modal.
+ */
 function closeGroupTipsModal() {
   document.getElementById('groupTipsModal').style.display = 'none';
 }
 
-window.onclick = function(event) {
-  const reviewModal = document.getElementById('reviewModal');
-  const reportModal = document.getElementById('reportModal');
-  const approveTipsModal = document.getElementById('approveTipsModal');
-  const groupTipsModal = document.getElementById('groupTipsModal');
-  const manageGroupModal = document.getElementById('manageGroupModal');
-  const createGroupModal = document.getElementById('createGroupModal');
-  const deleteGroupModal = document.getElementById('deleteGroupModal');
-  if (event.target === reviewModal) {
-    reviewModal.style.display = "none";
-  } else if (event.target === reportModal) {
-    reportModal.style.display = "none";
-  } else if (event.target === approveTipsModal) {
-    approveTipsModal.style.display = "none";
-  } else if (event.target === groupTipsModal) {
-    groupTipsModal.style.display = "none";
-  } else if (event.target === manageGroupModal) {
-    manageGroupModal.style.display = "none";
-  } else if (event.target === createGroupModal) {
-    createGroupModal.style.display = "none";
-  } else if (event.target === deleteGroupModal) {
-    deleteGroupModal.style.display = "none";
-  }
+/**
+ * Open the manage group modal.
+ */
+function openManageGroupModal() {
+  document.getElementById('manageGroupModal').style.display = 'block';
 }
 
+/**
+ * Close the manage group modal.
+ */
+function closeManageGroupModal() {
+  document.getElementById('manageGroupModal').style.display = 'none';
+}
+
+/**
+ * Open the create group modal and close manage group modal.
+ */
+function openCreateGroupModal() {
+  closeManageGroupModal();
+  document.getElementById('createGroupModal').style.display = 'block';
+}
+
+/**
+ * Close the create group modal and reopen manage group modal.
+ */
+function closeCreateGroupModal() {
+  openManageGroupModal();
+  document.getElementById('createGroupModal').style.display = 'none';
+}
+
+/**
+ * Open the delete group modal with selected group info.
+ */
+function openDeleteGroupModal() {
+  const groupSelect = document.getElementById('groupSelect');
+  const selectedOption = groupSelect.options[groupSelect.selectedIndex];
+  const groupId = selectedOption.value;
+  const groupName = selectedOption.textContent;
+  document.getElementById('deleteGroupId').value = groupId;
+  document.getElementById('deleteGroupConfirmText').textContent = groupName;
+  document.getElementById('deleteGroupModal').style.display = 'block';
+}
+
+/**
+ * Close the delete group modal.
+ */
+function closeDeleteGroupModal() {
+  document.getElementById('deleteGroupModal').style.display = 'none';
+}
+
+/**
+ * Make an element editable and save edits on blur or Enter.
+ * @param {string} id - The ID of the element to make editable.
+ */
 function makeEditable(id) {
   const el = document.getElementById(id);
   el.contentEditable = true;
@@ -98,6 +152,9 @@ function makeEditable(id) {
   el.addEventListener("blur", handleBlur);
 }
 
+/**
+ * Save edits made in the modal by sending updated data to server.
+ */
 function saveEdits() {
   const logId = document.getElementById('edit-log-id').value;
 
@@ -127,41 +184,83 @@ function saveEdits() {
   });
 }
 
-function openManageGroupModal() {
-  document.getElementById('manageGroupModal').style.display = 'block';
-}
-
-function closeManageGroupModal() {
-  document.getElementById('manageGroupModal').style.display = 'none';
-}
-
-function openCreateGroupModal() {
-    closeManageGroupModal();
-    document.getElementById('createGroupModal').style.display = 'block';
+/**
+ * Handle clicks outside modals to close them.
+ */
+window.onclick = function(event) {
+  const reviewModal = document.getElementById('reviewModal');
+  const reportModal = document.getElementById('reportModal');
+  const approveTipsModal = document.getElementById('approveTipsModal');
+  const groupTipsModal = document.getElementById('groupTipsModal');
+  const manageGroupModal = document.getElementById('manageGroupModal');
+  const createGroupModal = document.getElementById('createGroupModal');
+  const deleteGroupModal = document.getElementById('deleteGroupModal');
+  if (event.target === reviewModal) {
+    reviewModal.style.display = "none";
+  } else if (event.target === reportModal) {
+    reportModal.style.display = "none";
+  } else if (event.target === approveTipsModal) {
+    approveTipsModal.style.display = "none";
+  } else if (event.target === groupTipsModal) {
+    groupTipsModal.style.display = "none";
+  } else if (event.target === manageGroupModal) {
+    manageGroupModal.style.display = "none";
+  } else if (event.target === createGroupModal) {
+    createGroupModal.style.display = "none";
+  } else if (event.target === deleteGroupModal) {
+    deleteGroupModal.style.display = "none";
   }
-  
-  function closeCreateGroupModal() {
-    openManageGroupModal();
-    document.getElementById('createGroupModal').style.display = 'none';
+}
+
+/**
+ * Switch tabs and update active classes.
+ * @param {string} tabName - The ID of the tab content to show.
+ */
+function openTab(tabName) {
+  document.querySelectorAll('.tab-content').forEach(e => e.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(e => e.classList.remove('active'));
+  document.getElementById(tabName).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+/**
+ * Populate group info fields based on selected option.
+ * @param {HTMLSelectElement} select - The group select element.
+ */
+function populateGroupInfo(select) {
+  const selectedOption = select.options[select.selectedIndex];
+  const hours = selectedOption.getAttribute('data-hours');
+  const name = selectedOption.textContent;
+
+  document.getElementById('groupHours').value = hours;
+  document.getElementById('groupName').value = name;
+  const staff = selectedOption.getAttribute('data-staff');
+  if (document.getElementById('manageStaffInCharge')) {
+    document.getElementById('manageStaffInCharge').value = staff || "";
   }
-
-function openDeleteGroupModal() {
-  const groupSelect = document.getElementById('groupSelect');
-  const selectedOption = groupSelect.options[groupSelect.selectedIndex];
-  const groupId = selectedOption.value;
-  const groupName = selectedOption.textContent;
-  document.getElementById('deleteGroupId').value = groupId;
-  document.getElementById('deleteGroupConfirmText').textContent = groupName;
-  document.getElementById('deleteGroupModal').style.display = 'block';
 }
 
-function closeDeleteGroupModal() {
-  document.getElementById('deleteGroupModal').style.display = 'none';
+/**
+ * Print the staff submissions table in a new window.
+ */
+function printStaffTable() {
+  const table = document.getElementById('submissionsTable').outerHTML;
+  const printWindow = window.open('', '', 'height=800,width=1000');
+  printWindow.document.write('<html><head><title>Service Hours Report</title>');
+  printWindow.document.write('<style>');
+  printWindow.document.write('table { width:100%; border-collapse: collapse; }');
+  printWindow.document.write('table, th, td { border: 1px solid black; padding: 8px; }');
+  printWindow.document.write('</style>');
+  printWindow.document.write('</head><body>');
+  printWindow.document.write('<h2>Service Hours Report</h2>');
+  printWindow.document.write(table);
+  printWindow.document.write('</body></html>');
+  printWindow.document.close();
+  printWindow.print();
 }
 
+// --- Pagination, Sorting and Search Logic ---
 document.addEventListener('DOMContentLoaded', function () {
-
-  // --- Appended logic from /submissions.html ---
   const rows = Array.from(document.querySelectorAll("#submissionsTable tbody tr"));
   const rowsPerPage = 10;
   let currentPage = 1;
@@ -170,6 +269,10 @@ document.addEventListener('DOMContentLoaded', function () {
   const prevBtn = document.getElementById("prevPage");
   const nextBtn = document.getElementById("nextPage");
 
+  /**
+   * Show a specific page of rows.
+   * @param {number} page - The page number to show.
+   */
   function showPage(page) {
     const start = (page - 1) * rowsPerPage;
     const end = start + rowsPerPage;
@@ -254,6 +357,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
+  // Search filter
   const searchInput = document.getElementById("searchInput");
   if (searchInput) {
     searchInput.addEventListener("input", function () {
@@ -273,6 +377,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  // Row click to open review modal
   document.querySelectorAll('.submission-row').forEach(function(row) {
     row.addEventListener('click', function() {
       const studentName = this.getAttribute('data-student-name');
@@ -304,34 +409,19 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 
-function openTab(tabName) {
-  document.querySelectorAll('.tab-content').forEach(e => e.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(e => e.classList.remove('active'));
-  document.getElementById(tabName).classList.add('active');
-  event.currentTarget.classList.add('active');
-}
-
-function populateGroupInfo(select) {
-  const selectedOption = select.options[select.selectedIndex];
-  const hours = selectedOption.getAttribute('data-hours');
-  const name = selectedOption.textContent;
-
-  document.getElementById('groupHours').value = hours;
-  document.getElementById('groupName').value = name;
-  const staff = selectedOption.getAttribute('data-staff');
-  if (document.getElementById('manageStaffInCharge')) {
-    document.getElementById('manageStaffInCharge').value = staff || "";
-  }
-}
+// --- Staff Autocomplete Logic ---
 document.addEventListener('DOMContentLoaded', function() {
   var selectEl = document.getElementById('groupSelect');
   if (selectEl) {
     populateGroupInfo(selectEl);
   }
 
-  // --- Staff autocomplete logic (multi-field) ---
   const staffInputs = document.querySelectorAll('.staff-in-charge');
 
+  /**
+   * Attach autocomplete functionality to a staff input element.
+   * @param {HTMLInputElement} inputEl - The input element to attach autocomplete.
+   */
   function attachStaffAutocomplete(inputEl) {
     const box = inputEl.parentElement.querySelector('.staff-suggestions');
     let debounce;

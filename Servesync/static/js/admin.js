@@ -835,36 +835,126 @@ fetch('/api/current_admins')
     });
 }
 
-function removeAdmin(schoolId) {
-    fetch('/admin/remove', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ school_id: schoolId })
-    })
-    .then(response => response.json())
-    .then(data => {
-      const messageBox = document.getElementById("adminActionMessage");
-  
-      if (messageBox) {
-        messageBox.textContent = data.message;
-        messageBox.className = ""; // clear previous classes
-        messageBox.classList.add(data.status === 'success' ? 'success' : 'error');
-        messageBox.style.display = 'block';
-      }
-  
-      if (data.status === 'success') {
-        refreshCurrentAdmins();
-      }
-    })
-    .catch(error => {
-      const messageBox = document.getElementById("adminActionMessage");
-      if (messageBox) {
-        messageBox.textContent = "An unexpected error occurred.";
-        messageBox.className = "error";
-        messageBox.style.display = 'block';
-      }
-      console.error("Error removing admin:", error);
+// Modal-based admin removal handlers
+function openConfirmRemoveModal(schoolId, name, actionUrl) {
+  document.getElementById("removeTargetName").innerText = name + " (" + schoolId + ")";
+  document.getElementById("removeTargetId").value = schoolId;
+  document.getElementById("confirmRemoveForm").setAttribute("data-action-url", actionUrl);
+  document.getElementById("confirmRemoveModal").style.display = "block";
+}
+
+function closeConfirmRemoveModal() {
+  document.getElementById("confirmRemoveModal").style.display = "none";
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  const confirmForm = document.getElementById("confirmRemoveForm");
+  if (confirmForm) {
+    confirmForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      const schoolId = document.getElementById("removeTargetId").value;
+      const actionUrl = confirmForm.getAttribute("data-action-url") || "/admin/remove";
+
+      fetch(actionUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ school_id: schoolId })
+      })
+      .then(res => res.json())
+      .then(data => {
+        const messageBox = document.getElementById("adminActionMessage");
+        if (messageBox) {
+          messageBox.textContent = data.message;
+          messageBox.className = "";
+          messageBox.classList.add(data.status === "success" ? "success" : "error");
+          messageBox.style.display = "block";
+        }
+        if (data.status === "success") {
+          refreshCurrentAdmins();
+        }
+        closeConfirmRemoveModal();
+      })
+      .catch(err => {
+        console.error("Error removing:", err);
+        closeConfirmRemoveModal();
+      });
     });
   }
+});
+
+/* Confirm Remove Student Modal Functions */
+function openConfirmRemoveStudentModal() {
+  const name = document.getElementById('removeStudentName').value;
+  const schoolId = document.getElementById('studentIdToRemove').value;
+
+  if (!name || !schoolId) {
+    alert("Please select a student to remove.");
+    return;
+  }
+
+  // Close the original remove modal
+  closeRemoveStudentModal();
+
+  // Set the confirm modal data
+  document.getElementById('removeStudentTargetName').innerText = name + " (" + schoolId + ")";
+  document.getElementById('removeStudentTargetId').value = schoolId;
+
+  // Make it appear on top like admin modal
+  const modal = document.getElementById('confirmRemoveStudentModal');
+  modal.style.display = 'block';
+  modal.style.zIndex = '9999';
+}
+
+function closeConfirmRemoveStudentModal() {
+  document.getElementById('confirmRemoveStudentModal').style.display = 'none';
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  const confirmStudentForm = document.getElementById('confirmRemoveStudentForm');
+  if (confirmStudentForm) {
+    confirmStudentForm.addEventListener('submit', function(e) {
+      // Form submits normally; optionally intercept with fetch if needed
+      // Example with fetch:
+      // e.preventDefault();
+      // const studentId = document.getElementById('removeStudentTargetId').value;
+      // fetch('/remove-students', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({student_id: studentId}) }).then(...);
+      closeConfirmRemoveStudentModal();
+    });
+  }
+});
+
+/* Confirm Bulk Remove Modal Functions */
+function openConfirmBulkRemoveModal() {
+  const fileInput = document.getElementById('bulkRemoveFile');
+  const file = fileInput ? fileInput.files[0] : null;
+
+  if (!file) {
+    alert("Please select a CSV file to remove students.");
+    return;
+  }
+
+  // Close the bulk remove modal
+  closeBulkRemoveModal();
+
+  // Set the hidden file input value
+  document.getElementById('bulkRemoveFileHidden').value = file.name;
+
+  // Make the confirm modal appear on top like admin modal
+  const modal = document.getElementById('confirmBulkRemoveModal');
+  modal.style.display = 'block';
+  modal.style.zIndex = '9999';
+}
+
+function closeConfirmBulkRemoveModal() {
+  document.getElementById('confirmBulkRemoveModal').style.display = 'none';
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  const confirmBulkForm = document.getElementById('confirmBulkRemoveForm');
+  if (confirmBulkForm) {
+    confirmBulkForm.addEventListener('submit', function(e) {
+      // Form submits normally; optionally intercept with fetch if needed
+      closeConfirmBulkRemoveModal();
+    });
+  }
+});
