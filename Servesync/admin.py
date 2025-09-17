@@ -497,12 +497,11 @@ def bulk_upload_staff():
         # Normalize and validate required columns (case-insensitive)
         df.columns = [col.strip().lower() for col in df.columns]
 
-        # Required columns for staff spreadsheet
+        # Required columns for staff spreadsheet (removed 'email (school)')
         required_cols = [
             'code',
             'last name',
             'first name',
-            'email (school)',
             'internet - password display - staff'
         ]
         missing = [col for col in required_cols if col not in df.columns]
@@ -510,12 +509,11 @@ def bulk_upload_staff():
             flash(f"Missing required columns: {[col.title() for col in missing]}", "danger") # noqa
             return redirect(url_for('admin.adminpage'))
 
-        # Rename columns for consistent access
+        # Rename columns for consistent access (removed 'email (school)')
         rename_map = {
             'code': 'School ID',
             'last name': 'Last Name',
             'first name': 'First Name',
-            'email (school)': 'Email',
             'internet - password display - staff': 'Password'
         }
         df.rename(columns={col: rename_map[col] for col in rename_map if col in df.columns}, inplace=True) # noqa
@@ -526,7 +524,8 @@ def bulk_upload_staff():
                 last_name = row['Last Name']
                 school_id = row['School ID'].lower()
                 raw_pass = row['Password']
-                email = row['Email']
+                # Generate staff email automatically
+                email = f"{school_id}@burnside.school.nz"
 
                 hashed_password = generate_password_hash(raw_pass, method='pbkdf2:sha256') # noqa
 

@@ -283,7 +283,7 @@ def check_and_notify_pending_submissions():
                 f"your review in ServeSYNC.\n\n"
                 "We encourage you to log in and process these as soon "
                 "as you're able:\n"
-                "👉 https://zeyad327.pythonanywhere.com/staff.dashboard\n\n"
+                "👉 https://servesync.burnside.school.nz/staff.dashboard\n\n"
                 "If you have any questions or need support, please feel "
                 "free to reach out.\n\n"
                 "Ngā mihi nui,\n"

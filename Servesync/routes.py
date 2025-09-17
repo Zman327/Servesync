@@ -21,7 +21,7 @@ os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'  # Allow HTTP for local dev
 google_bp = make_google_blueprint(
     client_id="26915404481-5bcada6j7otusedjet7p5g93pn08rp69.apps.googleusercontent.com", # noqa
     client_secret="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",
-    redirect_url="http://127.0.0.1:5000/google_login/callback",  # when live use https://servesync.pythonanywhere.com/google_login/google/authorized # noqa
+    redirect_url="http://127.0.0.1:5000/google_login/callback",  # when live use https://servesync.burnside.school.nz/google_login/callback # noqa
     scope=[
         "openid",
         "https://www.googleapis.com/auth/userinfo.email",
@@ -112,3 +112,9 @@ def forbidden(e):
 @app.errorhandler(405)
 def method_not_allowed(e):
     return render_template('errors/405.html'), 405
+
+
+# 413 Request Entity Too Large
+@app.errorhandler(413)
+def request_entity_too_large(e):
+    return render_template('errors/413.html'), 413

@@ -45,7 +45,7 @@
               </div>
               <div class="form-group-add-student">
                 <label for="studentForm">Form</label>
-                <input type="text" id="studentForm" name="form" placeholder="Enter staff member's form class" required>
+                <input type="text" id="studentForm" name="form" placeholder="Enter staff member's form class">
               </div>
             </div>
             <div class="form-row">
@@ -142,12 +142,12 @@
         </div>
       </div>
 
-      <!-- Confirm Remove Modal -->
+      <!-- Confirm Admin Remove Modal -->
       <div id="confirmRemoveModal" class="student-modal">
         <div class="student-modal-content">
           <span class="close-btn" onclick="closeConfirmRemoveModal()">&times;</span>
           <h2><i class="fas fa-exclamation-triangle" style="color:#f44336;"></i> Confirm Removal</h2>
-          <p>Are you sure you want to remove <strong><span id="removeTargetName"></span></strong>? This action cannot be undone.</p>
+          <p>Are you sure you want to remove <strong><span id="removeTargetName"></span></strong> as an admin?</p>
           <form id="confirmRemoveForm" method="post">
             <input type="hidden" name="school_id" id="removeTargetId">
             <button type="submit" class="btn btn-danger">Yes, Remove</button>
