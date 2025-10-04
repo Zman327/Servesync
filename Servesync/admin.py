@@ -608,46 +608,168 @@ def remove_student():
     return redirect(url_for('admin.adminpage'))
 
 
+
+# --- Real Gmail SMTP Email Sending Function with Verbose Logging ---
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
+
+def send_email(to_email, subject, html_content):
+    # Hardcoded Gmail credentials (for demonstration only; do not use in production)
+    gmail_user = "servesync@burnside.school.nz"
+    gmail_pass = "ptjm tdom eoge yzbe"  # Replace with your real app password
+
+    print(f"[EMAIL] Preparing to send email to {to_email} with subject '{subject}'")
+    msg = MIMEMultipart('alternative')
+    msg['Subject'] = subject
+    msg['From'] = gmail_user
+    msg['To'] = to_email
+    part = MIMEText(html_content, 'html')
+    msg.attach(part)
+    try:
+        print("[EMAIL] Connecting to smtp.gmail.com:587 ...")
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.ehlo()
+        server.starttls()
+        print("[EMAIL] Logging in as", gmail_user)
+        server.login(gmail_user, gmail_pass)
+        print("[EMAIL] Sending email ...")
+        server.sendmail(gmail_user, to_email, msg.as_string())
+        print(f"[EMAIL] Email sent successfully to {to_email}")
+        server.quit()
+    except Exception as e:
+        print(f"[EMAIL] Failed to send email: {e}")
+
+
+# --- Password Setup Token Generation ---
+import secrets
+import hashlib
+from werkzeug.security import check_password_hash
+
+def generate_password_setup_token(email):
+    # Use a secure random token plus email hash for uniqueness
+    token = secrets.token_urlsafe(32)
+    # You could add a timestamp or sign this token for expiry, etc.
+    return token
+
+
+# --- Staff Password Setup Token Storage (in-memory for demonstration) ---
+staff_password_tokens = {}
+
+
 @admin_bp.route('/add-staff', methods=['POST'])
 def add_staff():
     first_name = request.form['first_name']
     last_name = request.form['last_name']
     school_id = request.form['school_id']
     form_class = request.form['form']
-    password = request.form['password']
     image_file = request.files['image']
 
     # Convert image to binary
     picture_data = image_file.read() if image_file else None
 
-    # Hash the password
-    hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
-
-    # Create email from school_id
+    # Generate staff email
     email = f"{school_id}@burnside.school.nz"
 
-    # Create a new user object using reflected columns
-    new_student = User(
-        first_name=first_name,
-        last_name=last_name,
-        school_id=school_id,
-        form=form_class,
-        password=hashed_password,
-        role=2,
-        hours=None,  # or any default you want
-        picture=picture_data,
-        email=email
-    )
+    # Check if staff already exists
+    if User.query.filter_by(email=email).first():
+        flash('Staff with this email already exists.', 'danger')
+        return redirect(url_for('admin.adminpage'))
 
-    try:
-        db.session.add(new_student)
-        db.session.commit()
-        flash('Staff added successfully!', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error adding Staff: {e}', 'danger')
+    # Instead of setting password here, generate a setup token
+    token = generate_password_setup_token(email)
+    staff_password_tokens[token] = {
+        'email': email,
+        'first_name': first_name,
+        'last_name': last_name,
+        'school_id': school_id,
+        'form': form_class,
+        'picture_data': picture_data,
+        'created': datetime.utcnow()
+    }
 
+    # Build password setup link
+    setup_link = url_for('admin.set_staff_password', token=token, _external=True)
+    print(f"[DEBUG] Staff password setup token: {token}")
+    print(f"[DEBUG] Staff password setup link: {setup_link}")
+
+    # Compose improved HTML email with green button and nicer layout
+    html_content = f"""
+    <html>
+    <body style="background:#f7fafc;padding:0;margin:0;">
+      <div style="max-width:480px;margin:40px auto;background:#fff;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,0.06);padding:32px 28px 28px 28px;border:1px solid #e3e7ea;font-family:'Segoe UI',Arial,sans-serif;">
+        <div style="text-align:center;">
+          <h2 style="color:#197d3a;margin-bottom:8px;">Welcome to ServeSync!</h2>
+        </div>
+        <p style="font-size:16px;color:#222;margin-bottom:14px;">Hello <b>{first_name} {last_name}</b>,</p>
+        <p style="font-size:15px;color:#333;margin-bottom:26px;">
+          Your staff account has been created. Please set your password by clicking the button below:
+        </p>
+        <div style="text-align:center;margin-bottom:24px;">
+          <a href="{setup_link}" style="display:inline-block;background:#43a047;color:#fff;padding:14px 32px;text-decoration:none;border-radius:6px;font-size:17px;font-weight:600;box-shadow:0 2px 8px rgba(67,160,71,0.08);transition:background 0.2s;">Set Your Password</a>
+        </div>
+        <div style="background:#f1f3f6;padding:12px 16px;border-radius:6px;font-size:13px;color:#555;margin-bottom:18px;">
+          If the button above doesn't work, copy and paste this link into your browser:<br>
+          <a href="{setup_link}" style="color:#1976d2;word-break:break-all;">{setup_link}</a>
+        </div>
+        <p style="font-size:14px;color:#888;margin-top:20px;">
+          Thank you,<br>
+          <span style="color:#197d3a;font-weight:500;">The ServeSync Team</span>
+        </p>
+      </div>
+    </body>
+    </html>
+    """
+    # Send real email
+    send_email(email, "Set up your ServeSync password", html_content)
+    flash('Staff added! Password setup email sent.', 'success')
     return redirect(url_for('admin.adminpage'))
+
+
+# --- Staff Password Setup Route ---
+from werkzeug.security import generate_password_hash
+
+@admin_bp.route('/set-staff-password/<token>', methods=['GET', 'POST'])
+def set_staff_password(token):
+    # Check if the token exists
+    staff_info = staff_password_tokens.get(token)
+    if not staff_info:
+        return "Invalid or expired password setup link.", 400
+
+    if request.method == 'POST':
+        password = request.form.get('password')
+        if not password or len(password) < 6:
+            flash('Password must be at least 6 characters.', 'danger')
+            return render_template('admin/set_staff_password.html', first_name=staff_info['first_name'])
+        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+
+        # Create staff user in DB
+        new_staff = User(
+            first_name=staff_info['first_name'],
+            last_name=staff_info['last_name'],
+            school_id=staff_info['school_id'],
+            form=staff_info['form'],
+            password=hashed_password,
+            role=2,
+            hours=None,
+            picture=staff_info['picture_data'],
+            email=staff_info['email']
+        )
+        try:
+            db.session.add(new_staff)
+            db.session.commit()
+            # Remove token after use
+            del staff_password_tokens[token]
+            flash('Password set and staff account created!', 'success')
+            return redirect(url_for('admin.adminpage'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error creating staff: {e}', 'danger')
+            return render_template('admin/set_staff_password.html', first_name=staff_info['first_name'])
+
+    # GET: Show password setup form
+    return render_template('admin/set_staff_password.html', first_name=staff_info['first_name'])
 
 
 # --- Review Student Route ---
