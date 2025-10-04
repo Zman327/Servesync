@@ -4,12 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{% block title %}ServeSYNC{% endblock %}</title>
-  <link rel="stylesheet" href="/static/CSS/styles.css">
-  <link rel="stylesheet" href="/static/CSS/student.css">
-  <link rel="stylesheet" href="/static/CSS/staff.css">
-  <link rel="stylesheet" href="/static/CSS/admin.css">
-  <link rel="stylesheet" href="/static/CSS/layout.css">
-  <link rel="icon" type="image/png" href="static/Images/Logo/favicon.png">
+  <link rel="stylesheet" href="{{ url_for('static', filename='CSS/styles.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='CSS/student.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='CSS/staff.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='CSS/admin.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='CSS/layout.css') }}">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='Images/Logo/favicon.png') }}">
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
@@ -20,7 +20,7 @@
   <!-- Header Section -->
   <header class="landing-header">
     <div class="logo-container">
-      <img src="static/Images/Logo/favicon.png" alt="Logo" class="site-logo">
+      <img src="{{ url_for('static', filename='Images/Logo/favicon.png') }}" alt="Logo" class="site-logo">
       <span class="logo-text">ServeSYNC</span>
     </div>
     <nav class="landing-nav">
@@ -48,7 +48,7 @@
         {% if session.username %}
         <div class="dropdown">
           <a href="#" class="dropbtn">
-            <img src="{{ profile_image or url_for('static', filename='Images/Profile/deafult.jpg') }}" alt="Avatar" class="avatar">
+          <img src="{{ profile_image or url_for('static', filename='Images/Profile/deafult.jpg') }}" alt="Avatar" class="avatar">
             <span>My Account ▼</span>
           </a>
           <div class="dropdown-content">
@@ -135,7 +135,7 @@
         <button type="submit">Log In</button>
         <div class="or-separator">or</div>
         <a href="{{ url_for('google.login') }}" class="google-signin-btn">
-          <img src="static/Images/Logo/google.jpg" alt="Google icon" class="google-icon">
+          <img src="{{ url_for('static', filename='Images/Logo/google.jpg') }}" alt="Google icon" class="google-icon">
           Sign in with Google
         </a>
       </form>

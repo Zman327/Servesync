@@ -10,7 +10,7 @@ import pytz
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from models import db, User, Group, ServiceHour
+from models import db, User, Group, ServiceHour, StaffPasswordToken
 from werkzeug.security import generate_password_hash
 
 
@@ -18,8 +18,7 @@ staff_bp = Blueprint('staff', __name__)
 last_notified = {}
 
 
-# Temporary in-memory store for staff password tokens.
-staff_password_tokens = {}
+
 
 
 # Route: Set Staff Password (GET and POST)
@@ -31,30 +30,58 @@ def set_staff_password(token):
     GET: Show password set form if token is valid.
     POST: Validate and set password, create staff user, remove token.
     """
-    token_info = staff_password_tokens.get(token)
-    if not token_info:
-        flash("Invalid or expired token. Please contact your administrator.", "danger") # noqa
+    token_row = StaffPasswordToken.query.filter_by(token=token).first()
+    if not token_row:
+        flash("Invalid or expired token. Please contact your administrator.", "danger")
         return render_template('staff/set_staff_password.html', token=None)
+
+    # Extract info from token row
+    token_info = {
+        'school_id': token_row.school_id,
+        'email': token_row.email,
+        'first_name': token_row.first_name,
+        'last_name': token_row.last_name
+        # 'role' is intentionally omitted since StaffPasswordToken does not have it
+    }
 
     if request.method == 'POST':
         password = request.form.get('password')
         confirm = request.form.get('confirm_password')
         if not password or not confirm:
             flash("Please enter and confirm your password.", "warning")
-            return render_template('staff/set_staff_password.html', token=token, email=token_info.get('email')) # noqa
+            return render_template(
+                'staff/set_staff_password.html',
+                token=token,
+                email=token_info.get('email'),
+                first_name=token_info.get('first_name'),
+                last_name=token_info.get('last_name')
+            )
         if password != confirm:
             flash("Passwords do not match.", "warning")
-            return render_template('staff/set_staff_password.html', token=token, email=token_info.get('email')) # noqa
+            return render_template(
+                'staff/set_staff_password.html',
+                token=token,
+                email=token_info.get('email'),
+                first_name=token_info.get('first_name'),
+                last_name=token_info.get('last_name')
+            )
         if len(password) < 8:
             flash("Password must be at least 8 characters long.", "warning")
-            return render_template('staff/set_staff_password.html', token=token, email=token_info.get('email')) # noqa
+            return render_template(
+                'staff/set_staff_password.html',
+                token=token,
+                email=token_info.get('email'),
+                first_name=token_info.get('first_name'),
+                last_name=token_info.get('last_name')
+            )
 
         hashed_pw = generate_password_hash(password)
         # Check if user already exists
-        existing = User.query.filter_by(school_id=token_info.get('school_id')).first() # noqa
+        existing = User.query.filter_by(school_id=token_info.get('school_id')).first()
         if existing:
             flash("Account already exists for this staff member.", "danger")
-            staff_password_tokens.pop(token, None)
+            db.session.delete(token_row)
+            db.session.commit()
             return redirect(url_for('login'))
 
         # Create staff user
@@ -63,18 +90,22 @@ def set_staff_password(token):
             email=token_info.get('email'),
             first_name=token_info.get('first_name'),
             last_name=token_info.get('last_name'),
-            password=hashed_pw,
-            user_role_id=token_info.get('role')  # assumes role is id
+            password=hashed_pw
         )
         db.session.add(user)
+        db.session.delete(token_row)
         db.session.commit()
-        # Remove token after use
-        staff_password_tokens.pop(token, None)
         flash("Your password has been set. You may now log in.", "success")
         return redirect(url_for('login'))
 
     # GET request: Show form
-    return render_template('staff/set_staff_password.html', token=token, email=token_info.get('email')) # noqa
+    return render_template(
+        'staff/set_staff_password.html',
+        token=token,
+        email=token_info.get('email'),
+        first_name=token_info.get('first_name'),
+        last_name=token_info.get('last_name')
+    )
 
 
 @staff_bp.route('/reject-log', methods=['POST'])

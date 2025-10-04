@@ -71,5 +71,19 @@ class UserRole(db.Model):
     name = db.Column(db.String(), nullable=False)
 
 
+# Persistent staff password setup tokens
+class StaffPasswordToken(db.Model):
+    __tablename__ = 'staff_password_tokens'
+    id = db.Column(db.Integer, primary_key=True)
+    token = db.Column(db.String(255), unique=True, nullable=False)
+    email = db.Column(db.String(255), nullable=False)
+    first_name = db.Column(db.String(100), nullable=False)
+    last_name = db.Column(db.String(100), nullable=False)
+    school_id = db.Column(db.String(50), nullable=False)
+    form = db.Column(db.String(50))
+    picture_data = db.Column(db.LargeBinary)
+    created = db.Column(db.DateTime, default=db.func.current_timestamp())
+
+
 def init_models(app):
     db.init_app(app)

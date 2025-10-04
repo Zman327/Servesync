@@ -476,3 +476,46 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 });
+
+// Password Strength Indicator
+document.addEventListener('DOMContentLoaded', () => {
+    const passwordInput = document.getElementById('new_password');
+    const strengthBar = document.querySelector('.strength-bar');
+    const strengthText = document.querySelector('.strength-text');
+
+    if (passwordInput && strengthBar && strengthText) {
+        passwordInput.addEventListener('input', () => {
+            const val = passwordInput.value;
+            let strength = 0;
+
+            // Increase strength based on criteria
+            if (val.length >= 8) strength += 1;
+            if (/[A-Z]/.test(val)) strength += 1;
+            if (/[a-z]/.test(val)) strength += 1;
+            if (/[0-9]/.test(val)) strength += 1;
+            if (/[\W]/.test(val)) strength += 1;
+
+            // Update bar width and color
+            const percentage = (strength / 5) * 100;
+            strengthBar.style.width = percentage + '%';
+
+            if (strength <= 2) {
+                strengthBar.style.backgroundColor = '#e53935'; // red
+                strengthText.textContent = 'Weak';
+                strengthText.style.color = '#e53935';
+            } else if (strength === 3) {
+                strengthBar.style.backgroundColor = '#fbc02d'; // yellow
+                strengthText.textContent = 'Moderate';
+                strengthText.style.color = '#fbc02d';
+            } else if (strength >= 4) {
+                strengthBar.style.backgroundColor = '#2e7d32'; // green
+                strengthText.textContent = 'Strong';
+                strengthText.style.color = '#2e7d32';
+            } else {
+                strengthBar.style.backgroundColor = '#e0e0e0';
+                strengthText.textContent = 'Enter a password';
+                strengthText.style.color = '#555';
+            }
+        });
+    }
+});

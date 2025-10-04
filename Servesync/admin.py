@@ -15,7 +15,7 @@ from werkzeug.security import generate_password_hash
 import pandas as pd
 import requests
 import os
-from models import User, Award, ServiceHour, Group, db
+from models import User, Award, ServiceHour, Group, db, StaffPasswordToken
 admin_bp = Blueprint('admin', __name__)
 
 
@@ -654,17 +654,19 @@ def generate_password_setup_token(email):
     return token
 
 
-# --- Staff Password Setup Token Storage (in-memory for demonstration) ---
-staff_password_tokens = {}
 
 
 @admin_bp.route('/add-staff', methods=['POST'])
 def add_staff():
-    first_name = request.form['first_name']
-    last_name = request.form['last_name']
-    school_id = request.form['school_id']
-    form_class = request.form['form']
-    image_file = request.files['image']
+    # Read form fields
+    first_name = request.form.get('first_name', '').strip()
+    last_name = request.form.get('last_name', '').strip()
+    school_id = request.form.get('school_id', '').strip()
+    form_class = request.form.get('form', '').strip()
+    image_file = request.files.get('image')
+
+    # Debug prints to confirm values
+    print(f"[DEBUG] Received from form: first_name={first_name}, last_name={last_name}, school_id={school_id}, form={form_class}")
 
     # Convert image to binary
     picture_data = image_file.read() if image_file else None
@@ -677,17 +679,21 @@ def add_staff():
         flash('Staff with this email already exists.', 'danger')
         return redirect(url_for('admin.adminpage'))
 
-    # Instead of setting password here, generate a setup token
+    # Generate token and store in DB
     token = generate_password_setup_token(email)
-    staff_password_tokens[token] = {
-        'email': email,
-        'first_name': first_name,
-        'last_name': last_name,
-        'school_id': school_id,
-        'form': form_class,
-        'picture_data': picture_data,
-        'created': datetime.utcnow()
-    }
+    token_entry = StaffPasswordToken(
+        token=token,
+        email=email,
+        first_name=first_name,
+        last_name=last_name,
+        school_id=school_id,
+        form=form_class,
+        picture_data=picture_data,
+        created=datetime.utcnow()
+    )
+    db.session.add(token_entry)
+    db.session.commit()
+    print(f"[DEBUG] Token saved with first_name={token_entry.first_name}, last_name={token_entry.last_name}")
 
     # Build password setup link
     setup_link = url_for('admin.set_staff_password', token=token, _external=True)
@@ -732,44 +738,56 @@ from werkzeug.security import generate_password_hash
 
 @admin_bp.route('/set-staff-password/<token>', methods=['GET', 'POST'])
 def set_staff_password(token):
-    # Check if the token exists
-    staff_info = staff_password_tokens.get(token)
-    if not staff_info:
+    # Fetch the token from the database
+    token_entry = StaffPasswordToken.query.filter_by(token=token).first()
+    if not token_entry:
         return "Invalid or expired password setup link.", 400
 
     if request.method == 'POST':
         password = request.form.get('password')
         if not password or len(password) < 6:
             flash('Password must be at least 6 characters.', 'danger')
-            return render_template('admin/set_staff_password.html', first_name=staff_info['first_name'])
+            return render_template(
+                'staff/set_staff_password.html',
+                first_name=token_entry.first_name,
+                last_name=token_entry.last_name
+            )
         hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
 
         # Create staff user in DB
         new_staff = User(
-            first_name=staff_info['first_name'],
-            last_name=staff_info['last_name'],
-            school_id=staff_info['school_id'],
-            form=staff_info['form'],
+            first_name=token_entry.first_name,
+            last_name=token_entry.last_name,
+            school_id=token_entry.school_id,
+            form=token_entry.form,
             password=hashed_password,
             role=2,
             hours=None,
-            picture=staff_info['picture_data'],
-            email=staff_info['email']
+            picture=token_entry.picture_data,
+            email=token_entry.email
         )
         try:
             db.session.add(new_staff)
-            db.session.commit()
             # Remove token after use
-            del staff_password_tokens[token]
+            db.session.delete(token_entry)
+            db.session.commit()
             flash('Password set and staff account created!', 'success')
             return redirect(url_for('admin.adminpage'))
         except Exception as e:
             db.session.rollback()
             flash(f'Error creating staff: {e}', 'danger')
-            return render_template('admin/set_staff_password.html', first_name=staff_info['first_name'])
+            return render_template(
+                'staff/set_staff_password.html',
+                first_name=token_entry.first_name,
+                last_name=token_entry.last_name
+            )
 
     # GET: Show password setup form
-    return render_template('admin/set_staff_password.html', first_name=staff_info['first_name'])
+    return render_template(
+        'staff/set_staff_password.html',
+        first_name=token_entry.first_name,
+        last_name=token_entry.last_name
+    )
 
 
 # --- Review Student Route ---
