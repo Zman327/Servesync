@@ -32,8 +32,7 @@ def set_staff_password(token):
     """
     token_row = StaffPasswordToken.query.filter_by(token=token).first()
     if not token_row:
-        flash("Invalid or expired token. Please contact your administrator.", "danger")
-        return render_template('staff/set_staff_password.html', token=None)
+        return render_template('staff/set_staff_password.html', invalid_token=True)
 
     # Extract info from token row
     token_info = {
