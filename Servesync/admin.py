@@ -697,7 +697,7 @@ def add_staff():
     else:
         base_url = "https://servesync.burnside.school.nz/"
 
-    setup_link = url_for('admin.set_staff_password', token=token, _external=True) # noqa
+    setup_link = url_for('staff.set_staff_password', token=token, _external=True) # noqa
     setup_link = setup_link.replace(request.host_url, base_url)
 
     # Compose improved HTML email with green button and nicer layout
@@ -731,55 +731,6 @@ def add_staff():
     send_email(email, "Set up your ServeSync password", html_content)
     flash('Staff added! Password setup email sent.', 'success')
     return redirect(url_for('admin.adminpage'))
-
-
-@admin_bp.route('/set-staff-password/<token>', methods=['GET', 'POST'])
-def set_staff_password(token):
-    # Fetch the token from the database
-    token_entry = StaffPasswordToken.query.filter_by(token=token).first()
-    if not token_entry:
-        return "Invalid or expired password setup link.", 400
-
-    if request.method == 'POST':
-        password = request.form.get('password')
-        if not password or len(password) < 6:
-            flash('Password must be at least 6 characters.', 'danger')
-            return render_template(
-                'staff/set_staff_password.html',
-                first_name=token_entry.first_name,
-                last_name=token_entry.last_name
-            )
-        hashed_password = generate_password_hash(password, method='pbkdf2:sha256') # noqa
-
-        # Find the staff user in DB by email
-        staff = User.query.filter_by(email=token_entry.email).first()
-        if not staff:
-            flash('Staff account not found. Please contact an administrator.', 'danger') # noqa
-            # Remove the token anyway
-            db.session.delete(token_entry)
-            db.session.commit()
-            return redirect(url_for('auth.login'))
-        try:
-            staff.password = hashed_password
-            db.session.delete(token_entry)
-            db.session.commit()
-            flash('Password updated successfully! You can now log in.', 'success') # noqa
-            return redirect(url_for('auth.login'))
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error updating password: {e}', 'danger')
-            return render_template(
-                'staff/set_staff_password.html',
-                first_name=token_entry.first_name,
-                last_name=token_entry.last_name
-            )
-
-    # GET: Show password setup form
-    return render_template(
-        'staff/set_staff_password.html',
-        first_name=token_entry.first_name,
-        last_name=token_entry.last_name
-    )
 
 
 # --- Review Student Route ---

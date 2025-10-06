@@ -18,28 +18,20 @@ staff_bp = Blueprint('staff', __name__)
 last_notified = {}
 
 
-# Route: Set Staff Password (GET and POST)
 @staff_bp.route('/set-staff-password/<token>', methods=['GET', 'POST'])
 def set_staff_password(token):
-    """
-    Allow staff to set their password via a unique token.
-
-    GET: Show password set form if token is valid.
-    POST: Validate and set password, create staff user, remove token.
-    """
     token_row = StaffPasswordToken.query.filter_by(token=token).first()
     if not token_row:
-        return render_template('staff/set_staff_password.html', invalid_token=True)
+        print(f"[DEBUG] Token not found for: {token}")
+        return render_template('staff/set_staff_password.html', invalid_token=True) # noqa
 
-    # Extract info from token row
     token_info = {
         'school_id': token_row.school_id,
         'email': token_row.email,
         'first_name': token_row.first_name,
         'last_name': token_row.last_name
-        # 'role' is intentionally omitted since StaffPasswordToken does not have it
     }
-    print(f"[DEBUG] Token info: {token_info}")
+    print(f"[DEBUG] Token info retrieved: {token_info}")
 
     if request.method == 'POST':
         password = request.form.get('password')
@@ -62,8 +54,8 @@ def set_staff_password(token):
                 first_name=token_info.get('first_name'),
                 last_name=token_info.get('last_name')
             )
-        if len(password) < 8:
-            flash("Password must be at least 8 characters long.", "warning")
+        if len(password) < 6:
+            flash("Password must be at least 6 characters long.", "warning")
             return render_template(
                 'staff/set_staff_password.html',
                 token=token,
@@ -73,20 +65,26 @@ def set_staff_password(token):
             )
 
         hashed_pw = generate_password_hash(password, method='pbkdf2:sha256')
-        # Update password for existing user by email, using merge and log new hash
-        print(f"[DEBUG] Searching for staff by email: {token_info.get('email')}")
         staff = User.query.filter_by(email=token_info.get('email')).first()
         if staff:
+            print(f"[DEBUG] Found existing user: {staff.email}")
             staff.password = hashed_pw
             db.session.merge(staff)
-            db.session.delete(token_row)
             db.session.commit()
-            print(f"[DEBUG] Updated password for {staff.email}: {hashed_pw}")
-            flash("Your password has been updated successfully. You may now log in.", "success")
+            print(f"[DEBUG] Password updated for {staff.email}")
+
+            # Delete token after commit
+            try:
+                db.session.delete(token_row)
+                db.session.commit()
+                print(f"[DEBUG] Token {token} deleted successfully.")
+            except Exception as e:
+                print(f"[ERROR] Failed to delete token: {e}")
+
+            flash("Your password has been updated successfully. You may now log in.", "success") # noqa
             return redirect('/home')
 
         print("[DEBUG] No existing staff found — creating new user")
-        # Create staff user
         user = User(
             school_id=token_info.get('school_id'),
             email=token_info.get('email'),
@@ -95,12 +93,18 @@ def set_staff_password(token):
             password=hashed_pw
         )
         db.session.add(user)
-        db.session.delete(token_row)
         db.session.commit()
+
+        try:
+            db.session.delete(token_row)
+            db.session.commit()
+            print(f"[DEBUG] Token {token} deleted after new user creation.")
+        except Exception as e:
+            print(f"[ERROR] Failed to delete token after creating new user: {e}") # noqa
+
         flash("Your password has been set. You may now log in.", "success")
         return redirect('/home')
 
-    # GET request: Show form
     return render_template(
         'staff/set_staff_password.html',
         token=token,
