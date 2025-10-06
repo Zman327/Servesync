@@ -5,6 +5,9 @@ from models import db, User, Group, ServiceHour, Award
 from sqlalchemy import case
 from datetime import datetime
 import pytz
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 
 def login_required(f):
@@ -48,8 +51,22 @@ def studentpage():
     user_hours = sum(log.hours for log in approved_logs) if approved_logs else 0 # noqa
     # Update the user's total hours to keep the database in sync with approved
     # logs
+    # --- Milestone Email Logic ---
+    previous_hours = getattr(user, "hours", 0)
     user.hours = user_hours
     db.session.commit()
+
+    milestones = [
+        {"hours": 2, "name": "Service for Graduation", "colour": "#084231"},
+        {"hours": 20, "name": "Silver", "colour": "#C0C0C0"},
+        {"hours": 30, "name": "Gold", "colour": "#F4B942"},
+        {"hours": 40, "name": "Platinum", "colour": "#164580"}
+    ]
+
+    for milestone in milestones:
+        if previous_hours < milestone["hours"] <= user_hours:
+            send_award_email(user, milestone)
+            break
 
     # Find the highest award in the system to display max award info and check
     # if user has achieved it
@@ -377,3 +394,53 @@ def submit_hours():
         db.session.rollback()
         flash("An error occurred saving your log. Please try again.", "logpage-error") # noqa
     return redirect(url_for('student.logpage'))
+
+
+def send_award_email(user, milestone):
+    gmail_user = "servesync@burnside.school.nz"
+    gmail_pass = "ptjm tdom eoge yzbe"  # Gmail App Password
+
+    subject = f"🎉 Congratulations {user.first_name}! You've earned the {milestone['name']} Award!" # noqa
+    to_email = user.email
+
+    html_content = f"""
+    <div style="font-family: 'Arial', sans-serif; background-color: #f6f9f6; padding: 40px; text-align: center;">
+        <div style="max-width: 600px; margin: auto; background: white; border-radius: 12px;
+                    box-shadow: 0 6px 16px rgba(0,0,0,0.1); padding: 40px; border: 4px solid {milestone['colour']};">
+            <h1 style="color: {milestone['colour']}; font-size: 30px; margin-bottom: 10px;">Certificate of Achievement</h1>
+            <hr style="border: 1px solid {milestone['colour']}; width: 60px; margin: 20px auto;">
+
+            <p style="font-size: 18px; color: #444;">This certifies that</p>
+            <h2 style="font-size: 28px; color: #222; margin: 10px 0;">{user.first_name} {user.last_name}</h2>
+
+            <p style="font-size: 18px; color: #444;">has achieved the</p>
+            <h3 style="font-size: 26px; color: {milestone['colour']}; margin: 10px 0;">{milestone['name']} Award</h3>
+
+            <p style="color: #555;">Thank you for your dedication to community service through ServeSYNC.</p>
+
+            <div style="margin-top: 30px; color: #888; font-size: 14px;">
+                <em>Burnside High School · ServeSYNC</em><br>
+                <span style="color: #aaa;">{datetime.now().strftime("%B %d, %Y")}</span>
+            </div>
+        </div>
+
+        <p style="color: #666; margin-top: 25px;">Keep up the great work — next milestone is waiting!</p>
+    </div>
+    """  # noqa: E501
+
+    msg = MIMEMultipart('alternative')
+    msg['Subject'] = subject
+    msg['From'] = gmail_user
+    msg['To'] = to_email
+    msg.attach(MIMEText(html_content, 'html'))
+
+    try:
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.ehlo()
+        server.starttls()
+        server.login(gmail_user, gmail_pass)
+        server.sendmail(gmail_user, to_email, msg.as_string())
+        server.quit()
+        print(f"[EMAIL] Sent award email to {user.email} for {milestone['name']}") # noqa
+    except Exception as e:
+        print(f"[EMAIL ERROR] Failed to send email to {user.email}: {e}")

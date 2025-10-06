@@ -22,7 +22,6 @@ last_notified = {}
 def set_staff_password(token):
     token_row = StaffPasswordToken.query.filter_by(token=token).first()
     if not token_row:
-        print(f"[DEBUG] Token not found for: {token}")
         return render_template('staff/set_staff_password.html', invalid_token=True) # noqa
 
     token_info = {
@@ -31,7 +30,6 @@ def set_staff_password(token):
         'first_name': token_row.first_name,
         'last_name': token_row.last_name
     }
-    print(f"[DEBUG] Token info retrieved: {token_info}")
 
     if request.method == 'POST':
         password = request.form.get('password')
@@ -67,24 +65,20 @@ def set_staff_password(token):
         hashed_pw = generate_password_hash(password, method='pbkdf2:sha256')
         staff = User.query.filter_by(email=token_info.get('email')).first()
         if staff:
-            print(f"[DEBUG] Found existing user: {staff.email}")
             staff.password = hashed_pw
             db.session.merge(staff)
             db.session.commit()
-            print(f"[DEBUG] Password updated for {staff.email}")
 
             # Delete token after commit
             try:
                 db.session.delete(token_row)
                 db.session.commit()
-                print(f"[DEBUG] Token {token} deleted successfully.")
             except Exception as e:
                 print(f"[ERROR] Failed to delete token: {e}")
 
             flash("Your password has been updated successfully. You may now log in.", "success") # noqa
             return redirect('/home')
 
-        print("[DEBUG] No existing staff found — creating new user")
         user = User(
             school_id=token_info.get('school_id'),
             email=token_info.get('email'),
@@ -711,6 +705,28 @@ def approve_log():
         if service_log:
             service_log.status = 1  # Set status to Approved
             db.session.commit()
+            # --- Check milestone awards for the student ---
+            user = User.query.filter_by(school_id=service_log.user_id).first()
+            if user:
+                # Calculate total approved hours
+                approved_logs = ServiceHour.query.filter_by(user_id=user.school_id, status=1).all() # noqa
+                previous_hours = user.hours or 0
+                total_hours = sum(l.hours for l in approved_logs) # noqa
+                user.hours = total_hours
+                db.session.commit()
+
+                milestones = [
+                    {"hours": 2, "name": "Service for Graduation", "colour": "#084231"}, # noqa
+                    {"hours": 20, "name": "Silver", "colour": "#C0C0C0"},
+                    {"hours": 30, "name": "Gold", "colour": "#F4B942"},
+                    {"hours": 40, "name": "Platinum", "colour": "#164580"}
+                ]
+
+                from Servesync.student import send_award_email
+                for milestone in milestones:
+                    if previous_hours < milestone["hours"] <= total_hours:
+                        send_award_email(user, milestone)
+                        break
     # Redirect back to the referrer URL or staff page if referrer is
     # not available
     return redirect(request.referrer or url_for('staff.staffpage'))

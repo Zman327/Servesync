@@ -744,6 +744,49 @@ def review_student(user_id):
     return render_template('review_student.html', student=student)
 
 
+# --- Admin Approve Service Log Route ---
+@admin_bp.route('/admin/approve-log/<int:log_id>', methods=['POST'])
+def admin_approve_log(log_id):
+    if session.get('role') != 'Admin':
+        abort(403)
+    service_log = ServiceHour.query.get(log_id)
+    if not service_log:
+        flash("Service log not found.", "error")
+        return redirect(url_for('admin.adminpage'))
+    # Only approve if not already approved
+    if service_log.status != 1:
+        service_log.status = 1  # Approved
+        db.session.commit()
+
+        # --- Check milestone awards for the student ---
+        user = User.query.filter_by(school_id=service_log.user_id).first()
+        if user:
+            # Calculate total approved hours
+            approved_logs = ServiceHour.query.filter_by(user_id=user.school_id, status=1).all() # noqa
+            previous_hours = user.hours or 0
+            total_hours = sum(l.hours for l in approved_logs) # noqa
+            user.hours = total_hours
+            db.session.commit()
+
+            milestones = [
+                {"hours": 2, "name": "Service for Graduation", "colour": "#084231"}, # noqa
+                {"hours": 20, "name": "Silver", "colour": "#C0C0C0"},
+                {"hours": 30, "name": "Gold", "colour": "#F4B942"},
+                {"hours": 40, "name": "Platinum", "colour": "#164580"}
+            ]
+
+            from Servesync.student import send_award_email
+            for milestone in milestones:
+                if previous_hours < milestone["hours"] <= total_hours:
+                    send_award_email(user, milestone)
+                    break
+
+        flash("Service log approved.", "success")
+    else:
+        flash("Service log is already approved.", "info")
+    return redirect(url_for('admin.adminpage'))
+
+
 # --- Admin Download All Students as CSV ---
 @admin_bp.route('/admin/download/students/csv')
 def admin_download_students_csv():
