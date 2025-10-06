@@ -16,6 +16,10 @@ import pandas as pd
 import requests
 import os
 from models import User, Award, ServiceHour, Group, db, StaffPasswordToken
+import secrets
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 admin_bp = Blueprint('admin', __name__)
 
 
@@ -593,10 +597,7 @@ def bulk_upload_staff():
 @admin_bp.route('/remove-students', methods=['POST'])
 def remove_student():
     student_id = request.form.get('student_id')
-    print("🧪 Form student_id received:", student_id)
-
     student = User.query.filter_by(school_id=student_id).first()
-
     if student:
         ServiceHour.query.filter_by(user_id=student.school_id).delete()
         db.session.delete(student)
@@ -604,23 +605,14 @@ def remove_student():
         flash("Student successfully removed.", "success")
     else:
         flash("Student not found.", "error")
-
     return redirect(url_for('admin.adminpage'))
 
 
-
-# --- Real Gmail SMTP Email Sending Function with Verbose Logging ---
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-
-
 def send_email(to_email, subject, html_content):
-    # Hardcoded Gmail credentials (for demonstration only; do not use in production)
+    # Gmail credentials
     gmail_user = "servesync@burnside.school.nz"
     gmail_pass = "ptjm tdom eoge yzbe"  # Replace with your real app password
 
-    print(f"[EMAIL] Preparing to send email to {to_email} with subject '{subject}'")
     msg = MIMEMultipart('alternative')
     msg['Subject'] = subject
     msg['From'] = gmail_user
@@ -628,32 +620,21 @@ def send_email(to_email, subject, html_content):
     part = MIMEText(html_content, 'html')
     msg.attach(part)
     try:
-        print("[EMAIL] Connecting to smtp.gmail.com:587 ...")
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.ehlo()
         server.starttls()
-        print("[EMAIL] Logging in as", gmail_user)
         server.login(gmail_user, gmail_pass)
-        print("[EMAIL] Sending email ...")
         server.sendmail(gmail_user, to_email, msg.as_string())
-        print(f"[EMAIL] Email sent successfully to {to_email}")
         server.quit()
     except Exception as e:
         print(f"[EMAIL] Failed to send email: {e}")
 
-
-# --- Password Setup Token Generation ---
-import secrets
-import hashlib
-from werkzeug.security import check_password_hash
 
 def generate_password_setup_token(email):
     # Use a secure random token plus email hash for uniqueness
     token = secrets.token_urlsafe(32)
     # You could add a timestamp or sign this token for expiry, etc.
     return token
-
-
 
 
 @admin_bp.route('/add-staff', methods=['POST'])
@@ -664,9 +645,7 @@ def add_staff():
     school_id = request.form.get('school_id', '').strip()
     form_class = request.form.get('form', '').strip()
     image_file = request.files.get('image')
-
-    # Debug prints to confirm values
-    print(f"[DEBUG] Received from form: first_name={first_name}, last_name={last_name}, school_id={school_id}, form={form_class}")
+    password = request.form.get('password', '').strip()
 
     # Convert image to binary
     picture_data = image_file.read() if image_file else None
@@ -679,7 +658,25 @@ def add_staff():
         flash('Staff with this email already exists.', 'danger')
         return redirect(url_for('admin.adminpage'))
 
-    # Generate token and store in DB
+    # Hash the password
+    hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+
+    # Create staff user in DB immediately
+    new_staff = User(
+        first_name=first_name,
+        last_name=last_name,
+        school_id=school_id,
+        form=form_class,
+        password=hashed_password,
+        role=2,
+        hours=None,
+        picture=picture_data,
+        email=email
+    )
+    db.session.add(new_staff)
+    db.session.commit()
+
+    # Generate token and store in DB for password setup
     token = generate_password_setup_token(email)
     token_entry = StaffPasswordToken(
         token=token,
@@ -693,12 +690,15 @@ def add_staff():
     )
     db.session.add(token_entry)
     db.session.commit()
-    print(f"[DEBUG] Token saved with first_name={token_entry.first_name}, last_name={token_entry.last_name}")
 
-    # Build password setup link
-    setup_link = url_for('admin.set_staff_password', token=token, _external=True)
-    print(f"[DEBUG] Staff password setup token: {token}")
-    print(f"[DEBUG] Staff password setup link: {setup_link}")
+    # Determine base URL depending on environment
+    if "127.0.0.1" in request.host_url or "localhost" in request.host_url:
+        base_url = "http://127.0.0.1:5000/"
+    else:
+        base_url = "https://servesync.burnside.school.nz/"
+
+    setup_link = url_for('admin.set_staff_password', token=token, _external=True) # noqa
+    setup_link = setup_link.replace(request.host_url, base_url)
 
     # Compose improved HTML email with green button and nicer layout
     html_content = f"""
@@ -726,15 +726,12 @@ def add_staff():
       </div>
     </body>
     </html>
-    """
+    """  # noqa: E501
     # Send real email
     send_email(email, "Set up your ServeSync password", html_content)
     flash('Staff added! Password setup email sent.', 'success')
     return redirect(url_for('admin.adminpage'))
 
-
-# --- Staff Password Setup Route ---
-from werkzeug.security import generate_password_hash
 
 @admin_bp.route('/set-staff-password/<token>', methods=['GET', 'POST'])
 def set_staff_password(token):
@@ -752,30 +749,25 @@ def set_staff_password(token):
                 first_name=token_entry.first_name,
                 last_name=token_entry.last_name
             )
-        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+        hashed_password = generate_password_hash(password, method='pbkdf2:sha256') # noqa
 
-        # Create staff user in DB
-        new_staff = User(
-            first_name=token_entry.first_name,
-            last_name=token_entry.last_name,
-            school_id=token_entry.school_id,
-            form=token_entry.form,
-            password=hashed_password,
-            role=2,
-            hours=None,
-            picture=token_entry.picture_data,
-            email=token_entry.email
-        )
-        try:
-            db.session.add(new_staff)
-            # Remove token after use
+        # Find the staff user in DB by email
+        staff = User.query.filter_by(email=token_entry.email).first()
+        if not staff:
+            flash('Staff account not found. Please contact an administrator.', 'danger') # noqa
+            # Remove the token anyway
             db.session.delete(token_entry)
             db.session.commit()
-            flash('Password set and staff account created!', 'success')
-            return redirect(url_for('admin.adminpage'))
+            return redirect(url_for('auth.login'))
+        try:
+            staff.password = hashed_password
+            db.session.delete(token_entry)
+            db.session.commit()
+            flash('Password updated successfully! You can now log in.', 'success') # noqa
+            return redirect(url_for('auth.login'))
         except Exception as e:
             db.session.rollback()
-            flash(f'Error creating staff: {e}', 'danger')
+            flash(f'Error updating password: {e}', 'danger')
             return render_template(
                 'staff/set_staff_password.html',
                 first_name=token_entry.first_name,

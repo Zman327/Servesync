@@ -18,9 +18,6 @@ staff_bp = Blueprint('staff', __name__)
 last_notified = {}
 
 
-
-
-
 # Route: Set Staff Password (GET and POST)
 @staff_bp.route('/set-staff-password/<token>', methods=['GET', 'POST'])
 def set_staff_password(token):
@@ -42,6 +39,7 @@ def set_staff_password(token):
         'last_name': token_row.last_name
         # 'role' is intentionally omitted since StaffPasswordToken does not have it
     }
+    print(f"[DEBUG] Token info: {token_info}")
 
     if request.method == 'POST':
         password = request.form.get('password')
@@ -74,15 +72,20 @@ def set_staff_password(token):
                 last_name=token_info.get('last_name')
             )
 
-        hashed_pw = generate_password_hash(password)
-        # Check if user already exists
-        existing = User.query.filter_by(school_id=token_info.get('school_id')).first()
-        if existing:
-            flash("Account already exists for this staff member.", "danger")
+        hashed_pw = generate_password_hash(password, method='pbkdf2:sha256')
+        # Update password for existing user by email, using merge and log new hash
+        print(f"[DEBUG] Searching for staff by email: {token_info.get('email')}")
+        staff = User.query.filter_by(email=token_info.get('email')).first()
+        if staff:
+            staff.password = hashed_pw
+            db.session.merge(staff)
             db.session.delete(token_row)
             db.session.commit()
-            return redirect(url_for('login'))
+            print(f"[DEBUG] Updated password for {staff.email}: {hashed_pw}")
+            flash("Your password has been updated successfully. You may now log in.", "success")
+            return redirect('/home')
 
+        print("[DEBUG] No existing staff found — creating new user")
         # Create staff user
         user = User(
             school_id=token_info.get('school_id'),
@@ -95,7 +98,7 @@ def set_staff_password(token):
         db.session.delete(token_row)
         db.session.commit()
         flash("Your password has been set. You may now log in.", "success")
-        return redirect(url_for('login'))
+        return redirect('/home')
 
     # GET request: Show form
     return render_template(
