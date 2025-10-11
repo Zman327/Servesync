@@ -290,11 +290,11 @@
             <button id="nextPage">Next</button>
           </div>
           <div style="margin-top: -27px; font-weight: bold;">
-            <span style="color: green;">Approved: {{ accepted_count }}</span>
+            <span style="color: green;">Approved: <span id="approvedCount">{{ accepted_count }}</span></span>
             &nbsp;&nbsp;&nbsp;
-            <span style="color: orange;">Pending: {{ pending_count }}</span>
+            <span style="color: orange;">Pending: <span id="pendingCount">{{ pending_count }}</span></span>
             &nbsp;&nbsp;&nbsp;
-            <span style="color: red;">Rejected: {{ rejected_count }}</span>
+            <span style="color: red;">Rejected: <span id="rejectedCount">{{ rejected_count }}</span></span>
           </div>
     
           <!-- Review Modal -->
@@ -613,7 +613,13 @@
   const awardColors = {{ award_colors | safe }};
   window.allStudents = {{ all_students | tojson | safe }};
   window.allStaff = {{ all_staff | tojson | safe }};
-  const statusData = {{ submission_status_data | tojson | safe }};
+  // Use the same numbers shown in the submissions section
+  const statusData = {
+    Approved: {{ accepted_count }},
+    Pending: {{ pending_count }},
+    Rejected: {{ rejected_count }}
+  };
+  console.log("Status Data (from template):", statusData);
 </script>
 
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>

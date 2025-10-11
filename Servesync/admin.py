@@ -691,14 +691,13 @@ def add_staff():
     db.session.add(token_entry)
     db.session.commit()
 
-    # Determine base URL depending on environment
+    # Use the production domain if online, fallback to localhost for testing
     if "127.0.0.1" in request.host_url or "localhost" in request.host_url:
         base_url = "http://127.0.0.1:5000/"
     else:
         base_url = "https://servesync.burnside.school.nz/"
 
-    setup_link = url_for('staff.set_staff_password', token=token, _external=True) # noqa
-    setup_link = setup_link.replace(request.host_url, base_url)
+    setup_link = f"{base_url}staff/set-password/{token}"
 
     # Compose improved HTML email with green button and nicer layout
     html_content = f"""

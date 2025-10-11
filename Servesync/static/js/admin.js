@@ -63,46 +63,47 @@ function sortTableByColumn(tableId, columnIndex, ascending = true) {
   });
   
 // Submission Status Overview (Bar Chart)
+const approvedText = document.getElementById("approvedCount")?.textContent || "0";
+const pendingText = document.getElementById("pendingCount")?.textContent || "0";
+const rejectedText = document.getElementById("rejectedCount")?.textContent || "0";
+
+const approvedCount = parseInt(approvedText.replace(/\D/g, "")) || 0;
+const pendingCount = parseInt(pendingText.replace(/\D/g, "")) || 0;
+const rejectedCount = parseInt(rejectedText.replace(/\D/g, "")) || 0;
+
 new Chart(document.getElementById('chart-hours-by-group'), {
-    type: 'bar',
-    data: {
-      labels: ['Approved', 'Pending', 'Rejected'],
-      datasets: [{
-        label: 'Number of Submissions',
-        data: [120, 30, 10], 
-        backgroundColor: [
-          '#4CAF50',  // Approved - green
-          '#FFC107',  // Pending - amber
-          '#F44336'   // Rejected - red
-        ]
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        title: {
-          display: true,
-          text: 'Submission Status Overview',
-          font: {
-            size: 18
-          }
-        },
-        legend: {
-          display: false
-        }
+  type: 'bar',
+  data: {
+    labels: ['Approved', 'Pending', 'Rejected'],
+    datasets: [{
+      label: 'Number of Submissions',
+      data: [approvedCount, pendingCount, rejectedCount],
+      backgroundColor: [
+        '#4CAF50',  // Approved - green
+        '#FFC107',  // Pending - amber
+        '#F44336'   // Rejected - red
+      ]
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      title: {
+        display: true,
+        text: 'Submission Status Overview',
+        font: { size: 18 }
       },
-      scales: {
-        y: {
-          beginAtZero: true,
-          title: {
-            display: true,
-            text: 'Submission Count'
-          }
-        }
+      legend: { display: false }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        title: { display: true, text: 'Submission Count' }
       }
     }
-  });
+  }
+});
   
   // Award Distribution Chart (Pie)
   new Chart(document.getElementById('chart-award-distribution'), {
