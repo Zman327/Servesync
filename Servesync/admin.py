@@ -697,7 +697,7 @@ def add_staff():
     else:
         base_url = "https://servesync.burnside.school.nz/"
 
-    setup_link = f"{base_url}staff/set-password/{token}"
+    setup_link = f"{base_url}set-staff-password/{token}"
 
     # Compose improved HTML email with green button and nicer layout
     html_content = f"""
