@@ -1,3 +1,32 @@
+def send_staff_invite(email, first_name, last_name, token, base_url):
+    setup_link = f"{base_url}set-staff-password/{token}"
+    html_content = f"""
+    <html>
+    <body style="background:#f7fafc;padding:0;margin:0;">
+      <div style="max-width:480px;margin:40px auto;background:#fff;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,0.06);padding:32px 28px 28px 28px;border:1px solid #e3e7ea;font-family:'Segoe UI',Arial,sans-serif;">
+        <div style="text-align:center;">
+          <h2 style="color:#197d3a;margin-bottom:8px;">Welcome to ServeSync!</h2>
+        </div>
+        <p style="font-size:16px;color:#222;margin-bottom:14px;">Hello <b>{first_name} {last_name}</b>,</p>
+        <p style="font-size:15px;color:#333;margin-bottom:26px;">
+          Your staff account has been created. Please set your password by clicking the button below:
+        </p>
+        <div style="text-align:center;margin-bottom:24px;">
+          <a href="{setup_link}" style="display:inline-block;background:#43a047;color:#fff;padding:14px 32px;text-decoration:none;border-radius:6px;font-size:17px;font-weight:600;">Set Your Password</a>
+        </div>
+        <p style="font-size:13px;color:#555;margin-top:20px;">
+          If the button above doesn’t work, copy and paste this link:<br>
+          <a href="{setup_link}" style="color:#1976d2;">{setup_link}</a>
+        </p>
+        <p style="font-size:14px;color:#888;margin-top:20px;">
+          Thank you,<br>
+          <span style="color:#197d3a;font-weight:500;">The ServeSync Team</span>
+        </p>
+      </div>
+    </body>
+    </html>
+    """
+    send_email(email, "Set up your ServeSync password", html_content)
 from flask import Blueprint
 from flask import render_template, request, redirect, url_for, flash, jsonify, make_response # noqa
 from flask import session, abort
@@ -492,7 +521,7 @@ def bulk_upload_staff():
             elif filename.endswith(('.xls', '.xlsx')):
                 df = pd.read_excel(file, engine='openpyxl')
             else:
-                flash('Unsupported file format. Please upload a .csv or .xlsx file.', 'danger') # noqa
+                flash('Unsupported file format. Please upload a .csv or .xlsx file.', 'danger')
                 return redirect(url_for('admin.adminpage'))
         except Exception as e:
             flash(f'Error reading file: {e}', 'danger')
@@ -501,26 +530,35 @@ def bulk_upload_staff():
         # Normalize and validate required columns (case-insensitive)
         df.columns = [col.strip().lower() for col in df.columns]
 
-        # Required columns for staff spreadsheet (removed 'email (school)')
+        # Accept either 'code' or 'id' as the staff identifier column
         required_cols = [
-            'code',
+            ('code', 'id'),  # Accept either 'code' or 'id'
             'last name',
             'first name',
             'internet - password display - staff'
         ]
-        missing = [col for col in required_cols if col not in df.columns]
+        # Check for presence of at least one of ('code', 'id')
+        missing = []
+        for col in required_cols:
+            if isinstance(col, tuple):
+                if not any(opt in df.columns for opt in col):
+                    missing.append(f"{' or '.join(opt.title() for opt in col)}")
+            else:
+                if col not in df.columns:
+                    missing.append(col.title())
         if missing:
-            flash(f"Missing required columns: {[col.title() for col in missing]}", "danger") # noqa
+            flash(f"Missing required columns: {missing}", "danger")
             return redirect(url_for('admin.adminpage'))
 
-        # Rename columns for consistent access (removed 'email (school)')
+        # Rename columns for consistent access, mapping both 'code' and 'id' to 'School ID'
         rename_map = {
             'code': 'School ID',
+            'id': 'School ID',
             'last name': 'Last Name',
             'first name': 'First Name',
             'internet - password display - staff': 'Password'
         }
-        df.rename(columns={col: rename_map[col] for col in rename_map if col in df.columns}, inplace=True) # noqa
+        df.rename(columns={col: rename_map[col] for col in rename_map if col in df.columns}, inplace=True)
 
         for _, row in df.iterrows():
             try:
@@ -531,7 +569,7 @@ def bulk_upload_staff():
                 # Generate staff email automatically
                 email = f"{school_id}@burnside.school.nz"
 
-                hashed_password = generate_password_hash(raw_pass, method='pbkdf2:sha256') # noqa
+                hashed_password = generate_password_hash(raw_pass, method='pbkdf2:sha256')
 
                 if User.query.filter_by(email=email).first():
                     continue
@@ -557,10 +595,37 @@ def bulk_upload_staff():
         # Commit all new staff
         try:
             db.session.commit()
-            flash(f'{added_count} Staff members added successfully!', 'success') # noqa
+            # --- Inserted logic for sending invites to new staff ---
+            # Determine base URL
+            if "127.0.0.1" in request.host_url or "localhost" in request.host_url:
+                base_url = "http://127.0.0.1:5000/"
+            else:
+                base_url = "https://servesync.burnside.school.nz/"
+
+            # Prepare and send password setup emails for newly added staff
+            staff_members = User.query.filter_by(role=2).order_by(User.school_id.desc()).limit(added_count).all()
+            for staff in staff_members:
+                token = generate_password_setup_token(staff.email)
+                token_entry = StaffPasswordToken(
+                    token=token,
+                    email=staff.email,
+                    first_name=staff.first_name,
+                    last_name=staff.last_name,
+                    school_id=staff.school_id,
+                    form=None,
+                    picture_data=staff.picture,
+                    created=datetime.utcnow()
+                )
+                db.session.add(token_entry)
+                db.session.commit()
+                send_staff_invite(staff.email, staff.first_name, staff.last_name, token, base_url)
+
+            flash(f'{added_count} Staff members added successfully and invited via email!', 'success')
+            print(f"Invited {added_count} new staff via email.")
         except Exception as e:
             db.session.rollback()
             flash(f'Error committing to database: {e}', 'danger')
+            print(f"Error committing staff: {e}")
 
     # --- Handle bulk staff photo uploads if provided ---
     if photos:
@@ -586,7 +651,7 @@ def bulk_upload_staff():
 
         try:
             db.session.commit()
-            flash(f"Uploaded {updated} staff photos. Skipped {skipped} (no matching staff).", "success") # noqa
+            flash(f"Uploaded {updated} staff photos. Skipped {skipped} (no matching staff).", "success")
         except Exception as e:
             db.session.rollback()
             flash(f"Error uploading staff photos: {e}", "danger")
