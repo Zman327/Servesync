@@ -7,7 +7,7 @@ import datetime
 import os
 
 # Path to your OAuth 2.0 Desktop JSON
-OAUTH_FILE = os.path.join(os.path.dirname(__file__), 'client_secret_26915404481-9hb1v0m38fm6b5tvsgf6i60fu5pm2k4c.apps.googleusercontent.com.json')
+OAUTH_FILE = os.path.join(os.path.dirname(__file__), 'client_secret_26915404481-9hb1v0m38fm6b5tvsgf6i60fu5pm2k4c.apps.googleusercontent.com.json') # noqa
 
 # Token file to store credentials
 TOKEN_FILE = os.path.join(os.path.dirname(__file__), 'token.pickle')
@@ -16,7 +16,7 @@ TOKEN_FILE = os.path.join(os.path.dirname(__file__), 'token.pickle')
 DRIVE_FOLDER_ID = '1JaeKjES4yge5QO__3_xovb_loLItaLsG'
 
 # Path to your database
-DB_FILE = os.path.join(os.path.dirname(__file__), '..', 'Servesync', 'ServeSync.db')
+DB_FILE = os.path.join(os.path.dirname(__file__), '..', 'Servesync', 'ServeSync.db') # noqa
 if not os.path.exists(DB_FILE):
     raise FileNotFoundError(f"Database file not found: {DB_FILE}")
 

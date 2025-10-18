@@ -1,15 +1,105 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>413 - Request Entity Too Large</title>
-    <link rel="stylesheet" href="/static/css/error.css">
-</head>
-<body class="page-404">
-    <div class="container-404">
-        <h1>413 Oops!</h1>
-        <h2>413 - Request Entity Too Large</h2>
-        <p>The file you tried to upload is too large for the server to handle.</p>
+{% extends "layout/layout.html" %}
+
+{% block title %}ServeSYNC - Log Hours{% endblock %}
+
+{% block content %}
+<main class="dashboard">
+  <div class="left-column">
+    <div class="section form-card">
+      <h2 class="center-text">Log Your Service Hours</h2>
+      <form action="/submit-hours" method="post" class="floating-form">
+        <div class="form-group">
+            <i class="fas fa-calendar-alt"></i>
+            <input type="date" name="date" id="date" required placeholder=" ">
+            <label for="date">Date of Activity</label>
+          </div>
+        <div class="form-group">
+            <i class="fas fa-users"></i>
+            <select name="group" id="group" required>
+              <option value="" disabled selected></option>
+              {% for group in groups %}
+                <option value="{{ group.name }}">{{ group.name }}</option>
+              {% endfor %}
+            </select>
+            <label for="group">Group</label>
+        </div>
+        <div class="form-group">
+            <i class="fas fa-user-tie"></i>
+            <select name="person_in_charge" id="person_in_charge" required>
+                <option value="" disabled selected></option>
+                {% for teacher in staff_members %}
+                  <option value="{{ teacher.first_name }} {{ teacher.last_name }} ({{ teacher.school_id }})">
+                    {{ teacher.first_name }} {{ teacher.last_name }} ({{ teacher.school_id }})
+                  </option>
+                {% endfor %}
+              </select>
+            <label for="person_in_charge">Person in Charge</label>
+        </div>
+        <div class="form-group">
+          <i class="fas fa-tasks"></i>
+          <input type="text" name="activity" id="activity" required placeholder=" ">
+          <label for="activity">Activity Name</label>
+        </div>
+        <div class="form-group">
+          <i class="fas fa-clock"></i>
+          <input type="number" name="hours" id="hours" required step="0.5" min="0" placeholder=" ">
+          <label for="hours">Hours Completed</label>
+        </div>
+        {% if session.success %}
+          <div id="confirmation-message">✅ Your hours have been submitted for review!</div>
+        {% endif %}
+        <button type="submit" class="login-btn">
+          <span class="btn-text">Submit Hours</span>
+          <span class="btn-loader" style="display: none;">
+            <i class="fas fa-spinner fa-spin"></i>
+          </span>
+        </button>
+      </form>
     </div>
-</body>
-</html>
+  </div>
+  <div class="right-column">
+    <div class="info-box">
+      <h3>Need Help?</h3>
+      <p>Make sure you enter your hours truthfully. Contact your teacher if you're unsure.</p>
+    </div>
+  </div>
+</main>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const dateInput = document.getElementById("date");
+    if (dateInput) {
+      const today = new Date().toISOString().split("T")[0];
+      dateInput.setAttribute("max", today);
+      dateInput.value = today;
+    }
+
+    // Confirmation message animation
+    const confirmation = document.getElementById("confirmation-message");
+    if (confirmation) {
+      confirmation.classList.add("show");
+      confirmation.scrollIntoView({ behavior: "smooth" });
+    }
+
+    // Form validation and submit animation
+    const form = document.querySelector("form");
+    if (form) {
+      form.addEventListener("submit", (e) => {
+        const hoursInput = document.getElementById("hours");
+        const hours = parseFloat(hoursInput.value);
+        if (hours <= 0) {
+          e.preventDefault();
+          alert("Hours must be greater than 0.");
+          return;
+        }
+
+        const btnText = form.querySelector(".btn-text");
+        const btnLoader = form.querySelector(".btn-loader");
+        if (btnText && btnLoader) {
+          btnText.style.display = "none";
+          btnLoader.style.display = "inline-block";
+        }
+      });
+    }
+  });
+</script>
+{% endblock %}
