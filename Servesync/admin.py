@@ -661,6 +661,7 @@ def send_staff_invite(email, first_name, last_name, token, base_url):
     send_email(email, "Set up your ServeSync password", html_content)
 
 
+
 @admin_bp.route('/remove-students', methods=['POST'])
 def remove_student():
     student_id = request.form.get('student_id')
@@ -672,6 +673,85 @@ def remove_student():
         flash("Student successfully removed.", "success")
     else:
         flash("Student not found.", "error")
+    return redirect(url_for('admin.adminpage'))
+
+
+# --- Bulk Remove Students Route ---
+@admin_bp.route('/bulk-remove-students', methods=['POST'])
+def bulk_remove_students():
+    file = request.files.get('bulk_remove_file')
+    print("DEBUG: /bulk-remove-students route called.")
+    if not file or not file.filename:
+        print("DEBUG: No file uploaded for bulk removal.")
+        flash("No file uploaded for bulk removal.", "danger")
+        return redirect(url_for('admin.adminpage'))
+
+    print(f"DEBUG: File '{file.filename}' received for bulk removal.")
+    filename = file.filename.lower()
+    df = None
+    try:
+        if filename.endswith('.csv'):
+            print("DEBUG: File identified as CSV.")
+            try:
+                df = pd.read_csv(file, encoding='utf-8')
+            except UnicodeDecodeError:
+                file.seek(0)
+                df = pd.read_csv(file, encoding='latin1')
+        elif filename.endswith(('.xls', '.xlsx')):
+            print("DEBUG: File identified as Excel.")
+            df = pd.read_excel(file, engine='openpyxl')
+        else:
+            print("DEBUG: Unsupported file format.")
+            flash('Unsupported file format. Please upload a .csv or .xlsx file.', 'danger')
+            return redirect(url_for('admin.adminpage'))
+    except Exception as e:
+        print(f"DEBUG: Error reading file: {e}")
+        flash(f'Error reading file: {e}', 'danger')
+        return redirect(url_for('admin.adminpage'))
+
+    # Normalize all columns to lowercase for easier matching
+    df.columns = [col.strip().lower() for col in df.columns]
+    print("DEBUG: DataFrame columns after normalization:", df.columns.tolist())
+    print("DEBUG: DataFrame head:\n", df.head())
+    # Acceptable column names for student ID
+    id_columns = ['student id', 'school_id']
+    # Find which column is present
+    found_id_col = None
+    for col in id_columns:
+        if col in df.columns:
+            found_id_col = col
+            break
+    if not found_id_col:
+        print("DEBUG: Missing required column: 'Student ID' or 'school_id'.")
+        flash("Missing required column: 'Student ID' or 'school_id'.", "danger")
+        return redirect(url_for('admin.adminpage'))
+
+    # Ensure we cast and strip for all student IDs
+    student_ids = df[found_id_col].astype(str).str.strip().tolist()
+    removed_count = 0
+    skipped_count = 0
+    for sid in student_ids:
+        sid_stripped = str(sid).strip()
+        # Query with stripped, string-cast school_id
+        student = User.query.filter(func.trim(func.cast(User.school_id, db.String)) == sid_stripped).first()
+        print(f"DEBUG: Processing student ID '{sid_stripped}'.")
+        if student:
+            print(f"DEBUG: Found user in DB for ID '{sid_stripped}'. Removing student.")
+            ServiceHour.query.filter_by(user_id=str(student.school_id).strip()).delete()
+            db.session.delete(student)
+            removed_count += 1
+        else:
+            print(f"DEBUG: No user found in DB for ID '{sid_stripped}'. Skipping.")
+            skipped_count += 1
+    try:
+        print("DEBUG: Attempting to commit bulk removal transaction.")
+        db.session.commit()
+        print("DEBUG: Commit successful.")
+        flash(f"Bulk removal complete. {removed_count} students removed, {skipped_count} skipped (not found).", "success")
+    except Exception as e:
+        print(f"DEBUG: Error during commit: {e}")
+        db.session.rollback()
+        flash(f"Error during bulk removal: {e}", "danger")
     return redirect(url_for('admin.adminpage'))
 
 
